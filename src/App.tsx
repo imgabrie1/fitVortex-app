@@ -3,18 +3,24 @@ import { StyleSheet, Text, View } from 'react-native';
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>testando!</Text>
+    <View style={container.container}>
+      <Text style={textWhite.container}>testando!</Text>
       <StatusBar style="auto" />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const container = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: 'black',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+});
+
+const textWhite = StyleSheet.create({
+  container: {
+    color: 'red'
   },
 });
