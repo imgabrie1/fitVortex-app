@@ -1,19 +1,21 @@
-import React, { Fragment, useContext } from "react";
-import {
-  Text,
-  View,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-} from "react-native";
+import React, { useContext, useState } from "react";
+import { View, TouchableOpacity, ActivityIndicator } from "react-native";
 import { AuthContext } from "@/contexts/AuthContext";
 import { iDataLogin } from "@/contexts/interface";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { schema } from "./schema";
+import { styles } from "./styles";
+import AppText from "@/components/AppText";
+import { Input } from "@/components/Input";
+import { MaterialIcons, Octicons } from "@expo/vector-icons";
+import TitleText from "@/components/TitleText";
+import { Button } from "@/components/Button";
 
 const FormLogin = () => {
   const { login, loadingForm } = useContext(AuthContext);
+
+  const [showPassword, setShowPassword] = useState(true);
 
   const {
     control,
@@ -29,66 +31,68 @@ const FormLogin = () => {
   };
 
   return (
-    <Fragment>
-      <View >
-        <Text >Entrar</Text>
-      </View>
+    <View style={styles.container}>
+      <TitleText style={styles.textEnter}>Entrar</TitleText>
 
-      <View >
-        <View>
-          <Controller
-            control={control}
-            name="email"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                placeholder="Email"
-                placeholderTextColor="#999"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                onBlur={onBlur}
-                onChangeText={onChange}
-                value={value}
-              />
-            )}
-          />
+      <View style={styles.wrapper}>
+        <Controller
+          control={control}
+          name="email"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Input
+              title="EMAIL"
+              IconRigth={MaterialIcons}
+              iconRightName="mail"
+              placeholder="example@email.com"
+              placeholderTextColor="#00000052"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              onBlur={onBlur}
+              onChangeText={onChange}
+              value={value}
+            />
+          )}
+        />
+        {errors.email && (
+          <AppText style={styles.error}>{errors.email.message}</AppText>
+        )}
 
-          {errors.email && <Text>{errors.email.message}</Text>}
-          <Controller
-            control={control}
-            name="password"
-            render={({ field: { onChange, onBlur, value } }) => (
-              <TextInput
-                placeholder="Senha"
-                placeholderTextColor="#999"
-                secureTextEntry
-                onBlur={onBlur}
-                onChangeText={onChange}
-                value={value}
-              />
-            )}
-          />
-          <View>
-            {errors.password && <Text>{errors.password.message}</Text>}
-          </View>
-        </View>
-        <View >
-          <TouchableOpacity
+        <Controller
+          control={control}
+          name="password"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <Input
+              title="SENHA"
+              IconRigth={Octicons}
+              iconRightName={showPassword ? "eye-closed" : "eye"}
+              onIconRigthPress={() => setShowPassword(!showPassword)}
+              placeholder="**********"
+              placeholderTextColor="#00000052"
+              secureTextEntry={showPassword}
+              onBlur={onBlur}
+              onChangeText={onChange}
+              value={value}
+              multiline={false}
+            />
+          )}
+        />
+        {errors.password && (
+          <AppText style={styles.error}>{errors.password.message}</AppText>
+        )}
+        <View style={styles.buttonWrapper}>
+          <Button
+            text="ENTRAR"
             onPress={handleSubmit(onSubmit)}
-            disabled={loadingForm}
-          >
-            {loadingForm ? (
-              <ActivityIndicator size="small" color="#FFF" />
-            ) : (
-              <Text >ENTRAR</Text>
-            )}
-          </TouchableOpacity>
+            loading={loadingForm}
+          />
+
+          <AppText style={styles.text}>
+            Não tem conta? <AppText style={styles.link}>Crie agora!</AppText>
+          </AppText>
         </View>
       </View>
-      <Text>
-        Não tem conta? <Text >Crie agora</Text>
-      </Text>
-    </Fragment>
+    </View>
   );
 };
 
-export default FormLogin
+export default FormLogin;
