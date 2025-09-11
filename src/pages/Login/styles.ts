@@ -1,8 +1,11 @@
 import { themas } from "@/global/themes";
-import { Dimensions, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 
 export const style = StyleSheet.create({
   container: {
-    // estilos...
+    flex: 1,
+    backgroundColor: "black",
+    justifyContent: "center",
+    alignItems: "center"
   },
 });
