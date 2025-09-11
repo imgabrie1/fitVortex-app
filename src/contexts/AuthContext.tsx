@@ -2,7 +2,6 @@ import React, { createContext, useState, useEffect, ReactNode } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "@/services/api";
 import { navigate } from "@/navigation/RootNavigation";
-import { Alert } from "react-native";
 
 type Credentials = {
   email: string;
@@ -60,7 +59,6 @@ export const AuthProvider = ({ children }: Props) => {
       api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       setToken(token);
 
-      Alert.alert("sei la", "sei la")
       navigate("BottomRoutes", { screen: "Home" });
     } catch (err: any) {
       const msg = err?.response?.data || err?.message || "Erro ao logar";

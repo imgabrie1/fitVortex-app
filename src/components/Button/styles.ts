@@ -1,5 +1,7 @@
 import { themas } from "@/global/themes";
-import { StyleSheet } from "react-native";
+import { Dimensions, StyleSheet } from "react-native";
+
+const { width, height } = Dimensions.get("window");
 
 export const style = StyleSheet.create({
   textButton: {
@@ -8,20 +10,11 @@ export const style = StyleSheet.create({
     fontWeight: "bold",
   },
   button: {
-    width: "80%",
-    height: 50,
+    width: "100%",
+    paddingVertical: 14,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: themas.Colors.primary,
     borderRadius: 10,
-    shadowColor: themas.Colors.led,
-    shadowOffset: {
-      width: 0,
-      height: 12,
-    },
-    shadowOpacity: 0.58,
-    shadowRadius: 16.0,
-
-    elevation: 24,
   },
 });

@@ -1,93 +1,111 @@
-import { themas } from "@/global/themes";
-import React, { forwardRef, Fragment, Ref } from "react";
+import React, { forwardRef, Ref } from "react";
 import {
-  View,
   TextInput,
-  Text,
+  View,
   TextInputProps,
   TouchableOpacity,
+  StyleProp,
+  TextStyle,
 } from "react-native";
+import { MaterialIcons, FontAwesome, Octicons } from "@expo/vector-icons";
+import { themas } from "../../global/themes";
 import { style } from "./styles";
-import { MaterialIcons, Octicons } from "@expo/vector-icons";
+import TitleText from "../TitleText";
 
 type IconComponent =
   | React.ComponentType<React.ComponentProps<typeof MaterialIcons>>
+  | React.ComponentType<React.ComponentProps<typeof FontAwesome>>
   | React.ComponentType<React.ComponentProps<typeof Octicons>>;
 
 type Props = TextInputProps & {
-  title?: string;
-  placeholder?: string;
   IconLeft?: IconComponent;
-  IconRight?: IconComponent;
-  IconLeftName?: string;
-  IconRightName?: string;
+  IconRigth?: IconComponent;
+  iconLeftName?: string;
+  iconRightName?: string;
+  title?: string;
   onIconLeftPress?: () => void;
-  onIconRightPress?: () => void;
+  onIconRigthPress?: () => void;
+  height?: number;
+  labelStyle?: StyleProp<TextStyle>;
 };
 
-export const Input = forwardRef((Props: Props, ref: Ref<TextInput> | null) => {
-  const {
-    title,
-    placeholder,
-    IconLeft,
-    IconRight,
-    IconLeftName,
-    IconRightName,
-    onIconLeftPress,
-    onIconRightPress,
-    ...rest
-  } = Props;
+export const Input = forwardRef(
+  (props: Props, ref: Ref<TextInput> | null) => {
+    const {
+      IconLeft,
+      IconRigth,
+      iconLeftName,
+      iconRightName,
+      title,
+      onIconLeftPress,
+      onIconRigthPress,
+      height,
+      labelStyle,
+      ...rest
+    } = props;
 
-  const calculateSizeWidth = () => {
-    if (IconLeft && IconRight) {
-      return "80%";
-    } else if (IconLeft || IconRight) {
-      return "90%";
-    } else {
-      return "100%";
-    }
-  };
+    const calculateSizeWidth = () => {
+      if (IconLeft && IconRigth) {
+        return "80%";
+      } else if (IconLeft || IconRigth) {
+        return "90%";
+      } else {
+        return "100%";
+      }
+    };
 
-  const calculateSizePaddingLeft = () => {
-    if (IconLeft && IconRight) {
-      return 10;
-    } else if (IconLeft || IconRight) {
-      return 10;
-    } else {
-      return 20;
-    }
-  };
+    const calculateSizePaddingLeft = () => {
+      if (IconLeft && IconRigth) {
+        return 0;
+      } else if (IconLeft || IconRigth) {
+        return 5;
+      } else {
+        return 10;
+      }
+    };
 
-  return (
-    <Fragment>
-      {title&&<Text style={style.titleInput}>{title}</Text>}
-      <View style={style.boxInput}>
-        {IconLeft && IconLeftName && (
-          <TouchableOpacity onPress={onIconLeftPress}>
-            <IconLeft
-              name={IconLeftName as any}
-              size={20}
-              color={themas.Colors.gray}
-              style={style.icon}
-            />
-          </TouchableOpacity>
-        )}
-        <TextInput
-          style={[style.input, { width: calculateSizeWidth() }]}
-          placeholder={placeholder}
-          {...rest}
-        />
-        {IconRight && IconRightName && (
-          <TouchableOpacity onPress={onIconRightPress}>
-            <IconRight
-              name={IconRightName as any}
-              size={20}
-              color={themas.Colors.gray}
-              style={style.icon}
-            />
-          </TouchableOpacity>
-        )}
-      </View>
-    </Fragment>
-  );
-});
+    return (
+      <>
+        {title && <TitleText style={[style.titleInput, labelStyle]}>{title}</TitleText>}
+        <View
+          style={[
+            style.boxInput,
+            {
+              paddingLeft: calculateSizePaddingLeft(),
+              height: height ?? 40,
+            },
+          ]}
+        >
+          {IconLeft && iconLeftName && (
+            <TouchableOpacity onPress={onIconLeftPress} style={style.Button}>
+              <IconLeft
+                name={iconLeftName as any}
+                size={20}
+                color={themas.Colors.gray}
+                style={style.Icon}
+              />
+            </TouchableOpacity>
+          )}
+          <TextInput
+            style={[
+              style.input,
+              { width: calculateSizeWidth(), height: "100%" },
+            ]}
+            ref={ref}
+            {...rest}
+          />
+          {IconRigth && iconRightName && (
+            <TouchableOpacity onPress={onIconRigthPress} style={style.Button}>
+              <IconRigth
+                name={iconRightName as any}
+                size={20}
+                color={themas.Colors.gray}
+                style={style.Icon}
+              />
+            </TouchableOpacity>
+          )}
+        </View>
+      </>
+    );
+  }
+);
