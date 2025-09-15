@@ -2,7 +2,7 @@ import { useContext, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { schema } from "./schema";
-import { AuthContext } from "@/contexts/AuthContext";
+import { UserContext } from "@/contexts/UserContext";
 import { iDataRegister } from "@/contexts/interface";
 import { View } from "react-native";
 import AppText from "@/components/AppText";
@@ -14,7 +14,7 @@ import { navigate } from "@/navigation/RootNavigation";
 import { styles } from "@/pages/Login/FormLogin/styles";
 
 export const FormRegister = () => {
-  const { registerUser, loadingForm } = useContext(AuthContext);
+  const { registerUser, loadingForm } = useContext(UserContext);
   const [showPassword, setShowPassword] = useState(true);
 
   const [stage, setStage] = useState<1 | 2 | 3>(1);
@@ -60,8 +60,6 @@ export const FormRegister = () => {
                   title="NOME"
                   IconRigth={MaterialIcons}
                   iconRightName="person"
-                  placeholder="Ernesto Serna"
-                  placeholderTextColor="#00000052"
                   keyboardType="name-phone-pad"
                   autoCapitalize="words"
                   onBlur={onBlur}
@@ -100,8 +98,6 @@ export const FormRegister = () => {
                   title="EMAIL"
                   IconRigth={MaterialIcons}
                   iconRightName="mail"
-                  placeholder="example@email.com"
-                  placeholderTextColor="#00000052"
                   keyboardType="email-address"
                   autoCapitalize="none"
                   onBlur={onBlur}
@@ -141,8 +137,6 @@ export const FormRegister = () => {
                   IconRigth={Octicons}
                   iconRightName={showPassword ? "eye-closed" : "eye"}
                   onIconRigthPress={() => setShowPassword(!showPassword)}
-                  placeholder="**********"
-                  placeholderTextColor="#00000052"
                   secureTextEntry={showPassword}
                   onBlur={onBlur}
                   onChangeText={onChange}
@@ -164,8 +158,6 @@ export const FormRegister = () => {
                   IconRigth={Octicons}
                   iconRightName={showPassword ? "eye-closed" : "eye"}
                   onIconRigthPress={() => setShowPassword(!showPassword)}
-                  placeholder="**********"
-                  placeholderTextColor="#00000052"
                   secureTextEntry={showPassword}
                   onBlur={onBlur}
                   onChangeText={onChange}

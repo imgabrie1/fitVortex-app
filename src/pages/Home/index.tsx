@@ -1,17 +1,18 @@
 import AppText from '@/components/AppText';
-import { AuthContext } from '@/contexts/AuthContext';
+import { UserContext } from '@/contexts/UserContext';
 import React, { useContext } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { style } from './styles';
 
 const Home = () => {
-  const { logout } = useContext(AuthContext);
+  const { logout } = useContext(UserContext);
 
   const onLogout = async () => {
     await logout()
   }
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+    <View style={style.container}>
       <AppText>OLar Home!</AppText>
       <TouchableOpacity
       onPress={onLogout}

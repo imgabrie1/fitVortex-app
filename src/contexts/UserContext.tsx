@@ -2,14 +2,12 @@ import React, { createContext, useState, useEffect, ReactNode } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "@/services/api";
 import { navigate } from "@/navigation/RootNavigation";
-import { AuthContextData, iDataRegister, Credentials } from "./interface";
+import { UserContextData, iDataRegister, Credentials } from "./interface";
 import { AxiosError } from "axios";
 import { Alert } from "react-native";
 
 
-export const AuthContext = createContext<AuthContextData>(
-  {} as AuthContextData
-);
+export const UserContext = createContext<UserContextData>({} as UserContextData);
 
 type Props = { children: ReactNode };
 
@@ -98,7 +96,7 @@ export const AuthProvider = ({ children }: Props) => {
   };
 
   return (
-    <AuthContext.Provider
+    <UserContext.Provider
       value={{
         token,
         loading,
@@ -109,6 +107,6 @@ export const AuthProvider = ({ children }: Props) => {
       }}
     >
       {children}
-    </AuthContext.Provider>
+    </UserContext.Provider>
   );
 };

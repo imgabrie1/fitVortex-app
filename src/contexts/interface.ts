@@ -38,7 +38,7 @@ export interface iUserContext {
   loadingForm: boolean;
 }
 
-export type AuthContextData = {
+export type UserContextData = {
   token: string | null;
   loading: boolean;
   loadingForm: boolean;
