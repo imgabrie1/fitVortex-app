@@ -1,4 +1,4 @@
-import { StyleSheet, Dimensions } from "react-native";
+import { StyleSheet } from "react-native";
 import { themas } from "../../global/themes";
 
 export const style = StyleSheet.create({
@@ -8,13 +8,13 @@ export const style = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 4,
     borderColor: themas.Colors.lightGray,
-    backgroundColor: themas.Colors.bgScreen,
     marginTop: 10,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-around", //talvez tirar, tem que ver como fica com o icone
+    justifyContent: "space-around",
   },
   input: {
+    color: themas.Colors.lightGray,
     height: "100%",
     width: "100%",
     borderRadius: 40,

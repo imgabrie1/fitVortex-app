@@ -1,6 +1,6 @@
 import React, { useContext, useState } from "react";
 import { View } from "react-native";
-import { AuthContext } from "@/contexts/AuthContext";
+import { UserContext } from "@/contexts/UserContext";
 import { iDataLogin } from "@/contexts/interface";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -14,7 +14,7 @@ import { Button } from "@/components/Button";
 import { navigate } from "@/navigation/RootNavigation";
 
 const FormLogin = () => {
-  const { login, loadingForm } = useContext(AuthContext);
+  const { login, loadingForm } = useContext(UserContext);
   const [showPassword, setShowPassword] = useState(true);
 
   const {
@@ -48,8 +48,6 @@ const FormLogin = () => {
               title="EMAIL"
               IconRigth={MaterialIcons}
               iconRightName="mail"
-              placeholder="example@email.com"
-              placeholderTextColor="#00000052"
               keyboardType="email-address"
               autoCapitalize="none"
               onBlur={onBlur}
@@ -71,8 +69,6 @@ const FormLogin = () => {
               IconRigth={Octicons}
               iconRightName={showPassword ? "eye-closed" : "eye"}
               onIconRigthPress={() => setShowPassword(!showPassword)}
-              placeholder="**********"
-              placeholderTextColor="#00000052"
               secureTextEntry={showPassword}
               onBlur={onBlur}
               onChangeText={onChange}
