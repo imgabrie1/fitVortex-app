@@ -4,7 +4,7 @@ import { RussoOne_400Regular } from "@expo-google-fonts/russo-one";
 import { NavigationContainer } from "@react-navigation/native";
 import Routes from "./routes/index.routes";
 import { navigationRef } from "@/navigation/RootNavigation";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProvider } from "@/contexts/UserContext";
 
 export default function App() {
   const [fontsLoaded] = useFonts({
