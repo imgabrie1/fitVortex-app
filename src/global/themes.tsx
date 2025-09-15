@@ -8,6 +8,7 @@ export const themas = {
     red: "#FF494C",
     led: "#9900ffbf",
     blackTransparent: "#00000040",
+    background: "#000"
 
   },
 };
