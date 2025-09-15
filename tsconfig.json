@@ -9,7 +9,7 @@
     "paths": {
       "@/*": ["src/*"]
     },
-    "types": ["react", "react-native", "jest"]
+    "types": ["react", "react-native", "jest", "node"]
   },
   "include": ["src/**/*", "metro.config.*", "app.config.*", "index.js"],
   "exclude": ["node_modules"]

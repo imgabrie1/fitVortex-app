@@ -2,21 +2,14 @@ import React, { createContext, useState, useEffect, ReactNode } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "@/services/api";
 import { navigate } from "@/navigation/RootNavigation";
+import { AuthContextData, iDataRegister, Credentials } from "./interface";
+import { AxiosError } from "axios";
+import { Alert } from "react-native";
 
-type Credentials = {
-  email: string;
-  password: string;
-};
 
-type AuthContextData = {
-  token: string | null;
-  loading: boolean;
-  loadingForm: boolean;
-  login: (creds: Credentials) => Promise<void>;
-  logout: () => Promise<void>;
-};
-
-export const AuthContext = createContext<AuthContextData>({} as AuthContextData);
+export const AuthContext = createContext<AuthContextData>(
+  {} as AuthContextData
+);
 
 type Props = { children: ReactNode };
 
@@ -43,6 +36,26 @@ export const AuthProvider = ({ children }: Props) => {
     })();
   }, []);
 
+  const registerUser = async (data: iDataRegister): Promise<void> => {
+    setLoadingForm(true);
+    try {
+      await api.post("/user", data);
+
+      // Alert.alert("Sucesso", "Cadastro efetuado com sucesso");
+
+      navigate("BottomRoutes", { screen: "Home" });
+    } catch (err) {
+      const currentError = err as AxiosError;
+
+      const message =
+        (currentError.response?.data as string) || "Algo deu errado!";
+
+      Alert.alert("Erro!", message);
+    } finally {
+      setLoadingForm(false);
+    }
+  };
+
   const login = async ({ email, password }: Credentials) => {
     setLoadingForm(true);
     try {
@@ -61,7 +74,9 @@ export const AuthProvider = ({ children }: Props) => {
 
       navigate("BottomRoutes", { screen: "Home" });
     } catch (err: any) {
-      const msg = err?.response?.data || err?.message || "Erro ao logar";
+      const currentError = err as AxiosError;
+      const msg =
+        currentError?.response?.data || err?.message || "Erro ao logar";
       throw new Error(String(msg));
     } finally {
       setLoadingForm(false);
@@ -89,6 +104,7 @@ export const AuthProvider = ({ children }: Props) => {
         loading,
         loadingForm,
         login,
+        registerUser,
         logout,
       }}
     >

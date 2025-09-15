@@ -6,7 +6,7 @@ const User = () => {
 
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <AppText>OLar User!</AppText>
+      <AppText>Olar user!</AppText>
     </View>
   );
 };
