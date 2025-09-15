@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import { View, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View } from "react-native";
 import { AuthContext } from "@/contexts/AuthContext";
 import { iDataLogin } from "@/contexts/interface";
 import { Controller, useForm } from "react-hook-form";
@@ -11,10 +11,10 @@ import { Input } from "@/components/Input";
 import { MaterialIcons, Octicons } from "@expo/vector-icons";
 import TitleText from "@/components/TitleText";
 import { Button } from "@/components/Button";
+import { navigate } from "@/navigation/RootNavigation";
 
 const FormLogin = () => {
   const { login, loadingForm } = useContext(AuthContext);
-
   const [showPassword, setShowPassword] = useState(true);
 
   const {
@@ -27,12 +27,17 @@ const FormLogin = () => {
   });
 
   const onSubmit = async (data: iDataLogin) => {
+    // console.log(data)
     await login(data);
+  };
+
+  const RegisterNavigation = () => {
+    navigate("Register");
   };
 
   return (
     <View style={styles.container}>
-      <TitleText style={styles.textEnter}>Entrar</TitleText>
+      <TitleText style={styles.textEnter}>ENTRAR</TitleText>
 
       <View style={styles.wrapper}>
         <Controller
@@ -87,7 +92,10 @@ const FormLogin = () => {
           />
 
           <AppText style={styles.text}>
-            Não tem conta? <AppText style={styles.link}>Crie agora!</AppText>
+            Não tem conta? <AppText
+            style={styles.link}
+            onPress={()=> RegisterNavigation()}
+            >Crie agora!</AppText>
           </AppText>
         </View>
       </View>

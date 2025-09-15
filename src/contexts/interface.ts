@@ -2,6 +2,10 @@ export interface iContextUserProps {
   children: React.ReactNode;
 }
 
+export interface Credentials {
+  email: string;
+  password: string;
+}
 
 export interface iDataRegister {
   name: string;
@@ -33,3 +37,12 @@ export interface iUserContext {
   logout: () => void;
   loadingForm: boolean;
 }
+
+export type AuthContextData = {
+  token: string | null;
+  loading: boolean;
+  loadingForm: boolean;
+  login: (creds: Credentials) => Promise<void>;
+  logout: () => Promise<void>;
+  registerUser: (data: iDataRegister) => Promise<void>;
+};

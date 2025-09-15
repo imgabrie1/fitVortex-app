@@ -7,7 +7,7 @@ export const style = StyleSheet.create({
   textButton: {
     color: "white",
     fontSize: 20,
-    fontWeight: "bold",
+    fontFamily: "RussoOne"
   },
   button: {
     width: "100%",
