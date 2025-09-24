@@ -1,24 +1,20 @@
-import AppText from '@/components/AppText';
-import { UserContext } from '@/contexts/UserContext';
-import React, { useContext } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { style } from './styles';
+import AppText from "@/components/AppText";
+import { UserContext } from "@/contexts/User/UserContext";
+import React, { useContext } from "react";
+import { View, Text, TouchableOpacity } from "react-native";
+import { style } from "./styles";
+import WorkoutDay from "@/components/WorkoutDay";
 
 const Home = () => {
   const { logout } = useContext(UserContext);
 
   const onLogout = async () => {
-    await logout()
-  }
+    await logout();
+  };
 
   return (
     <View style={style.container}>
-      <AppText>OLar Home!</AppText>
-      <TouchableOpacity
-      onPress={onLogout}
-      >
-        <AppText>Sair</AppText>
-      </TouchableOpacity>
+      <WorkoutDay />
     </View>
   );
 };
