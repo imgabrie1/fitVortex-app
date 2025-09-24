@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
 import { View } from "react-native";
-import { UserContext } from "@/contexts/UserContext";
-import { iDataLogin } from "@/contexts/interface";
+import { UserContext } from "@/contexts/User/UserContext";
+import { iDataLogin } from "@/contexts/User/interface";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { schema } from "./schema";
@@ -27,7 +27,6 @@ const FormLogin = () => {
   });
 
   const onSubmit = async (data: iDataLogin) => {
-    // console.log(data)
     await login(data);
   };
 

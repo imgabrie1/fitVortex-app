@@ -6,8 +6,12 @@ export const themas = {
     gray: "gray",
     red: "#FF494C",
     led: "#9900ffbf",
+    neon: "#A020F0",
     blackTransparent: "#00000040",
-    background: "#000"
+    background: "#000",
+    text: "#fff",
+    icons: "#fff",
+    noSelectColor: "#49454f"
 
   },
 };
