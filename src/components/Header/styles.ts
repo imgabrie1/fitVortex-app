@@ -1,0 +1,50 @@
+import { themas } from "@/global/themes";
+import { Dimensions, StyleSheet } from "react-native";
+
+const { width, height } = Dimensions.get("window");
+
+export const styles = StyleSheet.create({
+  container: {
+    backgroundColor: themas.Colors.background,
+    height: height * 0.1,
+    alignItems: "flex-start",
+    display: "flex",
+    justifyContent: "center",
+    paddingTop: 15,
+  },
+  logoContainer: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    marginLeft: 25,
+  },
+  logo: {
+    fontSize: 28,
+    color: "#fff",
+    letterSpacing: 1,
+  },
+  fit: {
+    fontFamily: "RussoOne",
+  },
+  vortexContainer: {
+    flexDirection: "row",
+    position: "relative",
+  },
+  v: {
+    fontSize: 34,
+    color: themas.Colors.led,
+    textShadowColor: themas.Colors.led,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 20,
+    fontFamily: "RussoOne",
+    position: "absolute",
+    left: 5,
+    top: -4,
+    zIndex: 2,
+  },
+  ortex: {
+    color: "#fff",
+    fontFamily: "RussoOne",
+    fontSize: 28,
+    marginLeft: 20,
+  },
+});
