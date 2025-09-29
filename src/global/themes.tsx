@@ -11,7 +11,8 @@ export const themas = {
     background: "#000",
     text: "#fff",
     icons: "#fff",
-    noSelectColor: "#49454f"
+    noSelectColor: "#49454f",
+    blocks: "#191A1C"
 
   },
 };

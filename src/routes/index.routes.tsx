@@ -1,7 +1,7 @@
 import React from 'react'
 import Login from '@/pages/Login'
 import { createStackNavigator } from '@react-navigation/stack'
-import BottomRoutes from './bottom.routes'
+import BottomRoutes from './BottomRoutes/bottom.routes'
 import Register from '@/pages/Register'
 import StartApp from '@/pages/StartApp'
 
