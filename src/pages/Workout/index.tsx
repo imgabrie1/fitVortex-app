@@ -1,13 +1,13 @@
 import React from 'react';
-import MacrosButton from '@/components/MacrosAndMicros';
 import { View } from 'react-native';
 import { styles } from './styles';
+import MacrosAndMicros from '@/components/MacrosAndMicros';
 
 const Workout = () => {
 
   return (
     <View style={styles.container}>
-      <MacrosButton/>
+      <MacrosAndMicros/>
     </View>
   );
 };

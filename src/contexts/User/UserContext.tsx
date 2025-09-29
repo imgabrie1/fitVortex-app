@@ -174,7 +174,24 @@ export const AuthProvider = ({ children }: Props) => {
       const msg =
         currentError?.response?.data ||
         err?.message ||
-        "Erro ao carregar Macros Ciclos";
+        "Erro ao carregar Macros Ciclo";
+      throw new Error(String(msg));
+    }
+  };
+
+  const getMacroCycleByID = async (macroID: string): Promise<MacroCycle> => {
+    if (!user) throw new Error("Usuário não autenticado");
+
+    try {
+      const { data } = await api.get(`/macrocycle/${macroID}`);
+
+      return data;
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      const msg =
+        currentError?.response?.data ||
+        err?.message ||
+        "Erro ao carregar Macro Ciclo";
       throw new Error(String(msg));
     }
   };
@@ -191,7 +208,7 @@ export const AuthProvider = ({ children }: Props) => {
       const msg =
         currentError?.response?.data ||
         err?.message ||
-        "Erro ao carregar Macros Ciclos";
+        "Erro ao carregar Macros Ciclo";
       throw new Error(String(msg));
     }
   };
@@ -208,7 +225,8 @@ export const AuthProvider = ({ children }: Props) => {
         logout,
         getAllWorkouts,
         getAllMacroCycles,
-        getAllMicroCycles
+        getAllMicroCycles,
+        getMacroCycleByID
       }}
     >
       {children}

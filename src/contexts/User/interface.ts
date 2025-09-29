@@ -140,5 +140,6 @@ export type UserContextData = {
   registerUser: (data: iDataRegister) => Promise<void>;
   getAllWorkouts: () => Promise<WorkoutWithSets[]>;
   getAllMacroCycles: () => Promise<MacroCycle[]>;
-  getAllMicroCycles: () => Promise<any>
+  getAllMicroCycles: () => Promise<any>;
+  getMacroCycleByID: (macroID: string) => Promise<any>;
 };

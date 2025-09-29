@@ -5,8 +5,8 @@ import { styles } from "./styles";
 import { UserContext } from "@/contexts/User/UserContext";
 import { MacroCycle, MicroCycle } from "@/contexts/User/interface";
 
-const MacrosButton = () => {
-  const { user, getAllMacroCycles, getAllMicroCycles } =
+const MacrosAndMicros = () => {
+  const { user, getAllMacroCycles, getMacroCycleByID } =
     useContext(UserContext);
   const [stage, setStage] = useState<1 | 2>(1);
   const [selectedMacro, setSelectedMacro] = useState<MacroCycle | null>(null);
@@ -28,12 +28,14 @@ const MacrosButton = () => {
     loadMacros();
   }, [user, getAllMacroCycles]);
 
+
   useEffect(() => {
     const loadMicros = async () => {
-      if (user) {
+      if (selectedMacro) {
         try {
-          const data: MicroCycle[] = await getAllMicroCycles();
-          setMicros(data);
+          const data = await getMacroCycleByID(selectedMacro.id);
+          const extractedMicros = data.items.map((item: any) => item.microCycle);
+          setMicros(extractedMicros);
         } catch (error) {
           console.error("Erro ao buscar Micro Ciclos:", error);
         }
@@ -41,7 +43,7 @@ const MacrosButton = () => {
     };
 
     loadMicros();
-  }, [user, getAllMicroCycles]);
+  }, [selectedMacro]);
 
   // --- Tela de Micro Ciclos ---
   if (stage === 2 && selectedMacro) {
@@ -57,8 +59,12 @@ const MacrosButton = () => {
         {micros.length > 0 ? (
           micros.map((micro) => (
             <View key={micro.id} style={styles.blocks}>
-              <AppText style={styles.name}>{micro.microCycleName.toLocaleUpperCase()}</AppText>
-              <AppText>DIAS DE TREINO: {micro.trainingDays}</AppText>
+              <AppText style={styles.name}>
+                {micro.microCycleName.toLocaleUpperCase()}
+              </AppText>
+              <AppText style={styles.info}>
+                DIAS DE TREINO: {micro.trainingDays}
+              </AppText>
             </View>
           ))
         ) : (
@@ -97,7 +103,7 @@ const MacrosButton = () => {
               key={macro.id}
               style={styles.blocks}
               onPress={() => {
-                setSelectedMacro(macro);
+                setSelectedMacro(macro); // dispara o useEffect que carrega os micros
                 setStage(2);
               }}
             >
@@ -122,4 +128,4 @@ const MacrosButton = () => {
   );
 };
 
-export default MacrosButton;
+export default MacrosAndMicros;

@@ -17,7 +17,9 @@ export const styles = StyleSheet.create({
     borderRadius: 10,
     padding: padding_H,
     height: height / 8,
-    gap: 10
+    gap: 10,
+    marginTop: 10,
+    marginBottom: 5
   },
   name: {
     fontSize: 20,
