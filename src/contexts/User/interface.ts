@@ -30,6 +30,11 @@ export interface iUserResponse {
   id: number;
 }
 
+export interface iUser extends iUserResponse {
+  createdAt: string | Date;
+  updatedAt: string | Date;
+}
+
 export interface iUserContext {
   loading: boolean;
   registerUser: (data: iDataRegister) => Promise<void>;
@@ -60,7 +65,6 @@ export interface Workout {
   volume: Volume;
   createdAt: string | Date;
 }
-
 
 export interface WorkoutExercise {
   id: string;
@@ -102,9 +106,29 @@ export interface VolumeEntry {
 
 export type WorkoutExerciseWithSets = WorkoutExercise & { sets?: Set[] };
 
-export type WorkoutWithSets = Omit<Workout, 'workoutExercises'> & {
+export type WorkoutWithSets = Omit<Workout, "workoutExercises"> & {
   workoutExercises: WorkoutExerciseWithSets[];
 };
+
+export interface MacroCycle {
+  id: string;
+  macroCycleName: string;
+  startDate: string;
+  endDate: string;
+  microQuantity: number;
+  items: [{
+    id: string;
+    createdAt: string | Date;
+    microCycle: MicroCycle
+  }]
+}
+export interface MicroCycle {
+  id: string;
+  microCycleName: string;
+  createdAt: string | Date;
+  trainingDays: number;
+  user: iUser;
+}
 
 export type UserContextData = {
   token: string | null;
@@ -114,5 +138,8 @@ export type UserContextData = {
   login: (creds: Credentials) => Promise<void>;
   logout: () => Promise<void>;
   registerUser: (data: iDataRegister) => Promise<void>;
-  getAllWorkouts: () => Promise<any>;
+  getAllWorkouts: () => Promise<WorkoutWithSets[]>;
+  getAllMacroCycles: () => Promise<MacroCycle[]>;
+  getAllMicroCycles: () => Promise<any>;
+  getMacroCycleByID: (macroID: string) => Promise<any>;
 };
