@@ -44,6 +44,8 @@ export interface iUserContext {
 }
 
 export interface MicroCycle {
+  volumes: any;
+  notes: string;
   id: string;
   microCycleName: string;
   createdAt: string | Date;
@@ -52,6 +54,7 @@ export interface MicroCycle {
 }
 
 export interface CycleItems {
+  microCycle: any;
   id: string;
   createdAt: string | Date;
   workout: Workout;
@@ -142,4 +145,5 @@ export type UserContextData = {
   getAllMacroCycles: () => Promise<MacroCycle[]>;
   getAllMicroCycles: () => Promise<any>;
   getMacroCycleByID: (macroID: string) => Promise<any>;
+  getMicroCycleByID: (microID: string) => Promise<any>
 };

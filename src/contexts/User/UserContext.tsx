@@ -196,6 +196,23 @@ export const AuthProvider = ({ children }: Props) => {
     }
   };
 
+  const getMicroCycleByID = async (microID: string): Promise<MicroCycle> => {
+    if (!user) throw new Error("Usuário não autenticado");
+
+    try {
+      const { data } = await api.get(`/microcycle/${microID}`);
+
+      return data;
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      const msg =
+        currentError?.response?.data ||
+        err?.message ||
+        "Erro ao carregar Micro Ciclo";
+      throw new Error(String(msg));
+    }
+  };
+
   const getAllMicroCycles = async (): Promise<MicroCycle[]> => {
     if (!user) throw new Error("Usuário não autenticado");
 
@@ -226,7 +243,8 @@ export const AuthProvider = ({ children }: Props) => {
         getAllWorkouts,
         getAllMacroCycles,
         getAllMicroCycles,
-        getMacroCycleByID
+        getMacroCycleByID,
+        getMicroCycleByID
       }}
     >
       {children}

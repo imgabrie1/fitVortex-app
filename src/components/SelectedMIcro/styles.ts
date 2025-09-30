@@ -9,6 +9,11 @@ export const styles = StyleSheet.create({
     backgroundColor: themas.Colors.background,
     marginTop: 50,
   },
+  infoHeader: {
+    fontFamily: "RussoOne",
+    fontSize: 16,
+    color: themas.Colors.text
+  },
   blocks: {
     flex: 1,
     backgroundColor: themas.Colors.blocks,
@@ -16,6 +21,20 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 20,
     gap: 10,
+    marginTop: 10,
+    marginBottom: 5,
+  },
+  blockHeader: {
+    flex: 1,
+    backgroundColor: themas.Colors.blackTransparent,
+    borderWidth: 2,
+    borderColor: themas.Colors.neon,
+    borderRadius: 8,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 14,
+    paddingVertical: 20,
+    gap: 1,
     marginTop: 10,
     marginBottom: 5,
   },
@@ -48,5 +67,11 @@ export const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: "RussoOne",
     color: themas.Colors.lightGray,
+  },
+  infoWorkoutWrap: {
+    paddingBottom: 15,
+    borderBottomColor: themas.Colors.gray,
+    borderBottomWidth: 0.5,
+    gap: 5
   },
 });
