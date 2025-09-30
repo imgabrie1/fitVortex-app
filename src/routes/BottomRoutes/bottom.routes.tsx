@@ -51,7 +51,8 @@ const BottomRoutes = () => {
         name="Create"
         component={Treinar}
         options={{
-          header: () => <CustomHeader />,
+          // header: () => <CustomHeader />,
+          headerShown: false,
           tabBarLabel: "Treinar",
           tabBarIcon: ({ focused }) => (
             <View
