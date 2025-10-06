@@ -12,7 +12,8 @@ export default function(api) {
           },
           extensions: ['.ios.js', '.android.js', '.js', '.ts', '.tsx', '.json']
         }
-      ]
+      ],
+      'react-native-reanimated/plugin'
     ]
   };
 };
