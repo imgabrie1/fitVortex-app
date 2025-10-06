@@ -14,10 +14,9 @@ const MacrosAndMicros = () => {
   const [stage, setStage] = useState<1 | 2 | 3>(1);
   const [selectedMacro, setSelectedMacro] = useState<MacroCycle | null>(null);
   const [selectedMicro, setSelectedMicro] = useState<MicroCycle | null>(null);
-  const [selectedMicroId, setSelectedMicroId] = useState<string | null>(null); // 👈 agora só guarda o ID
+  const [selectedMicroId, setSelectedMicroId] = useState<string | null>(null);
   const [macros, setMacros] = useState<MacroCycle[]>([]);
   const [micros, setMicros] = useState<MicroCycle[]>([]);
-
 
   useEffect(() => {
     const loadMacros = async () => {
@@ -39,7 +38,9 @@ const MacrosAndMicros = () => {
       if (selectedMacro) {
         try {
           const data = await getMacroCycleByID(selectedMacro.id);
-          const extractedMicros = (data.items ?? []).map((item: any) => item.microCycle);
+          const extractedMicros = (data.items ?? []).map(
+            (item: any) => item.microCycle
+          );
           setMicros(extractedMicros);
         } catch (error) {
           console.error("Erro ao buscar Micro Ciclos:", error);
@@ -100,7 +101,9 @@ const MacrosAndMicros = () => {
               <AppText style={styles.name}>
                 {micro.microCycleName.toLocaleUpperCase()}
               </AppText>
-              <AppText style={styles.info}>DIAS DE TREINO: {micro.trainingDays}</AppText>
+              <AppText style={styles.info}>
+                DIAS DE TREINO: {micro.trainingDays}
+              </AppText>
             </TouchableOpacity>
           ))
         ) : (
@@ -117,7 +120,7 @@ const MacrosAndMicros = () => {
       contentContainerStyle={{ paddingBottom: 20 }}
     >
       <View style={styles.macrosTitles}>
-        <AppText style={styles.name}>MESOCICLOS:</AppText>
+        <AppText style={styles.name}>MACROCICLOS:</AppText>
       </View>
       {macros.length > 0 ? (
         macros.map((macro, index) => {
@@ -143,10 +146,14 @@ const MacrosAndMicros = () => {
                 {macro.macroCycleName.toUpperCase()}
               </AppText>
               <View style={styles.infosWrap}>
-                <AppText style={[styles.info, isLastCreated && styles.infoSelected]}>
+                <AppText
+                  style={[styles.info, isLastCreated && styles.infoSelected]}
+                >
                   Término previsto: {endDate}
                 </AppText>
-                <AppText style={[styles.info, isLastCreated && styles.infoSelected]}>
+                <AppText
+                  style={[styles.info, isLastCreated && styles.infoSelected]}
+                >
                   Micro Ciclos: {macro.microQuantity}
                 </AppText>
               </View>

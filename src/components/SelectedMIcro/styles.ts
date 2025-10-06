@@ -9,13 +9,23 @@ export const styles = StyleSheet.create({
     backgroundColor: themas.Colors.background,
     marginTop: 50,
   },
+
+  repsWeightInfo: {
+    padding: 5,
+  },
+
+  containerModal: {
+    flex: 1,
+    backgroundColor: themas.Colors.background,
+    paddingTop: 30,
+  },
+
   infoHeader: {
     fontFamily: "RussoOne",
     fontSize: 16,
     color: themas.Colors.text
   },
   blocks: {
-    flex: 1,
     backgroundColor: themas.Colors.blocks,
     borderRadius: 10,
     paddingHorizontal: 14,
@@ -25,7 +35,6 @@ export const styles = StyleSheet.create({
     marginBottom: 5,
   },
   blockHeader: {
-    flex: 1,
     backgroundColor: themas.Colors.blackTransparent,
     borderWidth: 2,
     borderColor: themas.Colors.neon,
