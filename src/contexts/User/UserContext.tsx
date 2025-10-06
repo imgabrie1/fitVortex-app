@@ -55,6 +55,15 @@ export const AuthProvider = ({ children }: Props) => {
     })();
   }, []);
 
+  const requireUser = () => {
+    if (!user) throw new Error("Usuário não autenticado");
+    return user;
+  };
+
+  const assertUser = () => {
+    if (!user) throw new Error("Usuário não autenticado");
+  };
+
   const registerUser = async (data: iDataRegister): Promise<void> => {
     setLoadingForm(true);
     try {
@@ -116,10 +125,10 @@ export const AuthProvider = ({ children }: Props) => {
   };
 
   const getAllWorkouts = async (): Promise<WorkoutWithSets[]> => {
-    if (!user) throw new Error("Usuário não autenticado");
+    const currentUser = requireUser();
 
     try {
-      const { data } = await api.get(`/workout/${user.id}`);
+      const { data } = await api.get(`/workout/${currentUser.id}`);
 
       const workouts: WorkoutWithSets[] = data.data.flatMap(
         (microCycle: MicroCycle) =>
@@ -163,7 +172,7 @@ export const AuthProvider = ({ children }: Props) => {
   };
 
   const getAllMacroCycles = async (): Promise<MacroCycle[]> => {
-    if (!user) throw new Error("Usuário não autenticado");
+    assertUser();
 
     try {
       const { data } = await api.get("/macrocycle");
@@ -180,7 +189,7 @@ export const AuthProvider = ({ children }: Props) => {
   };
 
   const getMacroCycleByID = async (macroID: string): Promise<MacroCycle> => {
-    if (!user) throw new Error("Usuário não autenticado");
+    assertUser();
 
     try {
       const { data } = await api.get(`/macrocycle/${macroID}`);
@@ -197,7 +206,7 @@ export const AuthProvider = ({ children }: Props) => {
   };
 
   const getMicroCycleByID = async (microID: string): Promise<MicroCycle> => {
-    if (!user) throw new Error("Usuário não autenticado");
+    assertUser();
 
     try {
       const { data } = await api.get(`/microcycle/${microID}`);
@@ -214,7 +223,7 @@ export const AuthProvider = ({ children }: Props) => {
   };
 
   const getAllMicroCycles = async (): Promise<MicroCycle[]> => {
-    if (!user) throw new Error("Usuário não autenticado");
+    assertUser();
 
     try {
       const { data } = await api.get("/microcycle");
@@ -226,6 +235,30 @@ export const AuthProvider = ({ children }: Props) => {
         currentError?.response?.data ||
         err?.message ||
         "Erro ao carregar Macros Ciclo";
+      throw new Error(String(msg));
+    }
+  };
+
+  const toWorkOut = async (microID: string,workoutID: string, workoutData: any): Promise<any> => {
+    assertUser();
+    try {
+      const { data } = await api.patch(
+        `microcycle/${microID}/workouts/${workoutID}/record`,
+        workoutData
+      );
+      return data
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      let errorData = currentError?.response?.data;
+
+      if (typeof errorData === 'object' && errorData !== null) {
+        errorData = JSON.stringify(errorData);
+      }
+
+      const msg =
+        errorData ||
+        err?.message ||
+        "Erro ao registrar o treino. Desculpa :(";
       throw new Error(String(msg));
     }
   };
@@ -244,7 +277,8 @@ export const AuthProvider = ({ children }: Props) => {
         getAllMacroCycles,
         getAllMicroCycles,
         getMacroCycleByID,
-        getMicroCycleByID
+        getMicroCycleByID,
+        toWorkOut
       }}
     >
       {children}

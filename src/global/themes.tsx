@@ -12,7 +12,9 @@ export const themas = {
     text: "#fff",
     icons: "#fff",
     noSelectColor: "#49454f",
-    blocks: "#191A1C"
+    blocks: "#191A1C",
+    setsColor: "#6C63FF",
+    alternativeBlocks: "#202020ff",
 
   },
 };

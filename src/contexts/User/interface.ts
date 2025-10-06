@@ -133,6 +133,21 @@ export interface MicroCycle {
   user: iUser;
 }
 
+export interface SetInput {
+  reps: number;
+  weight: number;
+  notes?: string;
+}
+
+export interface ExerciseInput {
+  exerciseID: string;
+  sets: SetInput[];
+}
+
+export interface RecordWorkoutInput {
+  exercises: ExerciseInput[];
+}
+
 export type UserContextData = {
   token: string | null;
   user: iUserResponse | null;
@@ -146,4 +161,5 @@ export type UserContextData = {
   getAllMicroCycles: () => Promise<any>;
   getMacroCycleByID: (macroID: string) => Promise<any>;
   getMicroCycleByID: (microID: string) => Promise<any>
+  toWorkOut: (microID: string,workoutID: string, workoutData: any) => Promise<any>
 };

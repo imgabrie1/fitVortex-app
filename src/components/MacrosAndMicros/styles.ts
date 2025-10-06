@@ -12,12 +12,17 @@ export const styles = StyleSheet.create({
   blocks: {
     flex: 1,
     backgroundColor: themas.Colors.blocks,
+    // backgroundColor: "red",
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 20,
     gap: 10,
     marginTop: 10,
     marginBottom: 5,
+  },
+
+  blockSelected: {
+    backgroundColor: themas.Colors.primary,
   },
   name: {
     fontSize: 20,
@@ -41,9 +46,7 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  blockSelected: {
-    backgroundColor: themas.Colors.primary,
-  },
+
   infoSelected: {
     fontSize: 15,
     fontFamily: "RussoOne",
