@@ -297,20 +297,32 @@ export const AuthProvider = ({ children }: Props) => {
     }
   };
 
-  const addMicroInMacro = async (macroID: string, microID: string): Promise<any> => {
+  const addMicroInMacro = async (
+    macroID: string,
+    microID: string
+  ): Promise<any> => {
     assertUser();
     try {
       await api.patch(`/macrocycle/${macroID}/micro/${microID}`);
     } catch (err: any) {
       const currentError = err as AxiosError;
-      let errorData = currentError?.response?.data;
-
-      if (typeof errorData === "object" && errorData !== null) {
-        errorData = JSON.stringify(errorData);
-      }
-
       const msg =
-        errorData || err?.message || "Erro ao adicionar o micro no macro";
+        currentError?.response?.data ||
+        err?.message ||
+        "Erro ao adicionar micro no macro";
+      throw new Error(String(msg));
+    }
+  };
+
+  const deleteCycles = async (cycle: string, cycleID: string) => {
+    try {
+      await api.delete(`/${cycle}/${cycleID}`)
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      const msg =
+        currentError?.response?.data ||
+        err?.message ||
+        "Erro ao deletar Ciclo";
       throw new Error(String(msg));
     }
   };
@@ -333,7 +345,8 @@ export const AuthProvider = ({ children }: Props) => {
         toWorkOut,
         createMacroCycle,
         createMicroCycle,
-        addMicroInMacro
+        addMicroInMacro,
+        deleteCycles,
       }}
     >
       {children}
