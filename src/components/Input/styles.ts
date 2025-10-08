@@ -31,4 +31,10 @@ export const style = StyleSheet.create({
   Icon: {
     width: "100%",
   },
+  errorText: {
+    color: themas.Colors.red,
+    fontSize: 12,
+    marginLeft: 5,
+    marginTop: 2,
+  },
 });

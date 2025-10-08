@@ -15,6 +15,8 @@ import {
   WorkoutExerciseWithSets,
   WorkoutWithSets,
   MacroCycle,
+  iCreateMacroCycle,
+  iCreateMicroCycle,
 } from "./interface";
 import { AxiosError } from "axios";
 import { Alert } from "react-native";
@@ -239,26 +241,76 @@ export const AuthProvider = ({ children }: Props) => {
     }
   };
 
-  const toWorkOut = async (microID: string,workoutID: string, workoutData: any): Promise<any> => {
+  const toWorkOut = async (
+    microID: string,
+    workoutID: string,
+    workoutData: any
+  ): Promise<any> => {
     assertUser();
     try {
       const { data } = await api.patch(
         `microcycle/${microID}/workouts/${workoutID}/record`,
         workoutData
       );
-      return data
+      return data;
     } catch (err: any) {
       const currentError = err as AxiosError;
       let errorData = currentError?.response?.data;
 
-      if (typeof errorData === 'object' && errorData !== null) {
+      if (typeof errorData === "object" && errorData !== null) {
         errorData = JSON.stringify(errorData);
       }
 
       const msg =
-        errorData ||
+        errorData || err?.message || "Erro ao registrar o treino. Desculpa :(";
+      throw new Error(String(msg));
+    }
+  };
+
+  const createMacroCycle = async (payload: any): Promise<iCreateMacroCycle> => {
+    assertUser();
+    try {
+      const { data } = await api.post("/macrocycle", payload);
+      return data;
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      const msg =
+        currentError?.response?.data ||
         err?.message ||
-        "Erro ao registrar o treino. Desculpa :(";
+        "Erro ao criar Macro Ciclo";
+      throw new Error(String(msg));
+    }
+  };
+
+  const createMicroCycle = async (payload: any): Promise<iCreateMicroCycle> => {
+    assertUser();
+    try {
+      const { data } = await api.post("/microcycle", payload);
+      return data;
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      const msg =
+        currentError?.response?.data ||
+        err?.message ||
+        "Erro ao criar Micro Ciclo";
+      throw new Error(String(msg));
+    }
+  };
+
+  const addMicroInMacro = async (macroID: string, microID: string): Promise<any> => {
+    assertUser();
+    try {
+      await api.patch(`/macrocycle/${macroID}/micro/${microID}`);
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      let errorData = currentError?.response?.data;
+
+      if (typeof errorData === "object" && errorData !== null) {
+        errorData = JSON.stringify(errorData);
+      }
+
+      const msg =
+        errorData || err?.message || "Erro ao adicionar o micro no macro";
       throw new Error(String(msg));
     }
   };
@@ -278,7 +330,10 @@ export const AuthProvider = ({ children }: Props) => {
         getAllMicroCycles,
         getMacroCycleByID,
         getMicroCycleByID,
-        toWorkOut
+        toWorkOut,
+        createMacroCycle,
+        createMicroCycle,
+        addMicroInMacro
       }}
     >
       {children}
