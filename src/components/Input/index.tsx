@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleProp,
   TextStyle,
+  ViewStyle,
 } from "react-native";
 import { MaterialIcons, FontAwesome, Octicons } from "@expo/vector-icons";
 import { MaskedTextInput } from "react-native-mask-text";
@@ -31,6 +32,9 @@ type Props = TextInputProps & {
   labelStyle?: StyleProp<TextStyle>;
   error?: string;
   mask?: string;
+  containerStyle?: StyleProp<ViewStyle>;
+  inputStyle?: StyleProp<TextStyle>;
+  errorStyle?: StyleProp<TextStyle>;
 };
 
 export const Input = forwardRef((props: Props, ref: Ref<TextInput> | null) => {

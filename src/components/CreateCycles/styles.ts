@@ -13,7 +13,6 @@ export const styles = StyleSheet.create({
     backgroundColor: themas.Colors.background,
     borderRadius: 10,
     padding: 20,
-    gap: 15,
   },
   nameAndBackWrap: {
     flexDirection: 'row',
@@ -26,4 +25,8 @@ export const styles = StyleSheet.create({
     fontFamily: 'RussoOne',
     color: themas.Colors.text,
   },
+
+  styledButton: {
+    marginTop: 25
+  }
 });
