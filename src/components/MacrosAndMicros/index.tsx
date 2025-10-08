@@ -1,5 +1,11 @@
 import React, { useContext, useEffect, useState } from "react";
-import { View, ScrollView, TouchableOpacity, Modal } from "react-native";
+import {
+  View,
+  ScrollView,
+  TouchableOpacity,
+  Modal,
+  TouchableWithoutFeedback,
+} from "react-native";
 import AppText from "../AppText";
 import { styles } from "./styles";
 import { UserContext } from "@/contexts/User/UserContext";
@@ -8,9 +14,18 @@ import { MaterialIcons } from "@expo/vector-icons";
 import SelectedMicro from "../SelectedMIcro";
 import ButtonCreateCycles from "../ButtonCreateCycles";
 import CreateCycles from "../CreateCycles";
+import { themas } from "@/global/themes";
 
 const MacrosAndMicros = () => {
-  const { user, getAllMacroCycles, getMacroCycleByID, createMacroCycle, createMicroCycle, addMicroInMacro } = useContext(UserContext);
+  const {
+    user,
+    getAllMacroCycles,
+    getMacroCycleByID,
+    createMacroCycle,
+    createMicroCycle,
+    addMicroInMacro,
+    deleteCycles,
+  } = useContext(UserContext);
 
   const [stage, setStage] = useState<1 | 2 | 3>(1);
   const [selectedMacro, setSelectedMacro] = useState<MacroCycle | null>(null);
@@ -19,6 +34,7 @@ const MacrosAndMicros = () => {
   const [macros, setMacros] = useState<MacroCycle[]>([]);
   const [micros, setMicros] = useState<MicroCycle[]>([]);
   const [isCreateModalVisible, setCreateModalVisible] = useState(false);
+  const [menuVisible, setMenuVisible] = useState<string | null>(null);
 
   const loadMacros = async () => {
     if (user) {
@@ -59,8 +75,8 @@ const MacrosAndMicros = () => {
         await createMacroCycle(data);
         loadMacros();
       } else if (stage === 2 && selectedMacro) {
-        const microCreated = await createMicroCycle({ ...data});
-        await addMicroInMacro(selectedMacro.id, microCreated.id)
+        const microCreated = await createMicroCycle({ ...data });
+        await addMicroInMacro(selectedMacro.id, microCreated.id);
         loadMicros();
       }
       setCreateModalVisible(false);
@@ -69,6 +85,21 @@ const MacrosAndMicros = () => {
     }
   };
 
+  const handleDelete = async (cycleID: string) => {
+    try {
+      if (stage === 1) {
+        deleteCycles("macrocycle", cycleID);
+        loadMacros();
+      } else if (stage === 2 && selectedMacro) {
+        deleteCycles("microcycle", cycleID);
+        loadMicros();
+      }
+    } catch (error) {
+      console.error("Erro ao deletar ciclo:", JSON.stringify(error, null, 2));
+    }
+  };
+
+  // -- tela de infos de micro (stage 3) --
   if (stage === 3 && selectedMicroId) {
     return (
       <SelectedMicro
@@ -82,18 +113,22 @@ const MacrosAndMicros = () => {
     );
   }
 
+  // -- tela principal --
   return (
-    <View style={{ flex: 1 }}>
-      {stage === 1 && (
-        <ScrollView
-          style={styles.container}
-          contentContainerStyle={{ paddingBottom: 20 }}
-        >
-          <View style={styles.macrosTitles}>
-            <AppText style={styles.name}>MACROCICLOS:</AppText>
-          </View>
-          {macros.length > 0 ? (
-            macros.map((macro, index) => {
+    <TouchableWithoutFeedback onPress={() => setMenuVisible(null)}>
+      <View style={{ flex: 1 }}>
+        {/* ------------------ STAGE 1: MACROS ------------------ */}
+        {stage === 1 && (
+          <ScrollView
+            style={styles.container}
+            contentContainerStyle={{ paddingBottom: 20 }}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.macrosTitles}>
+              <AppText style={styles.name}>MACROCICLOS:</AppText>
+            </View>
+
+            {macros.map((macro, index) => {
               const endDate = macro.endDate
                 ? new Date(macro.endDate).toLocaleDateString("pt-BR", {
                     day: "2-digit",
@@ -104,98 +139,198 @@ const MacrosAndMicros = () => {
               const isLastCreated = index === macros.length - 1;
 
               return (
-                <TouchableOpacity
-                  key={macro.id}
-                  style={[styles.blocks, isLastCreated && styles.blockSelected]}
-                  onPress={() => {
-                    setSelectedMacro(macro);
-                    setStage(2);
-                  }}
-                >
-                  <AppText style={styles.name}>
-                    {macro.macroCycleName.toUpperCase()}
-                  </AppText>
-                  <View style={styles.infosWrap}>
-                    <AppText
-                      style={[styles.info, isLastCreated && styles.infoSelected]}
-                    >
-                      Término previsto: {endDate}
-                    </AppText>
-                    <AppText
-                      style={[styles.info, isLastCreated && styles.infoSelected]}
-                    >
-                      Micro Ciclos: {macro.microQuantity}
-                    </AppText>
-                  </View>
-                </TouchableOpacity>
+                <View key={macro.id} style={{ position: "relative" }}>
+                  <TouchableOpacity
+                    style={[
+                      styles.blocks,
+                      isLastCreated && styles.blockSelected,
+                    ]}
+                    onPress={() => {
+                      setSelectedMacro(macro);
+                      setStage(2);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.nameAndMenuWrap}>
+                      <AppText style={styles.name}>
+                        {macro.macroCycleName.toUpperCase()}
+                      </AppText>
+
+                      <TouchableOpacity
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          setMenuVisible((prev) =>
+                            prev === macro.id ? null : macro.id
+                          );
+                        }}
+                      >
+                        <MaterialIcons
+                          name="menu"
+                          size={18}
+                          color={themas.Colors.text}
+                        />
+                      </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.infosWrap}>
+                      <AppText
+                        style={[
+                          styles.info,
+                          isLastCreated && styles.infoSelected,
+                        ]}
+                      >
+                        Término previsto: {endDate}
+                      </AppText>
+                      <AppText
+                        style={[
+                          styles.info,
+                          isLastCreated && styles.infoSelected,
+                        ]}
+                      >
+                        Micro Ciclos: {macro.microQuantity}
+                      </AppText>
+                    </View>
+                  </TouchableOpacity>
+
+                  {menuVisible === macro.id && (
+                    <View style={styles.editAndDeleteWrap}>
+                      <TouchableOpacity
+                        onPress={() => {
+                          console.log("Editar macro:", macro.macroCycleName);
+                          setMenuVisible(null);
+                        }}
+                        style={{ paddingVertical: 4 }}
+                      >
+                        <AppText style={{ color: "#fff" }}>Editar</AppText>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        onPress={() => {
+                          handleDelete(macro.id);
+                          setMenuVisible(null);
+                        }}
+                        style={{ paddingVertical: 4 }}
+                      >
+                        <AppText style={{ color: "#fff" }}>Excluir</AppText>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
               );
-            })
-          ) : (
-            <AppText>Nenhum Macro Ciclo encontrado.</AppText>
-          )}
-        </ScrollView>
-      )}
+            })}
+          </ScrollView>
+        )}
 
-      {stage === 2 && selectedMacro && (
-        <ScrollView
-          style={styles.container}
-          contentContainerStyle={{ paddingBottom: 20 }}
-        >
-          <View style={styles.nameAndBackWrap}>
-            <MaterialIcons
-              name="arrow-back"
-              size={24}
-              color="white"
-              onPress={() => {
-                setStage(1);
-                setSelectedMacro(null);
-              }}
-            />
-            <AppText style={styles.name}>
-              {selectedMacro?.macroCycleName?.toUpperCase()}
-            </AppText>
-            <View style={{ width: 24 }} />
-          </View>
-
-          {micros.length > 0 ? (
-            micros.map((micro) => (
-              <TouchableOpacity
-                key={micro.id}
-                style={styles.blocks}
+        {/* ------------------ STAGE 2: MICROS ------------------ */}
+        {stage === 2 && selectedMacro && (
+          <ScrollView
+            style={styles.container}
+            contentContainerStyle={{ paddingBottom: 20 }}
+          >
+            <View style={styles.nameAndBackWrap}>
+              <MaterialIcons
+                name="arrow-back"
+                size={24}
+                color="white"
                 onPress={() => {
-                  setSelectedMicroId(micro.id);
-                  setStage(3);
+                  setStage(1);
+                  setSelectedMacro(null);
                 }}
-              >
-                <AppText style={styles.name}>
-                  {micro.microCycleName.toLocaleUpperCase()}
-                </AppText>
-                <AppText style={styles.info}>
-                  DIAS DE TREINO: {micro.trainingDays}
-                </AppText>
-              </TouchableOpacity>
-            ))
-          ) : (
-            <AppText>Nenhum Micro Ciclo encontrado.</AppText>
-          )}
-        </ScrollView>
-      )}
+              />
+              <AppText style={styles.name}>
+                {selectedMacro?.macroCycleName?.toUpperCase()}
+              </AppText>
+              <View style={{ width: 24 }} />
+            </View>
 
-      <ButtonCreateCycles onPress={() => setCreateModalVisible(true)} />
+            {micros.length > 0 ? (
+              micros.map((micro) => (
+                <View key={micro.id} style={{ position: "relative" }}>
+                  <TouchableOpacity
+                    style={styles.blocks}
+                    onPress={() => {
+                      setSelectedMicroId(micro.id);
+                      setStage(3);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.nameAndMenuWrap}>
+                      <AppText style={styles.name}>
+                        {micro.microCycleName.toUpperCase()}
+                      </AppText>
 
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={isCreateModalVisible}
-        onRequestClose={() => setCreateModalVisible(false)}
-      >
-        <CreateCycles
-          type={stage === 1 ? "macro" : "micro"}
-          onClose={() => setCreateModalVisible(false)}
-          onSubmit={handleCreate}
-        />
-      </Modal>
-    </View>
+                      <TouchableOpacity
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          setMenuVisible((prev) =>
+                            prev === micro.id ? null : micro.id
+                          );
+                        }}
+                      >
+                        <MaterialIcons
+                          name="menu"
+                          size={18}
+                          color={themas.Colors.text}
+                        />
+                      </TouchableOpacity>
+                    </View>
+
+                    <AppText style={styles.info}>
+                      DIAS DE TREINO: {micro.trainingDays}
+                    </AppText>
+                  </TouchableOpacity>
+
+                  {menuVisible === micro.id && (
+                    <View style={styles.editAndDeleteWrap}>
+                      <TouchableOpacity
+                        onPress={() => {
+                          console.log("nome micro:", micro.microCycleName);
+                          console.log("id micro:", micro.id);
+                          setMenuVisible(null);
+                        }}
+                        style={{ paddingVertical: 4 }}
+                      >
+                        <AppText style={{ color: "#fff" }}>Editar</AppText>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        onPress={() => {
+                          console.log(micro.microCycleName)
+                          handleDelete(micro.id);
+                          setMenuVisible(null);
+                        }}
+                        style={{ paddingVertical: 4 }}
+                      >
+                        <AppText style={{ color: "#fff" }}>Excluir</AppText>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              ))
+            ) : (
+              <AppText>Nenhum Micro Ciclo encontrado.</AppText>
+            )}
+          </ScrollView>
+        )}
+
+        {/* Botão de criar ciclo */}
+        <ButtonCreateCycles onPress={() => setCreateModalVisible(true)} />
+
+        {/* Modal de criação */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={isCreateModalVisible}
+          onRequestClose={() => setCreateModalVisible(false)}
+        >
+          <CreateCycles
+            type={stage === 1 ? "macro" : "micro"}
+            onClose={() => setCreateModalVisible(false)}
+            onSubmit={handleCreate}
+          />
+        </Modal>
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 

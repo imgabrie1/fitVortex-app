@@ -184,4 +184,5 @@ export type UserContextData = {
   createMacroCycle: (payload: any) => Promise<iCreateMacroCycle>;
   createMicroCycle: (payload: any) => Promise<iCreateMicroCycle>;
   addMicroInMacro: (macroID: string, microID: string) => Promise<any>
+  deleteCycles: (cycle: string, cycleID: string) => void
 };

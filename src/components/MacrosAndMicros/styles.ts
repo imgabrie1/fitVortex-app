@@ -28,6 +28,13 @@ export const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: "RussoOne",
   },
+
+  nameAndMenuWrap: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+
   infosWrap: {
     gap: 5,
   },
@@ -51,5 +58,22 @@ export const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: "RussoOne",
     color: themas.Colors.lightGray,
+  },
+
+  editAndDeleteWrap: {
+    position: "absolute",
+    width: width * 0.4,
+    right: 10,
+    top: 25,
+    // backgroundColor: themas.Colors.background,
+    backgroundColor: "#3737376c",
+    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    zIndex: 999,
+    elevation: 60,
+    shadowColor: themas.Colors.neon,
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
 });
