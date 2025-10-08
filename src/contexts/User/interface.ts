@@ -119,11 +119,13 @@ export interface MacroCycle {
   startDate: string;
   endDate: string;
   microQuantity: number;
-  items: [{
-    id: string;
-    createdAt: string | Date;
-    microCycle: MicroCycle
-  }]
+  items: [
+    {
+      id: string;
+      createdAt: string | Date;
+      microCycle: MicroCycle;
+    }
+  ];
 }
 export interface MicroCycle {
   id: string;
@@ -148,6 +150,19 @@ export interface RecordWorkoutInput {
   exercises: ExerciseInput[];
 }
 
+export interface iCreateMacroCycle {
+  macroCycleName: string;
+  startDate: Date | string;
+  endDate: Date | string;
+  microQuantity: number;
+}
+
+export interface iCreateMicroCycle {
+  id: string;
+  microCycleName: string;
+  trainingDays: number;
+}
+
 export type UserContextData = {
   token: string | null;
   user: iUserResponse | null;
@@ -160,6 +175,13 @@ export type UserContextData = {
   getAllMacroCycles: () => Promise<MacroCycle[]>;
   getAllMicroCycles: () => Promise<any>;
   getMacroCycleByID: (macroID: string) => Promise<any>;
-  getMicroCycleByID: (microID: string) => Promise<any>
-  toWorkOut: (microID: string,workoutID: string, workoutData: any) => Promise<any>
+  getMicroCycleByID: (microID: string) => Promise<any>;
+  toWorkOut: (
+    microID: string,
+    workoutID: string,
+    workoutData: any
+  ) => Promise<any>;
+  createMacroCycle: (payload: any) => Promise<iCreateMacroCycle>;
+  createMicroCycle: (payload: any) => Promise<iCreateMicroCycle>;
+  addMicroInMacro: (macroID: string, microID: string) => Promise<any>
 };
