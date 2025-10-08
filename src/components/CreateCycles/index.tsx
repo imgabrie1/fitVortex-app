@@ -1,24 +1,24 @@
-import React from 'react';
-import { View, Modal, Pressable } from 'react-native';
-import { useForm, Controller, FieldValues } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
-import { macroSchema, microSchema } from './schema';
-import { styles } from './styles';
-import AppText from '../AppText';
-import { Input } from '../Input';
-import { Button } from '../Button';
-import { MaterialIcons } from '@expo/vector-icons';
-import { themas } from '@/global/themes';
+import React from "react";
+import { View, Modal, Pressable } from "react-native";
+import { useForm, Controller, FieldValues } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import { macroSchema, microSchema } from "./schema";
+import { styles } from "./styles";
+import AppText from "../AppText";
+import { Input } from "../Input";
+import { Button } from "../Button";
+import { MaterialIcons } from "@expo/vector-icons";
+import { themas } from "@/global/themes";
 
 interface CreateCyclesProps {
-  type: 'macro' | 'micro';
+  type: "macro" | "micro";
   onClose: () => void;
   onSubmit: (data: any) => void;
 }
 
 const CreateCycles = ({ type, onClose, onSubmit }: CreateCyclesProps) => {
-  const isMacro = type === 'macro';
+  const isMacro = type === "macro";
   const schema = isMacro ? macroSchema : microSchema;
 
   const {
@@ -28,8 +28,8 @@ const CreateCycles = ({ type, onClose, onSubmit }: CreateCyclesProps) => {
   } = useForm<FieldValues>({
     resolver: yupResolver(schema as yup.AnyObjectSchema),
     defaultValues: isMacro
-      ? { macroCycleName: 'teste', startDate: '07-10-2025', endDate: '01-01-2026', microQuantity: 1 }
-      : { microCycleName: '', trainingDays: undefined },
+      ? { macroCycleName: "", startDate: "", endDate: "", microQuantity: undefined }
+      : { microCycleName: "", trainingDays: undefined },
   });
 
   return (
@@ -40,22 +40,24 @@ const CreateCycles = ({ type, onClose, onSubmit }: CreateCyclesProps) => {
             <MaterialIcons name="arrow-back" size={24} color="white" />
           </Pressable>
           <AppText style={styles.name}>
-            CRIAR {isMacro ? 'MACRO' : 'MICRO'} CICLO
+            CRIAR {isMacro ? "MACRO" : "MICRO"} CICLO
           </AppText>
           <View style={{ width: 24 }} />
         </View>
 
         <Controller
           control={control}
-          name={isMacro ? 'macroCycleName' : 'microCycleName'}
+          name={isMacro ? "macroCycleName" : "microCycleName"}
           render={({ field: { onChange, onBlur, value } }) => (
             <Input
-            placeholderTextColor={themas.Colors.text}
-              placeholder="Nome do Ciclo"
+              title="Nome do Ciclo"
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
-              error={errors[isMacro ? 'macroCycleName' : 'microCycleName']?.message as string}
+              error={
+                errors[isMacro ? "macroCycleName" : "microCycleName"]
+                  ?.message as string
+              }
             />
           )}
         />
@@ -67,9 +69,8 @@ const CreateCycles = ({ type, onClose, onSubmit }: CreateCyclesProps) => {
               name="startDate"
               render={({ field: { onChange, onBlur, value } }) => (
                 <Input
+                  title="Data de Início"
                   mask="99-99-9999"
-                  placeholderTextColor={themas.Colors.text}
-                  placeholder="Data de Início (DD-MM-AAAA)"
                   onBlur={onBlur}
                   onChangeText={onChange}
                   value={value}
@@ -83,9 +84,8 @@ const CreateCycles = ({ type, onClose, onSubmit }: CreateCyclesProps) => {
               name="endDate"
               render={({ field: { onChange, onBlur, value } }) => (
                 <Input
+                  title="Data de Término"
                   mask="99-99-9999"
-                  placeholderTextColor={themas.Colors.text}
-                  placeholder="Data de Fim (DD-MM-AAAA)"
                   onBlur={onBlur}
                   onChangeText={onChange}
                   value={value}
@@ -99,8 +99,7 @@ const CreateCycles = ({ type, onClose, onSubmit }: CreateCyclesProps) => {
               name="microQuantity"
               render={({ field: { onChange, onBlur, value } }) => (
                 <Input
-                  placeholderTextColor={themas.Colors.text}
-                  placeholder="(ex:4)"
+                  title="Quantidades de Micros (ex: semanas de treino num macro ciclo)"
                   onBlur={onBlur}
                   onChangeText={onChange}
                   value={value}
@@ -118,11 +117,10 @@ const CreateCycles = ({ type, onClose, onSubmit }: CreateCyclesProps) => {
             name="trainingDays"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-              placeholderTextColor={themas.Colors.text}
-                placeholder="Dias de Treino (ex: 3)"
+                title="Dias com treino no Micro (Ex: Dias com treino na semana)"
                 onBlur={onBlur}
                 onChangeText={onChange}
-                value={value ? String(value) : ''}
+                value={value ? String(value) : ""}
                 error={errors.trainingDays?.message as string}
                 keyboardType="numeric"
               />
@@ -130,7 +128,11 @@ const CreateCycles = ({ type, onClose, onSubmit }: CreateCyclesProps) => {
           />
         )}
 
-        <Button text="Criar Ciclo" onPress={handleSubmit(onSubmit)} />
+        <Button
+          text="Criar Ciclo"
+          onPress={handleSubmit(onSubmit)}
+          styleButton={styles.styledButton}
+        />
       </View>
     </View>
   );
