@@ -165,10 +165,13 @@ export const AuthProvider = ({ children }: Props) => {
       return workouts;
     } catch (err: any) {
       const currentError = err as AxiosError;
+      if (currentError.response?.status === 404) {
+        return [];
+      }
       const msg =
         currentError?.response?.data ||
         err?.message ||
-        "Erro ao carregar treinos";
+        "Erro ao carregar Treinos";
       throw new Error(String(msg));
     }
   };
@@ -182,6 +185,9 @@ export const AuthProvider = ({ children }: Props) => {
       return data;
     } catch (err: any) {
       const currentError = err as AxiosError;
+      if (currentError.response?.status === 404) {
+        return [];
+      }
       const msg =
         currentError?.response?.data ||
         err?.message ||
@@ -233,10 +239,13 @@ export const AuthProvider = ({ children }: Props) => {
       return data;
     } catch (err: any) {
       const currentError = err as AxiosError;
+      if (currentError.response?.status === 404) {
+        return [];
+      }
       const msg =
         currentError?.response?.data ||
         err?.message ||
-        "Erro ao carregar Macros Ciclo";
+        "Erro ao carregar Micros Ciclo";
       throw new Error(String(msg));
     }
   };
