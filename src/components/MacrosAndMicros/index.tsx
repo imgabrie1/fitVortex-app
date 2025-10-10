@@ -15,6 +15,8 @@ import SelectedMicro from "../SelectedMIcro";
 import ButtonCreateCycles from "../ButtonCreateCycles";
 import CreateCycles from "../CreateCycles";
 import { themas } from "@/global/themes";
+import ButtonCreateWorkout from "../ButtonCreateWorkout";
+import CreateWorkoutForm from "../CreateWorkout";
 
 const MacrosAndMicros = () => {
   const {
@@ -25,6 +27,8 @@ const MacrosAndMicros = () => {
     createMicroCycle,
     addMicroInMacro,
     deleteCycles,
+    createWorkout,
+    addWorkoutInMicro,
   } = useContext(UserContext);
 
   const [stage, setStage] = useState<1 | 2 | 3>(1);
@@ -34,6 +38,8 @@ const MacrosAndMicros = () => {
   const [macros, setMacros] = useState<MacroCycle[]>([]);
   const [micros, setMicros] = useState<MicroCycle[]>([]);
   const [isCreateModalVisible, setCreateModalVisible] = useState(false);
+  const [isCreateWorkoutModalVisible, setCreateWorkoutModalVisible] =
+    useState(false);
   const [menuVisible, setMenuVisible] = useState<string | null>(null);
 
   const loadMacros = async () => {
@@ -106,6 +112,31 @@ const MacrosAndMicros = () => {
       }
     } catch (error) {
       console.error("Erro ao deletar ciclo:", JSON.stringify(error, null, 2));
+    }
+  };
+
+  const handleCreateWorkout = async (data: any) => {
+    if (!selectedMacro) {
+      console.error("Nenhum macrociclo selecionado para adicionar o treino.");
+      return;
+    }
+
+    try {
+      setCreateWorkoutModalVisible(false);
+      const newWorkout = await createWorkout(data);
+
+      if (newWorkout && newWorkout.id) {
+        const microPromises = micros.map((micro) =>
+          addWorkoutInMicro(micro.id, newWorkout.id)
+        );
+        await Promise.all(microPromises);
+        loadMicros();
+      }
+    } catch (error) {
+      console.error(
+        "Erro ao criar ou adicionar treino:",
+        JSON.stringify(error, null, 2)
+      );
     }
   };
 
@@ -273,6 +304,7 @@ const MacrosAndMicros = () => {
                     style={styles.blocks}
                     onPress={() => {
                       setSelectedMicroId(micro.id);
+                      console.log(micro.microCycleName, ":", micro.id);
                       setStage(3);
                     }}
                     activeOpacity={0.8}
@@ -318,7 +350,6 @@ const MacrosAndMicros = () => {
 
                       <TouchableOpacity
                         onPress={() => {
-                          console.log(micro.microCycleName);
                           handleDelete(micro.id);
                           setMenuVisible(null);
                         }}
@@ -345,10 +376,33 @@ const MacrosAndMicros = () => {
           </ScrollView>
         )}
 
-        {/* Botão de criar ciclo */}
-        <ButtonCreateCycles onPress={() => setCreateModalVisible(true)} />
+        {/* botão de criar ciclo */}
+        {stage === 1 && (
+          <ButtonCreateCycles onPress={() => setCreateModalVisible(true)} />
+        )}
+        {stage === 2 && (
+          <View>
+            <ButtonCreateWorkout
+              onPress={() => setCreateWorkoutModalVisible(true)}
+            />
+            <ButtonCreateCycles onPress={() => setCreateModalVisible(true)} />
+          </View>
+        )}
 
-        {/* Modal de criação */}
+        {/* modal de criação de workout */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={isCreateWorkoutModalVisible}
+          onRequestClose={() => setCreateWorkoutModalVisible(false)}
+        >
+          <CreateWorkoutForm
+            onClose={() => setCreateWorkoutModalVisible(false)}
+            onSubmit={handleCreateWorkout}
+          />
+        </Modal>
+
+        {/* modal de criação */}
         <Modal
           animationType="slide"
           transparent={true}
