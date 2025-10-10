@@ -260,6 +260,7 @@ const SelectedMicro = ({ microId, onBack }: SelectedMicroProps) => {
     }
   };
 
+
   const totalSets = workouts.reduce((acc, ci) => {
     if (Array.isArray(ci.sets)) {
       return acc + ci.sets.length;
@@ -362,8 +363,7 @@ const SelectedMicro = ({ microId, onBack }: SelectedMicroProps) => {
             <AppText style={styles.infoHeader}>
               SÉRIES POR MICRO: {totalSets}
             </AppText>
-          ) :
-          null}
+          ) : null}
         </View>
 
         {/* ciclo de treinos */}
@@ -403,6 +403,10 @@ const SelectedMicro = ({ microId, onBack }: SelectedMicroProps) => {
             </View>
           </Modal>
         )}
+      </View>
+      <View
+      style={{marginBottom: 20}}
+      >
       </View>
     </GestureHandlerRootView>
   );

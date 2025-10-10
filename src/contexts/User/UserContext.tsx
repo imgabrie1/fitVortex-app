@@ -17,6 +17,8 @@ import {
   MacroCycle,
   iCreateMacroCycle,
   iCreateMicroCycle,
+  Exercise,
+  icreateWorkout,
 } from "./interface";
 import { AxiosError } from "axios";
 import { Alert } from "react-native";
@@ -57,6 +59,7 @@ export const AuthProvider = ({ children }: Props) => {
     })();
   }, []);
 
+  //      -------------- Auth --------------
   const requireUser = () => {
     if (!user) throw new Error("Usuário não autenticado");
     return user;
@@ -66,6 +69,7 @@ export const AuthProvider = ({ children }: Props) => {
     if (!user) throw new Error("Usuário não autenticado");
   };
 
+  //        -------------- USER --------------
   const registerUser = async (data: iDataRegister): Promise<void> => {
     setLoadingForm(true);
     try {
@@ -126,6 +130,159 @@ export const AuthProvider = ({ children }: Props) => {
     }
   };
 
+  //        -------------- MACRO --------------
+  const getAllMacroCycles = async (): Promise<MacroCycle[]> => {
+    assertUser();
+
+    try {
+      const { data } = await api.get("/macrocycle");
+
+      return data;
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      if (currentError.response?.status === 404) {
+        return [];
+      }
+      const msg =
+        currentError?.response?.data ||
+        err?.message ||
+        "Erro ao carregar Macros Ciclo";
+      throw new Error(String(msg));
+    }
+  };
+
+  const getMacroCycleByID = async (macroID: string): Promise<MacroCycle> => {
+    assertUser();
+
+    try {
+      const { data } = await api.get(`/macrocycle/${macroID}`);
+
+      return data;
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      const msg =
+        currentError?.response?.data ||
+        err?.message ||
+        "Erro ao carregar Macro Ciclo";
+      throw new Error(String(msg));
+    }
+  };
+
+  const createMacroCycle = async (payload: any): Promise<iCreateMacroCycle> => {
+    assertUser();
+    try {
+      const { data } = await api.post("/macrocycle", payload);
+      return data;
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      const msg =
+        currentError?.response?.data ||
+        err?.message ||
+        "Erro ao criar Macro Ciclo";
+      throw new Error(String(msg));
+    }
+  };
+
+  const deleteCycles = async (cycle: string, cycleID: string) => {
+    try {
+      await api.delete(`/${cycle}/${cycleID}`);
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      const msg =
+        currentError?.response?.data || err?.message || "Erro ao deletar Ciclo";
+      throw new Error(String(msg));
+    }
+  };
+
+  //        -------------- MICRO --------------
+  const getMicroCycleByID = async (microID: string): Promise<MicroCycle> => {
+    assertUser();
+
+    try {
+      const { data } = await api.get(`/microcycle/${microID}`);
+      return data;
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      const msg =
+        currentError?.response?.data ||
+        err?.message ||
+        "Erro ao carregar Micro Ciclo";
+      throw new Error(String(msg));
+    }
+  };
+
+  const getAllMicroCycles = async (): Promise<MicroCycle[]> => {
+    assertUser();
+
+    try {
+      const { data } = await api.get("/microcycle");
+
+      return data;
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      if (currentError.response?.status === 404) {
+        return [];
+      }
+      const msg =
+        currentError?.response?.data ||
+        err?.message ||
+        "Erro ao carregar Micros Ciclo";
+      throw new Error(String(msg));
+    }
+  };
+
+  const createMicroCycle = async (payload: any): Promise<iCreateMicroCycle> => {
+    assertUser();
+    try {
+      const { data } = await api.post("/microcycle", payload);
+      return data;
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      const msg =
+        currentError?.response?.data ||
+        err?.message ||
+        "Erro ao criar Micro Ciclo";
+      throw new Error(String(msg));
+    }
+  };
+
+  const addMicroInMacro = async (
+    macroID: string,
+    microID: string
+  ): Promise<any> => {
+    assertUser();
+    try {
+      await api.patch(`/macrocycle/${macroID}/micro/${microID}`);
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      const msg =
+        currentError?.response?.data ||
+        err?.message ||
+        "Erro ao adicionar micro no macro";
+      throw new Error(String(msg));
+    }
+  };
+
+  //        -------------- EXERCISE --------------
+  const getAllExercise = async (): Promise<Exercise[]> => {
+    assertUser();
+    try {
+      const { data } = await api.get("/exercise");
+      return data;
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      if (currentError.response?.status === 404) {
+        return [];
+      }
+      const msg =
+        currentError?.response?.data ||
+        err?.message ||
+        "Erro ao carregar Exercícios";
+      throw new Error(String(msg));
+    }
+  };
+
+  //        -------------- WORKOUT --------------
   const getAllWorkouts = async (): Promise<WorkoutWithSets[]> => {
     const currentUser = requireUser();
 
@@ -176,80 +333,6 @@ export const AuthProvider = ({ children }: Props) => {
     }
   };
 
-  const getAllMacroCycles = async (): Promise<MacroCycle[]> => {
-    assertUser();
-
-    try {
-      const { data } = await api.get("/macrocycle");
-
-      return data;
-    } catch (err: any) {
-      const currentError = err as AxiosError;
-      if (currentError.response?.status === 404) {
-        return [];
-      }
-      const msg =
-        currentError?.response?.data ||
-        err?.message ||
-        "Erro ao carregar Macros Ciclo";
-      throw new Error(String(msg));
-    }
-  };
-
-  const getMacroCycleByID = async (macroID: string): Promise<MacroCycle> => {
-    assertUser();
-
-    try {
-      const { data } = await api.get(`/macrocycle/${macroID}`);
-
-      return data;
-    } catch (err: any) {
-      const currentError = err as AxiosError;
-      const msg =
-        currentError?.response?.data ||
-        err?.message ||
-        "Erro ao carregar Macro Ciclo";
-      throw new Error(String(msg));
-    }
-  };
-
-  const getMicroCycleByID = async (microID: string): Promise<MicroCycle> => {
-    assertUser();
-
-    try {
-      const { data } = await api.get(`/microcycle/${microID}`);
-
-      return data;
-    } catch (err: any) {
-      const currentError = err as AxiosError;
-      const msg =
-        currentError?.response?.data ||
-        err?.message ||
-        "Erro ao carregar Micro Ciclo";
-      throw new Error(String(msg));
-    }
-  };
-
-  const getAllMicroCycles = async (): Promise<MicroCycle[]> => {
-    assertUser();
-
-    try {
-      const { data } = await api.get("/microcycle");
-
-      return data;
-    } catch (err: any) {
-      const currentError = err as AxiosError;
-      if (currentError.response?.status === 404) {
-        return [];
-      }
-      const msg =
-        currentError?.response?.data ||
-        err?.message ||
-        "Erro ao carregar Micros Ciclo";
-      throw new Error(String(msg));
-    }
-  };
-
   const toWorkOut = async (
     microID: string,
     workoutID: string,
@@ -276,65 +359,29 @@ export const AuthProvider = ({ children }: Props) => {
     }
   };
 
-  const createMacroCycle = async (payload: any): Promise<iCreateMacroCycle> => {
+  const createWorkout = async (payload: icreateWorkout): Promise<any> => {
     assertUser();
     try {
-      const { data } = await api.post("/macrocycle", payload);
+      const { data } = await api.post("/workout", payload);
       return data;
     } catch (err: any) {
       const currentError = err as AxiosError;
       const msg =
-        currentError?.response?.data ||
-        err?.message ||
-        "Erro ao criar Macro Ciclo";
+        currentError?.response?.data || err?.message || "Erro ao criar treino";
       throw new Error(String(msg));
     }
   };
 
-  const createMicroCycle = async (payload: any): Promise<iCreateMicroCycle> => {
-    assertUser();
+  const addWorkoutInMicro = async (microID: string, workoutID: string):Promise<any> => {
     try {
-      const { data } = await api.post("/microcycle", payload);
-      return data;
+      await api.patch(`/microcycle/${microID}/workouts/${workoutID}`)
     } catch (err: any) {
       const currentError = err as AxiosError;
       const msg =
-        currentError?.response?.data ||
-        err?.message ||
-        "Erro ao criar Micro Ciclo";
+        currentError?.response?.data || err?.message || "Erro ao criar treino";
       throw new Error(String(msg));
     }
-  };
-
-  const addMicroInMacro = async (
-    macroID: string,
-    microID: string
-  ): Promise<any> => {
-    assertUser();
-    try {
-      await api.patch(`/macrocycle/${macroID}/micro/${microID}`);
-    } catch (err: any) {
-      const currentError = err as AxiosError;
-      const msg =
-        currentError?.response?.data ||
-        err?.message ||
-        "Erro ao adicionar micro no macro";
-      throw new Error(String(msg));
-    }
-  };
-
-  const deleteCycles = async (cycle: string, cycleID: string) => {
-    try {
-      await api.delete(`/${cycle}/${cycleID}`)
-    } catch (err: any) {
-      const currentError = err as AxiosError;
-      const msg =
-        currentError?.response?.data ||
-        err?.message ||
-        "Erro ao deletar Ciclo";
-      throw new Error(String(msg));
-    }
-  };
+  }
 
   return (
     <UserContext.Provider
@@ -356,6 +403,9 @@ export const AuthProvider = ({ children }: Props) => {
         createMicroCycle,
         addMicroInMacro,
         deleteCycles,
+        getAllExercise,
+        createWorkout,
+        addWorkoutInMicro
       }}
     >
       {children}

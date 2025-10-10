@@ -28,7 +28,7 @@ const CreateCycles = ({ type, onClose, onSubmit }: CreateCyclesProps) => {
   } = useForm<FieldValues>({
     resolver: yupResolver(schema as yup.AnyObjectSchema),
     defaultValues: isMacro
-      ? { macroCycleName: "teste ", startDate: "01-01-2026", endDate: "03-03-2026", microQuantity: 4 }
+      ? { macroCycleName: "", startDate: "", endDate: "", microQuantity: undefined }
       : { microCycleName: "", trainingDays: undefined },
   });
 
