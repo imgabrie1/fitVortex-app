@@ -12,7 +12,6 @@ export const styles = StyleSheet.create({
   blocks: {
     flex: 1,
     backgroundColor: themas.Colors.blocks,
-    // backgroundColor: "red",
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 20,
@@ -65,7 +64,6 @@ export const styles = StyleSheet.create({
     width: width * 0.4,
     right: 10,
     top: 25,
-    // backgroundColor: themas.Colors.background,
     backgroundColor: "#3737376c",
     borderRadius: 8,
     paddingVertical: 6,

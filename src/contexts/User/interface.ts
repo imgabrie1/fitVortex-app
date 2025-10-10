@@ -163,6 +163,22 @@ export interface iCreateMicroCycle {
   trainingDays: number;
 }
 
+export interface ExerciseTarget {
+  exerciseId: string;
+  targetSets: number;
+}
+
+export interface ExerciseInCreateAndPatch {
+  exercises: ExerciseTarget[];
+}
+
+export interface icreateWorkout {
+  name: string;
+  exercises: ExerciseInCreateAndPatch;
+}
+
+export interface patchWorkout {}
+
 export type UserContextData = {
   token: string | null;
   user: iUserResponse | null;
@@ -183,6 +199,9 @@ export type UserContextData = {
   ) => Promise<any>;
   createMacroCycle: (payload: any) => Promise<iCreateMacroCycle>;
   createMicroCycle: (payload: any) => Promise<iCreateMicroCycle>;
-  addMicroInMacro: (macroID: string, microID: string) => Promise<any>
-  deleteCycles: (cycle: string, cycleID: string) => void
+  addMicroInMacro: (macroID: string, microID: string) => Promise<any>;
+  deleteCycles: (cycle: string, cycleID: string) => Promise<void>;
+  getAllExercise: () => Promise<Exercise[]>;
+  createWorkout: (payload: icreateWorkout) => Promise<any>
+  addWorkoutInMicro: (microID: string, workoutID: string) => Promise<any>
 };
