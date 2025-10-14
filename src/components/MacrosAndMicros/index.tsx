@@ -140,11 +140,16 @@ const MacrosAndMicros = () => {
     }
   };
 
+  const allMicroCycleIds = macros.flatMap((macro) =>
+    macro.items.map((item) => item.microCycle.id)
+  );
+
   // -- tela de infos de micro (stage 3) --
   if (stage === 3 && selectedMicroId) {
     return (
       <SelectedMicro
         microId={selectedMicroId}
+        allMicrosId={allMicroCycleIds}
         onBack={() => {
           setStage(2);
           setSelectedMicro(null);
@@ -304,7 +309,6 @@ const MacrosAndMicros = () => {
                     style={styles.blocks}
                     onPress={() => {
                       setSelectedMicroId(micro.id);
-                      console.log(micro.microCycleName, ":", micro.id);
                       setStage(3);
                     }}
                     activeOpacity={0.8}
@@ -339,8 +343,6 @@ const MacrosAndMicros = () => {
                     <View style={styles.editAndDeleteWrap}>
                       <TouchableOpacity
                         onPress={() => {
-                          console.log("nome micro:", micro.microCycleName);
-                          console.log("id micro:", micro.id);
                           setMenuVisible(null);
                         }}
                         style={{ paddingVertical: 4 }}
