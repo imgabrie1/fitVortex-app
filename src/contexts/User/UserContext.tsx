@@ -18,7 +18,8 @@ import {
   iCreateMacroCycle,
   iCreateMicroCycle,
   Exercise,
-  icreateWorkout,
+  iCreateWorkout,
+  iPatchWorkout,
 } from "./interface";
 import { AxiosError } from "axios";
 import { Alert } from "react-native";
@@ -264,10 +265,14 @@ export const AuthProvider = ({ children }: Props) => {
   };
 
   //        -------------- EXERCISE --------------
-  const getAllExercise = async (): Promise<Exercise[]> => {
+  const getAllExercise = async (page?: number, limit?: number): Promise<Exercise[]> => {
     assertUser();
     try {
-      const { data } = await api.get("/exercise");
+      let url = "/exercise";
+      if (page !== undefined && limit !== undefined) {
+        url += `?page=${page}&limit=${limit}`;
+      }
+      const { data } = await api.get(url);
       return data;
     } catch (err: any) {
       const currentError = err as AxiosError;
@@ -359,7 +364,7 @@ export const AuthProvider = ({ children }: Props) => {
     }
   };
 
-  const createWorkout = async (payload: icreateWorkout): Promise<any> => {
+  const createWorkout = async (payload: iCreateWorkout): Promise<any> => {
     assertUser();
     try {
       const { data } = await api.post("/workout", payload);
@@ -372,16 +377,31 @@ export const AuthProvider = ({ children }: Props) => {
     }
   };
 
-  const addWorkoutInMicro = async (microID: string, workoutID: string):Promise<any> => {
+  const addWorkoutInMicro = async (
+    microID: string,
+    workoutID: string
+  ): Promise<any> => {
     try {
-      await api.patch(`/microcycle/${microID}/workouts/${workoutID}`)
+      await api.patch(`/microcycle/${microID}/workouts/${workoutID}`);
     } catch (err: any) {
       const currentError = err as AxiosError;
       const msg =
         currentError?.response?.data || err?.message || "Erro ao criar treino";
       throw new Error(String(msg));
     }
-  }
+  };
+
+  const addExerciseInWorkout = async (payload: iPatchWorkout, workoutID: string) => {
+    try {
+      const { data } = await api.patch(`workout/${workoutID}`, payload)
+      return data
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      const msg =
+        currentError?.response?.data || err?.message || "Erro ao criar treino";
+      throw new Error(String(msg));
+    }
+  };
 
   return (
     <UserContext.Provider
@@ -405,7 +425,8 @@ export const AuthProvider = ({ children }: Props) => {
         deleteCycles,
         getAllExercise,
         createWorkout,
-        addWorkoutInMicro
+        addWorkoutInMicro,
+        addExerciseInWorkout
       }}
     >
       {children}

@@ -1,5 +1,11 @@
 import React from "react";
-import { ActivityIndicator, Text, TouchableOpacity, StyleProp, ViewStyle } from "react-native";
+import {
+  ActivityIndicator,
+  Text,
+  TouchableOpacity,
+  StyleProp,
+  ViewStyle,
+} from "react-native";
 import { style } from "./styles";
 
 type Props = {
@@ -8,9 +14,17 @@ type Props = {
   loading?: boolean;
   disabled?: boolean;
   styleButton?: StyleProp<ViewStyle>;
+  fontSize?: number;
 };
 
-export const Button = ({ text, onPress, loading, disabled, styleButton }: Props) => {
+export const Button = ({
+  text,
+  onPress,
+  loading,
+  disabled,
+  styleButton,
+  fontSize,
+}: Props) => {
   return (
     <TouchableOpacity
       style={[style.button, styleButton, disabled && { opacity: 0.6 }]}
@@ -18,7 +32,13 @@ export const Button = ({ text, onPress, loading, disabled, styleButton }: Props)
       activeOpacity={0.6}
       disabled={disabled || loading}
     >
-      {loading ? <ActivityIndicator color="#FFF" /> : <Text style={style.textButton}>{text}</Text>}
+      {loading ? (
+        <ActivityIndicator color="#FFF" />
+      ) : (
+        <Text style={[style.textButton, fontSize ? { fontSize } : {}]}>
+          {text}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 };

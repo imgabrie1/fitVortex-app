@@ -1,8 +1,21 @@
 import React, { useContext, useEffect, useState } from "react";
-import { View, Modal, Pressable, TouchableOpacity } from "react-native";
+import {
+  View,
+  Modal,
+  Pressable,
+  TouchableOpacity,
+  Image,
+  FlatList,
+  ActivityIndicator,
+} from "react-native";
 import AppText from "../AppText";
 import { UserContext } from "@/contexts/User/UserContext";
-import { MicroCycle, Workout } from "@/contexts/User/interface";
+import {
+  Exercise,
+  iPatchWorkout,
+  MicroCycle,
+  Workout,
+} from "@/contexts/User/interface";
 import { MaterialIcons } from "@expo/vector-icons";
 import { styles } from "./styles";
 import { Button } from "../Button";
@@ -16,14 +29,26 @@ import DraggableFlatList, {
 } from "react-native-draggable-flatlist";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import AddExerciseForm from "../AddExerciseForm";
 
 interface SelectedMicroProps {
   microId: string;
   onBack: () => void;
+  allMicrosId: any;
 }
 
-const SelectedMicro = ({ microId, onBack }: SelectedMicroProps) => {
-  const { getMicroCycleByID, toWorkOut, loadingForm } = useContext(UserContext);
+const SelectedMicro = ({
+  microId,
+  onBack,
+  allMicrosId,
+}: SelectedMicroProps) => {
+  const {
+    getMicroCycleByID,
+    toWorkOut,
+    loadingForm,
+    addExerciseInWorkout,
+    getAllExercise,
+  } = useContext(UserContext);
 
   const [micro, setMicro] = useState<MicroCycle | null>(null);
   const [workouts, setWorkouts] = useState<any[]>([]);
@@ -31,7 +56,23 @@ const SelectedMicro = ({ microId, onBack }: SelectedMicroProps) => {
   const [registeringWorkout, setRegisteringWorkout] = useState<Workout | null>(
     null
   );
+  const [selectedWorkoutName, setSelectedWorkoutName] = useState<string | null>(
+    null
+  );
+  const [selectedWorkoutImage, setSelectedWorkoutImage] = useState<
+    string | null
+  >(null);
   const [formValues, setFormValues] = useState<Record<string, any>>({});
+  const [stage, setStage] = useState<1 | 2 | 3>(1);
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [isAddExerciseModalVisible, setAddExerciseModalVisible] =
+    useState(false);
+  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
+    null
+  );
 
   const {
     control,
@@ -39,7 +80,6 @@ const SelectedMicro = ({ microId, onBack }: SelectedMicroProps) => {
     formState: { errors },
     watch,
     reset,
-    getValues,
   } = useForm({
     resolver: yupResolver(schema),
   });
@@ -57,14 +97,11 @@ const SelectedMicro = ({ microId, onBack }: SelectedMicroProps) => {
         const savedValuesJSON = await AsyncStorage.getItem(
           getFormStorageKey(microId)
         );
-        if (savedValuesJSON) {
-          setFormValues(JSON.parse(savedValuesJSON));
-        }
+        if (savedValuesJSON) setFormValues(JSON.parse(savedValuesJSON));
       } catch (e) {
         console.error("Failed to load form values from storage", e);
       }
     };
-
     loadFormValues();
   }, [microId]);
 
@@ -74,13 +111,11 @@ const SelectedMicro = ({ microId, onBack }: SelectedMicroProps) => {
     if (registeringWorkout) {
       const currentValues = formValues[registeringWorkout.id] || {};
       reset({
-        exercises: registeringWorkout.workoutExercises?.map((we) => {
+        exercises: registeringWorkout.workoutExercises?.map((we: any) => {
           const existingExercise = currentValues.exercises?.find(
             (ex: any) => ex.exerciseId === we.exercise.id
           );
-          if (existingExercise) {
-            return existingExercise;
-          }
+          if (existingExercise) return existingExercise;
 
           const targetSets = we.targetSets || 1;
           const sets = Array.from({ length: targetSets }, () => ({
@@ -91,7 +126,7 @@ const SelectedMicro = ({ microId, onBack }: SelectedMicroProps) => {
           return {
             exerciseId: we.exercise.id,
             notes: "",
-            sets: sets,
+            sets,
           };
         }),
       });
@@ -101,10 +136,7 @@ const SelectedMicro = ({ microId, onBack }: SelectedMicroProps) => {
   useEffect(() => {
     if (registeringWorkout) {
       setFormValues((prev) => {
-        const newValues = {
-          ...prev,
-          [registeringWorkout.id]: watchedValues,
-        };
+        const newValues = { ...prev, [registeringWorkout.id]: watchedValues };
         try {
           AsyncStorage.setItem(
             getFormStorageKey(microId),
@@ -130,9 +162,7 @@ const SelectedMicro = ({ microId, onBack }: SelectedMicroProps) => {
       notes: exercise.notes,
     }));
 
-    const finalPayload = {
-      exercises: exercisesPayload,
-    };
+    const finalPayload = { exercises: exercisesPayload };
 
     try {
       await toWorkOut(microId, registeringWorkout.id, finalPayload);
@@ -201,16 +231,9 @@ const SelectedMicro = ({ microId, onBack }: SelectedMicroProps) => {
         normalized.sort((a: any, b: any) => {
           const indexA = savedOrderIds.indexOf(a.id);
           const indexB = savedOrderIds.indexOf(b.id);
-
-          if (indexA !== -1 && indexB !== -1) {
-            return indexA - indexB;
-          }
-          if (indexA !== -1) {
-            return -1;
-          }
-          if (indexB !== -1) {
-            return 1;
-          }
+          if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+          if (indexA !== -1) return -1;
+          if (indexB !== -1) return 1;
           return 0;
         });
       }
@@ -238,12 +261,13 @@ const SelectedMicro = ({ microId, onBack }: SelectedMicroProps) => {
             JSON.stringify(newValues)
           );
         } catch (e) {
-          console.error("Failed to clear form values from storage", e);
+          console.error("Falha ao limpar valores", e);
         }
         return newValues;
       });
     }
     setRegisteringWorkout(null);
+    setSelectedWorkoutName(null);
     loadMicro();
   };
 
@@ -260,156 +284,346 @@ const SelectedMicro = ({ microId, onBack }: SelectedMicroProps) => {
     }
   };
 
+  const loadExercises = async (pageNumber: number, limit: number = 10) => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+
+    try {
+      const data: any = await getAllExercise(pageNumber, limit);
+
+      if (data?.data?.length) {
+        setExercises((prev) => [...prev, ...data.data]);
+        setPage(pageNumber + 1);
+      } else {
+        setHasMore(false);
+      }
+    } catch (err: any) {
+      if (
+        err?.response?.status === 404 ||
+        err?.response?.data === "No exercises"
+      ) {
+        setHasMore(false);
+      } else {
+        console.error("Erro ao carregar os exercícios:", err);
+      }
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  const handleLoadMore = () => {
+    if (!loadingMore && hasMore) {
+      loadExercises(page);
+    }
+  };
+
+  useEffect(() => {
+    loadExercises(page);
+  }, []);
+
+  const handleSubmitAddExercise = async (data: any) => {
+    try {
+      if (!allMicrosId || !Array.isArray(allMicrosId)) {
+        console.error("microsID inválido ou ausente");
+        return;
+      }
+
+      setLoading(true);
+
+      // Busca todos os micro ciclos e extrai os workouts
+      const allWorkouts = (
+        await Promise.all(
+          allMicrosId.map(async (mID: string) => {
+            const micro = await getMicroCycleByID(mID);
+            if (!micro?.cycleItems) return [];
+            return micro.cycleItems
+              .map((ci: any) => ci?.workout?.id)
+              .filter(Boolean);
+          })
+        )
+      ).flat();
+
+      const uniqueWorkoutIds = [...new Set(allWorkouts)];
+
+      if (uniqueWorkoutIds.length === 0) {
+        console.warn("Nenhum workout encontrado para atualizar.");
+        return;
+      }
+
+      // Aplica o patch em todos os workouts
+      await Promise.all(
+        uniqueWorkoutIds.map(async (workoutID) => {
+          await addExerciseInWorkout(data, workoutID);
+        })
+      );
+
+      console.log("✅ Exercício adicionado em todos os workouts com sucesso!");
+      setAddExerciseModalVisible(false);
+      loadMicro(); // Atualiza o micro atual na tela
+    } catch (err) {
+      console.error("Erro ao adicionar exercício em múltiplos workouts:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const totalSets = workouts.reduce((acc, ci) => {
-    if (Array.isArray(ci.sets)) {
-      return acc + ci.sets.length;
-    }
+    if (Array.isArray(ci.sets)) return acc + ci.sets.length;
     return acc;
   }, 0);
 
-  const renderItem = ({ item: ci, drag, isActive }: RenderItemParams<any>) => {
-    const workoutName = ci.workout.name;
-    const workoutExercises = ci.workout?.workoutExercises ?? [];
-    const sets = Array.isArray(ci.sets) ? ci.sets : [];
-    const setsByExercise = groupSetsByExercise(sets);
-    const hasSets = sets.length > 0;
+  if (stage === 1) {
+    const renderItem = ({
+      item: ci,
+      drag,
+      isActive,
+    }: RenderItemParams<any>) => {
+      const workoutName = ci.workout.name;
+      const workoutImage = ci.workout?.imageUrl || null;
+      const workoutExercises = ci.workout?.workoutExercises ?? [];
+      const sets = Array.isArray(ci.sets) ? ci.sets : [];
+      const setsByExercise = groupSetsByExercise(sets);
+      const hasSets = sets.length > 0;
+
+      return (
+        <TouchableOpacity
+          onLongPress={drag}
+          disabled={isActive}
+          style={[
+            styles.blocks,
+            { marginTop: 12, backgroundColor: isActive ? "#333" : "#222" },
+          ]}
+        >
+          <View style={styles.infoWorkoutWrap}>
+            <AppText style={styles.name}>{workoutName}</AppText>
+            <AppText style={styles.info}>
+              Exercícios no treino: {workoutExercises.length}
+            </AppText>
+          </View>
+
+          {hasSets ? (
+            <View style={{ marginTop: 8 }}>
+              <AppText style={[styles.info, { fontWeight: "600" }]}>
+                Séries registradas:
+              </AppText>
+
+              {Object.entries(setsByExercise).map(([exId, arr]) => {
+                const exName = arr[0]?.exercise?.name ?? "Exercício";
+                return (
+                  <View key={exId} style={{ marginTop: 8 }}>
+                    <AppText style={[styles.name, { fontSize: 14 }]}>
+                      {exName}
+                    </AppText>
+                    {arr.map((s: any) => {
+                      const weight = toNumber(s.weight).toFixed(2);
+                      return (
+                        <View key={s.id} style={styles.repsWeightInfo}>
+                          <AppText style={styles.info}>
+                            • reps: {s.reps ?? "—"} — peso: {weight}
+                          </AppText>
+                          {s.notes ? (
+                            <AppText style={styles.info}>
+                              notas: {s.notes}
+                            </AppText>
+                          ) : null}
+                        </View>
+                      );
+                    })}
+                  </View>
+                );
+              })}
+            </View>
+          ) : (
+            <View style={{ marginTop: 12 }}>
+              {workoutExercises.length <= 0 ? (
+                <Button
+                  text="Adicionar Exercícios"
+                  onPress={() => {
+                    console.log(workoutName);
+                    setStage(2);
+                  }}
+                />
+              ) : (
+                <Button
+                  text="Registrar Treino"
+                  onPress={() => {
+                    setRegisteringWorkout(ci.workout);
+                    setSelectedWorkoutName(workoutName);
+                    setSelectedWorkoutImage(workoutImage);
+                  }}
+                />
+              )}
+            </View>
+          )}
+        </TouchableOpacity>
+      );
+    };
+
+    if (!micro) return null;
 
     return (
-      <TouchableOpacity
-        onLongPress={drag}
-        disabled={isActive}
-        style={[
-          styles.blocks,
-          { marginTop: 12, backgroundColor: isActive ? "#333" : "#222" },
-        ]}
-      >
-        <View style={styles.infoWorkoutWrap}>
-          <AppText style={styles.name}>{workoutName}</AppText>
-          <AppText style={styles.info}>
-            Exercícios no treino: {workoutExercises.length}
-          </AppText>
-        </View>
-
-        {hasSets ? (
-          <View style={{ marginTop: 8 }}>
-            <AppText style={[styles.info, { fontWeight: "600" }]}>
-              Séries registradas:
-            </AppText>
-
-            {Object.entries(setsByExercise).map(([exId, arr]) => {
-              const exName = arr[0]?.exercise?.name ?? "Exercício";
-              return (
-                <View key={exId} style={{ marginTop: 8 }}>
-                  <AppText style={[styles.name, { fontSize: 14 }]}>
-                    {exName}
-                  </AppText>
-
-                  {arr.map((s: any) => {
-                    const weight = toNumber(s.weight).toFixed(2);
-                    return (
-                      <View key={s.id} style={styles.repsWeightInfo}>
-                        <AppText style={styles.info}>
-                          • reps: {s.reps ?? "—"} — peso: {weight}
-                        </AppText>
-                        {s.notes ? (
-                          <AppText style={styles.info}>
-                            notas: {s.notes}
-                          </AppText>
-                        ) : null}
-                      </View>
-                    );
-                  })}
-                </View>
-              );
-            })}
-          </View>
-        ) : (
-          <View style={{ marginTop: 12 }}>
-            <Button
-              text="Registrar Treino"
-              onPress={() => setRegisteringWorkout(ci.workout)}
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View style={styles.container}>
+          <View style={styles.nameAndBackWrap}>
+            <MaterialIcons
+              name="arrow-back"
+              size={24}
+              color="white"
+              onPress={onBack}
             />
-          </View>
-        )}
-      </TouchableOpacity>
-    );
-  };
-
-  if (!micro) return null;
-
-  return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <View style={styles.container}>
-        <View style={styles.nameAndBackWrap}>
-          <MaterialIcons
-            name="arrow-back"
-            size={24}
-            color="white"
-            onPress={onBack}
-          />
-          <AppText style={styles.name}>
-            {micro.microCycleName?.toUpperCase()}
-          </AppText>
-          <View style={{ width: 24 }} />
-        </View>
-
-        {/* info treino */}
-        <View style={styles.blockHeader}>
-          <AppText style={styles.infoHeader}>
-            Dias de treino: {micro.trainingDays ?? "—"}
-          </AppText>
-          {micro.volumes ? (
-            <AppText style={styles.infoHeader}>
-              SÉRIES POR MICRO: {totalSets}
+            <AppText style={styles.name}>
+              {micro.microCycleName?.toUpperCase()}
             </AppText>
-          ) : null}
+            <View style={{ width: 24 }} />
+          </View>
+
+          {/* info treino */}
+          <View style={styles.blockHeader}>
+            <AppText style={styles.infoHeader}>
+              Dias de treino: {micro.trainingDays ?? "—"}
+            </AppText>
+            {micro.volumes ? (
+              <AppText style={styles.infoHeader}>
+                SÉRIES POR MICRO: {totalSets}
+              </AppText>
+            ) : null}
+          </View>
+
+          {/* ciclo de treinos */}
+          <DraggableFlatList
+            data={workouts}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.id}
+            onDragEnd={handleDragEnd}
+            containerStyle={{ flex: 1 }}
+            contentContainerStyle={{ paddingBottom: 20 }}
+          />
+
+          {registeringWorkout && (
+            <Modal
+              animationType="slide"
+              transparent={false}
+              visible={!!registeringWorkout}
+              onRequestClose={() => {
+                setRegisteringWorkout(null);
+                setSelectedWorkoutName(null);
+                setSelectedWorkoutImage(null);
+              }}
+            >
+              <View style={styles.containerModal}>
+                <View style={styles.nameAndBackWrap}>
+                  <Pressable
+                    onPress={() => {
+                      setRegisteringWorkout(null);
+                      setSelectedWorkoutName(null);
+                      setSelectedWorkoutImage(null);
+                    }}
+                  >
+                    <MaterialIcons name="arrow-back" size={24} color="white" />
+                  </Pressable>
+
+                  <AppText style={styles.name}>
+                    {selectedWorkoutName ?? "Treino"}
+                  </AppText>
+                  <View style={{ width: 24 }} />
+                </View>
+
+                {selectedWorkoutImage && (
+                  <Image
+                    source={{ uri: selectedWorkoutImage }}
+                    style={{
+                      width: "100%",
+                      height: 200,
+                      borderRadius: 12,
+                      marginBottom: 16,
+                    }}
+                    resizeMode="cover"
+                  />
+                )}
+
+                <RegisterWorkoutForm
+                  workout={registeringWorkout}
+                  control={control}
+                  errors={errors}
+                  fields={fields}
+                  handleSubmit={handleSubmit}
+                  onSubmit={onSubmit}
+                  loadingForm={loadingForm}
+                />
+              </View>
+            </Modal>
+          )}
+        </View>
+        <View style={{ marginBottom: 20 }} />
+      </GestureHandlerRootView>
+    );
+  }
+
+  if (stage === 2) {
+    return (
+      <View>
+        <View style={{ marginTop: 30 }}>
+          <View style={styles.nameAndBackWrap}>
+            <Pressable onPress={onBack}>
+              <MaterialIcons name="arrow-back" size={24} color="white" />
+            </Pressable>
+            <AppText style={styles.name}>ADICIONAR EXERCÍCIO</AppText>
+            <View style={{ width: 24 }} />
+          </View>
         </View>
 
-        {/* ciclo de treinos */}
-        <DraggableFlatList
-          data={workouts}
-          renderItem={renderItem}
+        <FlatList
+          data={exercises}
           keyExtractor={(item) => item.id}
-          onDragEnd={handleDragEnd}
-          containerStyle={{ flex: 1 }}
-          contentContainerStyle={{ paddingBottom: 20 }}
-        />
-
-        {registeringWorkout && (
-          <Modal
-            animationType="slide"
-            transparent={false}
-            visible={registeringWorkout !== null}
-            onRequestClose={() => setRegisteringWorkout(null)}
-          >
-            <View style={styles.containerModal}>
-              <View style={styles.nameAndBackWrap}>
-                <Pressable onPress={() => setRegisteringWorkout(null)}>
-                  <MaterialIcons name="arrow-back" size={24} color="white" />
-                </Pressable>
-                <AppText style={styles.name}>Registrar Treino</AppText>
-                <View style={{ width: 24 }} />
-              </View>
-              <RegisterWorkoutForm
-                workout={registeringWorkout}
-                control={control}
-                errors={errors}
-                fields={fields}
-                handleSubmit={handleSubmit}
-                onSubmit={onSubmit}
-                loadingForm={loadingForm}
+          numColumns={3}
+          // columnWrapperStyle={{ justifyContent: "space-between" }}
+          renderItem={({ item }) => (
+            <View style={styles.addExerciseUl}>
+              <Image
+                source={{ uri: item.imageURL }}
+                style={styles.imagemURl}
+                resizeMode="cover"
+              />
+              <AppText style={styles.nameExercise}>{item.name}</AppText>
+              <Button
+                styleButton={styles.styledButton}
+                text="Adicionar"
+                fontSize={12}
+                onPress={() => {
+                  setSelectedExercise(item);
+                  setAddExerciseModalVisible(true);
+                }}
               />
             </View>
-          </Modal>
-        )}
+          )}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={() =>
+            loadingMore ? <ActivityIndicator size="large" /> : null
+          }
+          ListEmptyComponent={() => (
+            <AppText>Nenhum Exercício Encontrado</AppText>
+          )}
+        />
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={isAddExerciseModalVisible}
+          onRequestClose={() => setAddExerciseModalVisible(false)}
+        >
+          <AddExerciseForm
+            selectedExercise={selectedExercise}
+            onClose={() => {
+              setAddExerciseModalVisible(false);
+              setSelectedExercise(null);
+            }}
+            onSubmit={handleSubmitAddExercise}
+          />
+        </Modal>
       </View>
-      <View
-      style={{marginBottom: 20}}
-      >
-      </View>
-    </GestureHandlerRootView>
-  );
+    );
+  }
 };
 
 export default SelectedMicro;
