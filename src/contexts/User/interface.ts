@@ -172,12 +172,12 @@ export interface ExerciseInCreateAndPatch {
   exercises: ExerciseTarget[];
 }
 
-export interface icreateWorkout {
+export interface iCreateWorkout {
   name: string;
   exercises: ExerciseInCreateAndPatch;
 }
 
-export interface patchWorkout {}
+export type iPatchWorkout = Partial<iCreateWorkout>;
 
 export type UserContextData = {
   token: string | null;
@@ -201,7 +201,8 @@ export type UserContextData = {
   createMicroCycle: (payload: any) => Promise<iCreateMicroCycle>;
   addMicroInMacro: (macroID: string, microID: string) => Promise<any>;
   deleteCycles: (cycle: string, cycleID: string) => Promise<void>;
-  getAllExercise: () => Promise<Exercise[]>;
-  createWorkout: (payload: icreateWorkout) => Promise<any>
-  addWorkoutInMicro: (microID: string, workoutID: string) => Promise<any>
+  getAllExercise: (page?: number, limit?: number) => Promise<Exercise[]>;
+  createWorkout: (payload: iCreateWorkout) => Promise<any>;
+  addWorkoutInMicro: (microID: string, workoutID: string) => Promise<any>;
+  addExerciseInWorkout: (payload: ExerciseInCreateAndPatch, workoutID: string) => Promise<any>;
 };

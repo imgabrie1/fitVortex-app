@@ -23,7 +23,7 @@ export const styles = StyleSheet.create({
   infoHeader: {
     fontFamily: "RussoOne",
     fontSize: 16,
-    color: themas.Colors.text
+    color: themas.Colors.text,
   },
   blocks: {
     backgroundColor: themas.Colors.blocks,
@@ -81,6 +81,37 @@ export const styles = StyleSheet.create({
     paddingBottom: 15,
     borderBottomColor: themas.Colors.gray,
     borderBottomWidth: 0.5,
+    gap: 5,
+  },
+
+
+
+
+
+  addExerciseUl: {
+    width: "33%",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    height: 240,
+    marginBottom: 5,
+    paddingTop: 5,
     gap: 5
   },
+  imagemURl: {
+    width: 110,
+    height: 110,
+    borderRadius: 10,
+    backgroundColor: themas.Colors.lightGray,
+  },
+  nameExercise: {
+    marginTop: 6,
+    textAlign: "center",
+    height: 38
+  },
+
+
+
+  styledButton: {
+    width: "85%",
+  }
 });
