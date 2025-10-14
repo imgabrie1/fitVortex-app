@@ -204,8 +204,5 @@ export type UserContextData = {
   getAllExercise: (page?: number, limit?: number) => Promise<Exercise[]>;
   createWorkout: (payload: iCreateWorkout) => Promise<any>;
   addWorkoutInMicro: (microID: string, workoutID: string) => Promise<any>;
-  addExerciseInWorkout: (
-    payload: iPatchWorkout,
-    workoutID: string
-  ) => Promise<any>;
+  addExerciseInWorkout: (payload: ExerciseInCreateAndPatch, workoutID: string) => Promise<any>;
 };

@@ -20,6 +20,7 @@ import {
   Exercise,
   iCreateWorkout,
   iPatchWorkout,
+  ExerciseInCreateAndPatch,
 } from "./interface";
 import { AxiosError } from "axios";
 import { Alert } from "react-native";
@@ -391,7 +392,7 @@ export const AuthProvider = ({ children }: Props) => {
     }
   };
 
-  const addExerciseInWorkout = async (payload: iPatchWorkout, workoutID: string) => {
+  const addExerciseInWorkout = async (payload: ExerciseInCreateAndPatch, workoutID: string) => {
     try {
       const { data } = await api.patch(`workout/${workoutID}`, payload)
       return data

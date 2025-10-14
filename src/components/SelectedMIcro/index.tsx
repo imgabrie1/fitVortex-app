@@ -73,6 +73,9 @@ const SelectedMicro = ({
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
     null
   );
+  const [targetWorkoutName, setTargetWorkoutName] = useState<string | null>(
+    null
+  );
 
   const {
     control,
@@ -322,46 +325,48 @@ const SelectedMicro = ({
   }, []);
 
   const handleSubmitAddExercise = async (data: any) => {
+    if (!targetWorkoutName) {
+      console.error("Nenhum nome de treino alvo definido.");
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      if (!allMicrosId || !Array.isArray(allMicrosId)) {
-        console.error("microsID inválido ou ausente");
-        return;
-      }
-
-      setLoading(true);
-
-      // Busca todos os micro ciclos e extrai os workouts
-      const allWorkouts = (
-        await Promise.all(
-          allMicrosId.map(async (mID: string) => {
-            const micro = await getMicroCycleByID(mID);
-            if (!micro?.cycleItems) return [];
-            return micro.cycleItems
-              .map((ci: any) => ci?.workout?.id)
-              .filter(Boolean);
-          })
-        )
-      ).flat();
-
-      const uniqueWorkoutIds = [...new Set(allWorkouts)];
-
-      if (uniqueWorkoutIds.length === 0) {
-        console.warn("Nenhum workout encontrado para atualizar.");
-        return;
-      }
-
-      // Aplica o patch em todos os workouts
-      await Promise.all(
-        uniqueWorkoutIds.map(async (workoutID) => {
-          await addExerciseInWorkout(data, workoutID);
-        })
+      const workoutsToUpdate = workouts.filter(
+        (w) => w.workout.name === targetWorkoutName
       );
 
-      console.log("✅ Exercício adicionado em todos os workouts com sucesso!");
+      if (workoutsToUpdate.length === 0) {
+        console.warn("Nenhum treino correspondente encontrado para atualizar.");
+        setLoading(false);
+        return;
+      }
+
+      const updatePromises = workoutsToUpdate.map(async (workoutItem) => {
+        const existingExercises = workoutItem.workout.workoutExercises.map(
+          (we: any) => ({
+            exerciseId: we.exercise.id,
+            targetSets: we.targetSets,
+          })
+        );
+
+        const newExercise = data.exercises[0];
+        const finalExercises = [...existingExercises, newExercise];
+
+        const payload = { exercises: finalExercises };
+
+        await addExerciseInWorkout(payload, workoutItem.workout.id);
+      });
+
+      await Promise.all(updatePromises);
+
       setAddExerciseModalVisible(false);
-      loadMicro(); // Atualiza o micro atual na tela
+      setTargetWorkoutName(null);
+      loadMicro();
+      setStage(1);
     } catch (err) {
-      console.error("Erro ao adicionar exercício em múltiplos workouts:", err);
+      console.error("Erro ao adicionar exercício:", err);
     } finally {
       setLoading(false);
     }
@@ -439,7 +444,7 @@ const SelectedMicro = ({
                 <Button
                   text="Adicionar Exercícios"
                   onPress={() => {
-                    console.log(workoutName);
+                    setTargetWorkoutName(workoutName);
                     setStage(2);
                   }}
                 />
