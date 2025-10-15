@@ -28,13 +28,19 @@ const WorkoutDay = () => {
     loadWorkouts();
   }, [user, getAllWorkouts]);
 
+  const workoutsWithVolume = workouts.filter(
+    (workout) => workout.volume && workout.volume.entries?.length > 0
+  );
+
+  const workoutsAbleToRender = workoutsWithVolume.length > 0;
+
   return (
     <ScrollView
       style={styles.container}
       contentContainerStyle={{ paddingBottom: 20 }}
     >
-      {workouts.length > 0 ? (
-        workouts.map((workout: WorkoutWithSets, workoutIndex: number) => {
+      {workoutsAbleToRender ? (
+        workoutsWithVolume.map((workout: WorkoutWithSets, workoutIndex: number) => {
           const totalSeries = workout.workoutExercises.reduce(
             (acc: number, exercise: WorkoutExerciseWithSets) =>
               acc + (exercise.targetSets || 0),
@@ -64,7 +70,7 @@ const WorkoutDay = () => {
 
                 <View style={styles.setsDurationWrap}>
                   <View style={styles.bottomInfoWrap}>
-                    <AppText style={styles.bottomInfo}>Duração:{" "}</AppText>
+                    <AppText style={styles.bottomInfo}>Duração: </AppText>
                     <AppText style={styles.bottomInfoValue}>
                       em produção...
                     </AppText>
@@ -133,7 +139,7 @@ const WorkoutDay = () => {
           );
         })
       ) : (
-        <AppText style={{}} >Nenhum treino encontrado.</AppText>
+        <AppText style={{}}>Nenhum treino encontrado.</AppText>
       )}
     </ScrollView>
   );
