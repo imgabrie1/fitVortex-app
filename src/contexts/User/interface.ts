@@ -96,8 +96,6 @@ export interface Set {
 }
 
 export interface Volume {
-  map(arg0: (item: { workout: { volume: any[]; }; }) => () => ArrayIterator<[number, any]>): any;
-  flatMap(): unknown;
   id: string;
   entries: VolumeEntry[];
 }
