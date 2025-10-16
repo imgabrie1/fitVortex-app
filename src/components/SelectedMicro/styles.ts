@@ -37,7 +37,7 @@ export const styles = StyleSheet.create({
   blockHeader: {
     backgroundColor: themas.Colors.blackTransparent,
     borderWidth: 2,
-    borderColor: themas.Colors.neon,
+    borderColor: themas.Colors.secondary,
     borderRadius: 8,
     flexDirection: "row",
     justifyContent: "space-between",

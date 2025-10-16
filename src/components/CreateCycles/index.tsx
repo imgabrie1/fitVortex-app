@@ -138,10 +138,11 @@ const CreateCycles = ({ type, onClose, onSubmit }: CreateCyclesProps) => {
           )}
 
           <View
-            style={styles.buttonsWrapper}
+            style={ styles.buttonsWrapper }
           >
             {stage > 1 && <Button text="Voltar" onPress={prevStage} styleButton={styles.styledButtonRed} />}
-            {stage < 3 && <Button text="Próximo" onPress={nextStage} styleButton={styles.styledButton} />}
+            {stage === 2 && <Button text="Próximo" onPress={nextStage} styleButton={styles.styledButton} />}
+            {stage === 1 && <Button text="Próximo" onPress={nextStage} styleButton={styles.styledButtonAlone} />}
             {stage === 3 && <Button text="Criar Ciclo" onPress={handleSubmit(onSubmit)} styleButton={styles.styledButton} />}
           </View>
         </>

@@ -27,16 +27,30 @@ export const styles = StyleSheet.create({
   },
 
   styledButton: {
+    width: "49%",
+    marginTop: 22,
+  },
+
+  styledButtonAlone: {
+    width: "100%",
     marginTop: 22,
   },
 
   styledButtonRed: {
+    width: "49%",
     marginTop: 22,
     backgroundColor: themas.Colors.red
   },
 
   buttonsWrapper: {
-    flexDirection: "column",
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: "space-between",
+  },
+
+  cuSujo: {
+    flexDirection: "row",
+    width: "100%",
     justifyContent: "space-between",
   },
 });

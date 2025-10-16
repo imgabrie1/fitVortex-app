@@ -489,7 +489,7 @@ const SelectedMicro = ({
             </AppText>
             {micro.volumes ? (
               <AppText style={styles.infoHeader}>
-                SÉRIES POR MICRO: {totalSets}
+                Séries por Micro: {totalSets}
               </AppText>
             ) : null}
           </View>
