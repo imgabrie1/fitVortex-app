@@ -12,11 +12,11 @@ import { UserContext } from "@/contexts/User/UserContext";
 import { MacroCycle, MicroCycle } from "@/contexts/User/interface";
 import { MaterialIcons } from "@expo/vector-icons";
 import SelectedMicro from "../SelectedMicro";
-import ButtonCreateCycles from "../ButtonCreateCycles";
 import CreateCycles from "../CreateCycles";
 import { themas } from "@/global/themes";
-import ButtonCreateWorkout from "../ButtonCreateWorkout";
 import CreateWorkoutForm from "../CreateWorkout";
+import AnimatedMenu from "../AnimatedMenu";
+import { Button } from "../Button";
 
 const MacrosAndMicros = () => {
   const {
@@ -41,6 +41,12 @@ const MacrosAndMicros = () => {
   const [isCreateWorkoutModalVisible, setCreateWorkoutModalVisible] =
     useState(false);
   const [menuVisible, setMenuVisible] = useState<string | null>(null);
+  const [menuOrigin, setMenuOrigin] = useState<
+    { x: number; y: number } | undefined
+  >(undefined);
+  const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(
+    null
+  );
 
   const loadMacros = async () => {
     if (user) {
@@ -78,8 +84,14 @@ const MacrosAndMicros = () => {
   const handleCreate = async (data: any) => {
     try {
       if (stage === 1) {
-        await createMacroCycle(data);
+        const newMacro: any = await createMacroCycle(data);
+
         await loadMacros();
+
+        setSelectedMacro(newMacro);
+        setStage(2);
+
+        await loadMicros();
       } else if (stage === 2 && selectedMacro) {
         const { microCycleName, trainingDays } = data;
         const microQuantity = selectedMacro.microQuantity;
@@ -116,27 +128,27 @@ const MacrosAndMicros = () => {
   };
 
   const handleCreateWorkout = async (data: any) => {
-    if (!selectedMacro) {
-      console.error("Nenhum macrociclo selecionado para adicionar o treino.");
-      return;
-    }
+    if (!selectedMacro || micros.length === 0) return;
 
     try {
       setCreateWorkoutModalVisible(false);
+
       const newWorkout = await createWorkout(data);
 
-      if (newWorkout && newWorkout.id) {
-        const microPromises = micros.map((micro) =>
-          addWorkoutInMicro(micro.id, newWorkout.id)
+      if (newWorkout?.id) {
+        await Promise.all(
+          micros.map((micro) => addWorkoutInMicro(micro.id, newWorkout.id))
         );
-        await Promise.all(microPromises);
-        loadMicros();
+
+        await loadMicros();
+
+        setSelectedMicroId(micros[0].id);
+        setSelectedWorkoutId(newWorkout.id);
+
+        setStage(3);
       }
     } catch (error) {
-      console.error(
-        "Erro ao criar ou adicionar treino:",
-        JSON.stringify(error, null, 2)
-      );
+      console.error("Erro ao criar ou adicionar treino:", error);
     }
   };
 
@@ -206,6 +218,8 @@ const MacrosAndMicros = () => {
                         <TouchableOpacity
                           onPress={(e) => {
                             e.stopPropagation();
+                            const { pageX, pageY } = e.nativeEvent;
+                            setMenuOrigin({ x: pageX, y: pageY });
                             setMenuVisible((prev) =>
                               prev === macro.id ? null : macro.id
                             );
@@ -239,29 +253,19 @@ const MacrosAndMicros = () => {
                       </View>
                     </TouchableOpacity>
 
-                    {menuVisible === macro.id && (
-                      <View style={styles.editAndDeleteWrap}>
-                        <TouchableOpacity
-                          onPress={() => {
-                            console.log("Editar macro:", macro.macroCycleName);
-                            setMenuVisible(null);
-                          }}
-                          style={{ paddingVertical: 4 }}
-                        >
-                          <AppText style={{ color: "#fff" }}>Editar</AppText>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                          onPress={() => {
-                            handleDelete(macro.id);
-                            setMenuVisible(null);
-                          }}
-                          style={{ paddingVertical: 4 }}
-                        >
-                          <AppText style={{ color: "#fff" }}>Excluir</AppText>
-                        </TouchableOpacity>
-                      </View>
-                    )}
+                    <AnimatedMenu
+                      visible={menuVisible === macro.id}
+                      origin={menuOrigin}
+                      style={styles.editAndDeleteWrap}
+                      onEdit={() => {
+                        console.log("Editar macro:", macro.macroCycleName);
+                        setMenuVisible(null);
+                      }}
+                      onDelete={() => {
+                        handleDelete(macro.id);
+                        setMenuVisible(null);
+                      }}
+                    />
                   </View>
                 );
               })
@@ -321,6 +325,8 @@ const MacrosAndMicros = () => {
                       <TouchableOpacity
                         onPress={(e) => {
                           e.stopPropagation();
+                          const { pageX, pageY } = e.nativeEvent;
+                          setMenuOrigin({ x: pageX, y: pageY });
                           setMenuVisible((prev) =>
                             prev === micro.id ? null : micro.id
                           );
@@ -339,28 +345,19 @@ const MacrosAndMicros = () => {
                     </AppText>
                   </TouchableOpacity>
 
-                  {menuVisible === micro.id && (
-                    <View style={styles.editAndDeleteWrap}>
-                      <TouchableOpacity
-                        onPress={() => {
-                          setMenuVisible(null);
-                        }}
-                        style={{ paddingVertical: 4 }}
-                      >
-                        <AppText style={{ color: "#fff" }}>Editar</AppText>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        onPress={() => {
-                          handleDelete(micro.id);
-                          setMenuVisible(null);
-                        }}
-                        style={{ paddingVertical: 4 }}
-                      >
-                        <AppText style={{ color: "#fff" }}>Excluir</AppText>
-                      </TouchableOpacity>
-                    </View>
-                  )}
+                  <AnimatedMenu
+                    visible={menuVisible === micro.id}
+                    origin={menuOrigin}
+                    style={styles.editAndDeleteWrap}
+                    onEdit={() => {
+                      console.log("Editar macro:", micro.microCycleName);
+                      setMenuVisible(null);
+                    }}
+                    onDelete={() => {
+                      handleDelete(micro.id);
+                      setMenuVisible(null);
+                    }}
+                  />
                 </View>
               ))
             ) : (
@@ -380,15 +377,22 @@ const MacrosAndMicros = () => {
 
         {/* botão de criar ciclo */}
         {stage === 1 && (
-          <ButtonCreateCycles onPress={() => setCreateModalVisible(true)} />
+          <Button
+            text="Criar Macro Ciclo"
+            onPress={() => setCreateModalVisible(true)}
+          />
         )}
         {stage === 2 && micros.length <= 0 && (
           <View>
-            <ButtonCreateCycles onPress={() => setCreateModalVisible(true)} />
+            <Button
+              text="Criar Micro Ciclo"
+              onPress={() => setCreateModalVisible(true)}
+            />
           </View>
         )}
         {stage === 2 && micros.length > 0 && (
-          <ButtonCreateWorkout
+          <Button
+            text="Criar dia de Treino"
             onPress={() => setCreateWorkoutModalVisible(true)}
           />
         )}

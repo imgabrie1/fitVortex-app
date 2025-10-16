@@ -63,7 +63,7 @@ export const styles = StyleSheet.create({
   editAndDeleteWrap: {
     position: "absolute",
     width: width * 0.4,
-    right: 10,
+    right: 25,
     top: 25,
     backgroundColor: "#3737376c",
     borderRadius: 8,
@@ -71,7 +71,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 10,
     zIndex: 999,
     elevation: 60,
-    shadowColor: themas.Colors.neon,
+    shadowColor: "#888888ff",
     shadowOpacity: 0.3,
     shadowRadius: 4,
   },

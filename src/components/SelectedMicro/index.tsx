@@ -564,6 +564,7 @@ const SelectedMicro = ({
     );
   }
 
+  //----------------- TELA DE ADICIONAR EXERCICIO (STAGE 2) -----------------
   if (stage === 2) {
     return (
       <View>
