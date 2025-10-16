@@ -25,7 +25,7 @@ export const styles = StyleSheet.create({
   },
   name: {
     fontSize: 20,
-    fontFamily: "RussoOne",
+    fontWeight: 700
   },
 
   nameAndMenuWrap: {
@@ -39,7 +39,7 @@ export const styles = StyleSheet.create({
   },
   info: {
     fontSize: 15,
-    fontFamily: "RussoOne",
+    fontFamily: "GeologicaBold",
     color: themas.Colors.noSelectColor,
   },
   nameAndBackWrap: {
@@ -50,12 +50,13 @@ export const styles = StyleSheet.create({
   macrosTitles: {
     flex: 1,
     justifyContent: "center",
-    alignItems: "center",
+    alignItems: "flex-start",
+    paddingLeft: 8
   },
 
   infoSelected: {
     fontSize: 15,
-    fontFamily: "RussoOne",
+    fontFamily: "GeologicaBold",
     color: themas.Colors.lightGray,
   },
 

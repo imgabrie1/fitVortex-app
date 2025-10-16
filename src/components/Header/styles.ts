@@ -23,7 +23,7 @@ export const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   fit: {
-    fontFamily: "RussoOne",
+    fontFamily: "GeologicaBold",
   },
   vortexContainer: {
     flexDirection: "row",
@@ -35,7 +35,7 @@ export const styles = StyleSheet.create({
     textShadowColor: themas.Colors.led,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 20,
-    fontFamily: "RussoOne",
+    fontFamily: "GeologicaBold",
     position: "absolute",
     left: 5,
     top: -4,
@@ -43,7 +43,7 @@ export const styles = StyleSheet.create({
   },
   ortex: {
     color: "#fff",
-    fontFamily: "RussoOne",
+    fontFamily: "GeologicaBold",
     fontSize: 28,
     marginLeft: 20,
   },

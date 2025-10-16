@@ -1,11 +1,11 @@
 export const themas = {
   Colors: {
-    primary: "#281E43",
-    secondary: "#7215D6",
+    primary: "#352E84",
+    secondary: "#6C63FF",
     lightGray: "#d7d8d7",
     gray: "gray",
     red: "#FF494C",
-    led: "#9900ffbf",
+    led: "#842cffff",
     neon: "#A020F0",
     blackTransparent: "#00000040",
     background: "#000",
@@ -13,7 +13,6 @@ export const themas = {
     icons: "#fff",
     noSelectColor: "#49454f",
     blocks: "#191A1C",
-    setsColor: "#6C63FF",
     alternativeBlocks: "#202020ff",
 
   },

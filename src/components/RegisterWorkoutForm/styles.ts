@@ -62,9 +62,9 @@ export const styles = StyleSheet.create({
   setLabel: {
     width: 36,
     textAlign: "center",
-    color: themas.Colors.setsColor,
+    color: themas.Colors.secondary,
     fontSize: 16,
-    fontFamily: "RussoOne",
+    fontFamily: "GeologicaBold",
   },
 
   inputRepsWeight: {
@@ -90,7 +90,7 @@ export const styles = StyleSheet.create({
 
   setRepsWeight: {
     color: themas.Colors.text,
-    fontFamily: "RussoOne",
+    fontFamily: "GeologicaBold",
     fontSize: 12
   },
 });

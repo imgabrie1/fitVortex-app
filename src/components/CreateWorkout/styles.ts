@@ -11,12 +11,9 @@ export const styles = StyleSheet.create({
   modalContent: {
     width: "90%",
     backgroundColor: themas.Colors.background,
-    // backgroundColor: "red",
-    borderRadius: 10,
+    borderRadius: 18,
     paddingHorizontal: 10,
     paddingVertical: 50,
-    borderColor: themas.Colors.neon,
-    borderWidth: 0.5
   },
   nameAndBackWrap: {
     flexDirection: "row",
@@ -26,7 +23,7 @@ export const styles = StyleSheet.create({
   },
   name: {
     fontSize: 20,
-    fontFamily: "RussoOne",
+    fontFamily: "GeologicaBold",
     color: themas.Colors.text,
   },
 

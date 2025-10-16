@@ -8,11 +8,11 @@ export const style = StyleSheet.create({
   textButton: {
     color: "white",
     fontSize: 20,
-    fontFamily: "RussoOne"
+    fontFamily: "GeologicaBold"
   },
   button: {
     width: "100%",
-    paddingVertical: 14,
+    paddingVertical: 8,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: themas.Colors.primary,

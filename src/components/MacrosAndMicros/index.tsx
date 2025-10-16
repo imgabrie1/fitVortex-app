@@ -11,7 +11,7 @@ import { styles } from "./styles";
 import { UserContext } from "@/contexts/User/UserContext";
 import { MacroCycle, MicroCycle } from "@/contexts/User/interface";
 import { MaterialIcons } from "@expo/vector-icons";
-import SelectedMicro from "../SelectedMIcro";
+import SelectedMicro from "../SelectedMicro";
 import ButtonCreateCycles from "../ButtonCreateCycles";
 import CreateCycles from "../CreateCycles";
 import { themas } from "@/global/themes";
@@ -171,7 +171,7 @@ const MacrosAndMicros = () => {
             keyboardShouldPersistTaps="handled"
           >
             <View style={styles.macrosTitles}>
-              <AppText style={styles.name}>MACROCICLOS:</AppText>
+              <AppText style={styles.name}>Macro Ciclos</AppText>
             </View>
 
             {macros.length > 0 ? (
@@ -382,13 +382,15 @@ const MacrosAndMicros = () => {
         {stage === 1 && (
           <ButtonCreateCycles onPress={() => setCreateModalVisible(true)} />
         )}
-        {stage === 2 && (
+        {stage === 2 && micros.length <= 0 && (
           <View>
-            <ButtonCreateWorkout
-              onPress={() => setCreateWorkoutModalVisible(true)}
-            />
             <ButtonCreateCycles onPress={() => setCreateModalVisible(true)} />
           </View>
+        )}
+        {stage === 2 && micros.length > 0 && (
+          <ButtonCreateWorkout
+            onPress={() => setCreateWorkoutModalVisible(true)}
+          />
         )}
 
         {/* modal de criação de workout */}

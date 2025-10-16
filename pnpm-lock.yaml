@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@expo-google-fonts/geologica':
+        specifier: ^0.4.2
+        version: 0.4.2
       '@expo-google-fonts/roboto':
         specifier: ^0.4.1
         version: 0.4.1
@@ -625,6 +628,9 @@ packages:
   '@egjs/hammerjs@2.0.17':
     resolution: {integrity: sha512-XQsZgjm2EcVUiZQf11UBJQfmZeEmOW8DpI1gsFeln6w0ae0ii4dMQEQ0kjl6DspdWX1aGY1/loyXnP0JS06e/A==}
     engines: {node: '>=0.8.0'}
+
+  '@expo-google-fonts/geologica@0.4.2':
+    resolution: {integrity: sha512-apUsi0qE2iVk/IAlsnCwTegnMnAwh12xR6MLbDIjvCJYms8nYdI8szgfazEaACZRCwrXyWg6QYtDjq1+SpaRGg==}
 
   '@expo-google-fonts/roboto@0.4.1':
     resolution: {integrity: sha512-kil05iC3NGEhdwbkbftA++0xyWTDqdbCmQEuM2sCPdESzTJVtqXDyoRZqBoXRjvLZWH76uR0x115QPQEeNJa1w==}
@@ -3713,6 +3719,8 @@ snapshots:
   '@egjs/hammerjs@2.0.17':
     dependencies:
       '@types/hammerjs': 2.0.46
+
+  '@expo-google-fonts/geologica@0.4.2': {}
 
   '@expo-google-fonts/roboto@0.4.1': {}
 
