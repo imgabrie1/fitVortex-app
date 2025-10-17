@@ -28,7 +28,7 @@ export const styles = StyleSheet.create({
   },
 
   nameWorkout: {
-    fontFamily: "RussoOne",
+    fontFamily: "GeologicaBold",
     fontSize: 20,
     fontWeight: "400",
   },

@@ -18,7 +18,7 @@ export const styles = StyleSheet.create({
   },
   tabBarLabel: {
     fontSize: 10,
-    fontFamily: "RussoOne",
+    fontFamily: "GeologicaBold",
     marginTop: 2,
     fontWeight: "100"
   },

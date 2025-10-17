@@ -387,7 +387,7 @@ export const AuthProvider = ({ children }: Props) => {
     } catch (err: any) {
       const currentError = err as AxiosError;
       const msg =
-        currentError?.response?.data || err?.message || "Erro ao criar treino";
+        currentError?.response?.data || err?.message || "Erro ao adicionar treino no micro";
       throw new Error(String(msg));
     }
   };
@@ -399,7 +399,7 @@ export const AuthProvider = ({ children }: Props) => {
     } catch (err: any) {
       const currentError = err as AxiosError;
       const msg =
-        currentError?.response?.data || err?.message || "Erro ao criar treino";
+        currentError?.response?.data || err?.message || "Erro ao adicionar exercício no treino";
       throw new Error(String(msg));
     }
   };

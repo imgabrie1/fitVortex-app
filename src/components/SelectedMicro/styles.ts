@@ -21,7 +21,7 @@ export const styles = StyleSheet.create({
   },
 
   infoHeader: {
-    fontFamily: "RussoOne",
+    fontFamily: "GeologicaBold",
     fontSize: 16,
     color: themas.Colors.text,
   },
@@ -37,7 +37,7 @@ export const styles = StyleSheet.create({
   blockHeader: {
     backgroundColor: themas.Colors.blackTransparent,
     borderWidth: 2,
-    borderColor: themas.Colors.neon,
+    borderColor: themas.Colors.secondary,
     borderRadius: 8,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -49,14 +49,14 @@ export const styles = StyleSheet.create({
   },
   name: {
     fontSize: 20,
-    fontFamily: "RussoOne",
+    fontFamily: "GeologicaBold",
   },
   infosWrap: {
     gap: 5,
   },
   info: {
     fontSize: 15,
-    fontFamily: "RussoOne",
+    fontFamily: "GeologicaBold",
     color: themas.Colors.noSelectColor,
   },
   nameAndBackWrap: {
@@ -74,7 +74,7 @@ export const styles = StyleSheet.create({
   },
   infoSelected: {
     fontSize: 15,
-    fontFamily: "RussoOne",
+    fontFamily: "GeologicaBold",
     color: themas.Colors.lightGray,
   },
   infoWorkoutWrap: {
