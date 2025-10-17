@@ -27,7 +27,7 @@ export const styles = StyleSheet.create({
   textEnter: {
     color: "#fff",
     fontSize: 40,
-    fontFamily: "RussoOne"
+    fontFamily: "GeologicaBold"
   },
 
   wrapper: {

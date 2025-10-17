@@ -43,7 +43,7 @@ export const style = StyleSheet.create({
 
   text: {
     fontSize: 45,
-    fontFamily: "RussoOne",
+    fontFamily: "GeologicaBold",
   },
 
 

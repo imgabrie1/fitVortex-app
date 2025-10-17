@@ -489,7 +489,7 @@ const SelectedMicro = ({
             </AppText>
             {micro.volumes ? (
               <AppText style={styles.infoHeader}>
-                SÉRIES POR MICRO: {totalSets}
+                Séries por Micro: {totalSets}
               </AppText>
             ) : null}
           </View>
@@ -564,6 +564,7 @@ const SelectedMicro = ({
     );
   }
 
+  //----------------- TELA DE ADICIONAR EXERCICIO (STAGE 2) -----------------
   if (stage === 2) {
     return (
       <View>

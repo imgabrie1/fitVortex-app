@@ -7,6 +7,7 @@ import {
   ViewStyle,
 } from "react-native";
 import { style } from "./styles";
+import { themas } from "@/global/themes";
 
 type Props = {
   text: string;
@@ -15,6 +16,7 @@ type Props = {
   disabled?: boolean;
   styleButton?: StyleProp<ViewStyle>;
   fontSize?: number;
+  textColor?: string
 };
 
 export const Button = ({
@@ -24,6 +26,7 @@ export const Button = ({
   disabled,
   styleButton,
   fontSize,
+  textColor
 }: Props) => {
   return (
     <TouchableOpacity
@@ -33,9 +36,13 @@ export const Button = ({
       disabled={disabled || loading}
     >
       {loading ? (
-        <ActivityIndicator color="#FFF" />
+        <ActivityIndicator color={themas.Colors.text} />
       ) : (
-        <Text style={[style.textButton, fontSize ? { fontSize } : {}]}>
+        <Text style={[
+          style.textButton,
+          fontSize ? { fontSize } : {},
+          textColor ? { color: textColor } : {}
+          ]}>
           {text}
         </Text>
       )}

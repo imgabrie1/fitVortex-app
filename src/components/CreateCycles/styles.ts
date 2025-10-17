@@ -1,36 +1,57 @@
-import { themas } from "@/global/themes";
 import { StyleSheet } from "react-native";
+import { themas } from "@/global/themes";
 
 export const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.8)",
-  },
-  modalContent: {
-    width: "90%",
     backgroundColor: themas.Colors.background,
-    // backgroundColor: "red",
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 50,
-    borderColor: themas.Colors.neon,
-    borderWidth: 0.5
+    paddingHorizontal: 20,
+    paddingTop: 100, // deixa espaço pra header
   },
+
   nameAndBackWrap: {
-    flexDirection: "row",
-    alignItems: "center",
+    width: "100%",
+    position: "absolute",
+    marginLeft: 15,
+    top: 25,
+    gap: 20,
+    flexDirection: "column",
+    alignItems: "flex-start",
     justifyContent: "space-between",
-    marginBottom: 10,
   },
+
   name: {
     fontSize: 20,
-    fontFamily: "RussoOne",
+    fontFamily: "GeologicaBold",
     color: themas.Colors.text,
   },
 
   styledButton: {
-    marginTop: 25,
+    width: "49%",
+    marginTop: 22,
+  },
+
+  styledButtonAlone: {
+    width: "100%",
+    marginTop: 22,
+  },
+
+  styledButtonRed: {
+    width: "49%",
+    marginTop: 22,
+    backgroundColor: themas.Colors.text,
+    color: themas.Colors.red
+  },
+
+  buttonsWrapper: {
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: "space-between",
+  },
+
+  cuSujo: {
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: "space-between",
   },
 });
