@@ -52,6 +52,7 @@ const WorkoutDay = () => {
             weekday: "long",
             day: "2-digit",
             month: "long",
+            timeZone: "UTC",
           });
           const formattedTime = date.toLocaleTimeString("pt-BR", {
             hour: "2-digit",

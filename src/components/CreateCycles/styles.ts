@@ -39,7 +39,8 @@ export const styles = StyleSheet.create({
   styledButtonRed: {
     width: "49%",
     marginTop: 22,
-    backgroundColor: themas.Colors.red
+    backgroundColor: themas.Colors.text,
+    color: themas.Colors.red
   },
 
   buttonsWrapper: {

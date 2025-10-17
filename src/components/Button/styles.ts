@@ -6,7 +6,7 @@ const { width, height } = Dimensions.get("window");
 
 export const style = StyleSheet.create({
   textButton: {
-    color: "white",
+    color: themas.Colors.text,
     fontSize: 20,
     fontFamily: "GeologicaBold"
   },
