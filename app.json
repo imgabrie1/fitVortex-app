@@ -20,6 +20,9 @@
     ],
     "android": {
       "package": "com.imgabrie1.fitVortexapp"
+    },
+    "ios": {
+      "bundleIdentifier": "com.imgabrie1.fitVortexapp"
     }
   }
 }
