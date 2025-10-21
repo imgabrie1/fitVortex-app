@@ -7,7 +7,7 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: themas.Colors.background,
-    marginTop: 50,
+    marginTop: 25,
   },
 
   repsWeightInfo: {
@@ -84,9 +84,11 @@ export const styles = StyleSheet.create({
     gap: 5,
   },
 
-
-
-
+  nameAndMenuWrap: {
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
 
   addExerciseUl: {
     width: "33%",
@@ -95,7 +97,7 @@ export const styles = StyleSheet.create({
     height: 240,
     marginBottom: 5,
     paddingTop: 5,
-    gap: 5
+    gap: 5,
   },
   imagemURl: {
     width: 110,
@@ -106,12 +108,26 @@ export const styles = StyleSheet.create({
   nameExercise: {
     marginTop: 6,
     textAlign: "center",
-    height: 38
+    height: 38,
   },
-
-
 
   styledButton: {
     width: "85%",
-  }
+  },
+
+  editAndDeleteWrap: {
+    position: "absolute",
+    width: width * 0.4,
+    right: 12,
+    top: 0,
+    backgroundColor: "#3737376c",
+    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    zIndex: 999,
+    elevation: 60,
+    shadowColor: "#888888ff",
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
 });
