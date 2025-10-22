@@ -28,9 +28,21 @@ const WorkoutDay = () => {
     loadWorkouts();
   }, [user, getAllWorkouts]);
 
-  const workoutsWithVolume = workouts.filter(
-    (workout) => workout.volume && workout.volume.entries?.length > 0
-  );
+  // CORREÇÃO: Filtrar workouts que têm pelo menos UM exercício com séries executadas
+  const workoutsWithExecutedSets = workouts.filter((workout) => {
+    return workout.workoutExercises.some((exercise) => 
+      exercise.sets && exercise.sets.length > 0
+    );
+  });
+
+  // Ou alternativa: filtrar workouts que têm séries totais executadas > 0
+  const workoutsWithVolume = workouts.filter((workout) => {
+    const totalExecutedSets = workout.workoutExercises.reduce(
+      (total, exercise) => total + (exercise.sets?.length || 0),
+      0
+    );
+    return totalExecutedSets > 0;
+  });
 
   const workoutsAbleToRender = workoutsWithVolume.length > 0;
 
@@ -41,7 +53,15 @@ const WorkoutDay = () => {
     >
       {workoutsAbleToRender ? (
         workoutsWithVolume.map((workout: WorkoutWithSets, workoutIndex: number) => {
-          const totalSeries = workout.workoutExercises.reduce(
+          // Calcular séries EXECUTADAS (não as targetSets)
+          const totalExecutedSeries = workout.workoutExercises.reduce(
+            (acc: number, exercise: WorkoutExerciseWithSets) =>
+              acc + (exercise.sets?.length || 0),
+            0
+          );
+
+          // Calcular séries PLANEJADAS (targetSets)
+          const totalPlannedSeries = workout.workoutExercises.reduce(
             (acc: number, exercise: WorkoutExerciseWithSets) =>
               acc + (exercise.targetSets || 0),
             0
@@ -79,10 +99,10 @@ const WorkoutDay = () => {
 
                   <View style={styles.bottomInfoWrap}>
                     <AppText style={styles.bottomInfo}>
-                      Total de séries:{" "}
+                      Séries executadas:{" "}
                     </AppText>
                     <AppText style={styles.bottomInfoValue}>
-                      {totalSeries}
+                      {totalExecutedSeries}/{totalPlannedSeries}
                     </AppText>
                   </View>
                 </View>
@@ -94,9 +114,12 @@ const WorkoutDay = () => {
                     exercise: WorkoutExerciseWithSets,
                     exerciseIndex: number
                   ) => {
-                    const repsArray = (exercise.sets ?? []).map(
-                      (s: Set) => s.reps
-                    );
+                    // Pular exercícios que não têm séries executadas
+                    if (!exercise.sets || exercise.sets.length === 0) {
+                      return null;
+                    }
+
+                    const repsArray = exercise.sets.map((s: Set) => s.reps);
 
                     let repsText = "— reps";
                     if (repsArray.length > 0) {
@@ -124,7 +147,7 @@ const WorkoutDay = () => {
                         </AppText>
                         <View style={styles.infoSetsWrap}>
                           <AppText style={styles.infoSets}>
-                            {exercise.targetSets} séries{" • "}
+                            {exercise.sets.length} de {exercise.targetSets} séries{" • "}
                           </AppText>
                           <AppText style={styles.infoSets}>{repsText}</AppText>
                         </View>
@@ -140,7 +163,7 @@ const WorkoutDay = () => {
           );
         })
       ) : (
-        <AppText style={{}}>Nenhum treino encontrado.</AppText>
+        <AppText style={{}}>Nenhum treino executado encontrado.</AppText>
       )}
     </ScrollView>
   );

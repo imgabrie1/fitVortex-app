@@ -39,6 +39,7 @@ export const AuthProvider = ({ children }: Props) => {
   const [user, setUser] = useState<iUserResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingForm, setLoadingForm] = useState(false);
+  const [volumes, setVolumes] = useState<number>(0);
 
   useEffect(() => {
     (async () => {
@@ -266,7 +267,10 @@ export const AuthProvider = ({ children }: Props) => {
   };
 
   //        -------------- EXERCISE --------------
-  const getAllExercise = async (page?: number, limit?: number): Promise<Exercise[]> => {
+  const getAllExercise = async (
+    page?: number,
+    limit?: number
+  ): Promise<Exercise[]> => {
     assertUser();
     try {
       let url = "/exercise";
@@ -325,10 +329,22 @@ export const AuthProvider = ({ children }: Props) => {
           })
       );
 
+      // CORREÇÃO: Contar séries EXECUTADAS (do array sets) em vez das planejadas
+      let totalExecutedSeries = 0;
+
+      data.data.forEach((microCycle: MicroCycle) => {
+        microCycle.cycleItems.forEach((cycleItem: CycleItems) => {
+          // Contar quantas séries foram realmente executadas neste ciclo
+          totalExecutedSeries += cycleItem.sets.length;
+        });
+      });
+
+      setVolumes(totalExecutedSeries);
       return workouts;
     } catch (err: any) {
       const currentError = err as AxiosError;
       if (currentError.response?.status === 404) {
+        setVolumes(0);
         return [];
       }
       const msg =
@@ -336,6 +352,14 @@ export const AuthProvider = ({ children }: Props) => {
         err?.message ||
         "Erro ao carregar Treinos";
       throw new Error(String(msg));
+    }
+  };
+
+  const refreshWorkoutsData = async () => {
+    try {
+      await getAllWorkouts();
+    } catch (error) {
+      console.warn("Erro ao atualizar dados:", error);
     }
   };
 
@@ -350,6 +374,9 @@ export const AuthProvider = ({ children }: Props) => {
         `microcycle/${microID}/workouts/${workoutID}/record`,
         workoutData
       );
+
+      await refreshWorkoutsData();
+
       return data;
     } catch (err: any) {
       const currentError = err as AxiosError;
@@ -382,24 +409,33 @@ export const AuthProvider = ({ children }: Props) => {
     microID: string,
     workoutID: string
   ): Promise<any> => {
+    assertUser();
     try {
       await api.patch(`/microcycle/${microID}/workouts/${workoutID}`);
     } catch (err: any) {
       const currentError = err as AxiosError;
       const msg =
-        currentError?.response?.data || err?.message || "Erro ao adicionar treino no micro";
+        currentError?.response?.data ||
+        err?.message ||
+        "Erro ao adicionar treino no micro";
       throw new Error(String(msg));
     }
   };
 
-  const addExerciseInWorkout = async (payload: ExerciseInCreateAndPatch, workoutID: string) => {
+  const addExerciseInWorkout = async (
+    payload: ExerciseInCreateAndPatch,
+    workoutID: string
+  ) => {
+    assertUser();
     try {
-      const { data } = await api.patch(`workout/${workoutID}`, payload)
-      return data
+      const { data } = await api.patch(`workout/${workoutID}`, payload);
+      return data;
     } catch (err: any) {
       const currentError = err as AxiosError;
       const msg =
-        currentError?.response?.data || err?.message || "Erro ao adicionar exercício no treino";
+        currentError?.response?.data ||
+        err?.message ||
+        "Erro ao adicionar exercício no treino";
       throw new Error(String(msg));
     }
   };
@@ -409,6 +445,8 @@ export const AuthProvider = ({ children }: Props) => {
       value={{
         token,
         user,
+        volumes,
+        refreshWorkoutsData,
         loading,
         loadingForm,
         login,
@@ -427,7 +465,7 @@ export const AuthProvider = ({ children }: Props) => {
         getAllExercise,
         createWorkout,
         addWorkoutInMicro,
-        addExerciseInWorkout
+        addExerciseInWorkout,
       }}
     >
       {children}
