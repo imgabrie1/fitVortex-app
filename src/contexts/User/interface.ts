@@ -182,6 +182,8 @@ export type iPatchWorkout = Partial<iCreateWorkout>;
 export type UserContextData = {
   token: string | null;
   user: iUserResponse | null;
+  volumes: number;
+  refreshWorkoutsData?: () => Promise<void>;
   loading: boolean;
   loadingForm: boolean;
   login: (creds: Credentials) => Promise<void>;
@@ -204,5 +206,8 @@ export type UserContextData = {
   getAllExercise: (page?: number, limit?: number) => Promise<Exercise[]>;
   createWorkout: (payload: iCreateWorkout) => Promise<any>;
   addWorkoutInMicro: (microID: string, workoutID: string) => Promise<any>;
-  addExerciseInWorkout: (payload: ExerciseInCreateAndPatch, workoutID: string) => Promise<any>;
+  addExerciseInWorkout: (
+    payload: ExerciseInCreateAndPatch,
+    workoutID: string
+  ) => Promise<any>;
 };
