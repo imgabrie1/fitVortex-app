@@ -6,11 +6,10 @@ const { width, height } = Dimensions.get("window");
 export const styles = StyleSheet.create({
   container: {
     backgroundColor: themas.Colors.background,
-    height: height * 0.1,
+    height: height * 0.05,
     alignItems: "flex-start",
     display: "flex",
     justifyContent: "center",
-    paddingTop: 15,
   },
   logoContainer: {
     flexDirection: "row",

@@ -574,28 +574,6 @@ const SelectedMicro = ({
                 }}
               >
                 <View style={styles.containerModal}>
-                  {/* <View style={styles.nameAndBackWrap}>
-                    <Pressable
-                      onPress={() => {
-                        setRegisteringWorkout(null);
-                        setSelectedWorkoutName(null);
-                        setSelectedWorkoutImage(null);
-                      }}
-                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                      delayLongPress={0}
-                    >
-                      <MaterialIcons
-                        name="arrow-back"
-                        size={24}
-                        color="white"
-                      />
-                    </Pressable>
-
-                    <AppText style={styles.name}>
-                      {selectedWorkoutName ?? "Treino"}
-                    </AppText>
-                    <View style={{ width: 24 }} />
-                  </View> */}
                   <BackAndTitle
                     title={`${selectedWorkoutName ?? "Treino"}`}
                     onBack={onBackModal}
