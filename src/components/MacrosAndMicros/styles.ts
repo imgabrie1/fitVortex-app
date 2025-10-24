@@ -42,11 +42,6 @@ export const styles = StyleSheet.create({
     fontFamily: "GeologicaBold",
     color: themas.Colors.noSelectColor,
   },
-  nameAndBackWrap: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
   macrosTitles: {
     flex: 1,
     justifyContent: "center",

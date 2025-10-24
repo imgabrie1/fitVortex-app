@@ -9,6 +9,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { schema } from "./schema";
 import { styles } from "./styles";
 import * as yup from "yup";
+import BackAndTitle from "../BackAndTitle";
 
 interface CreateWorkoutProps {
   onClose: () => void;
@@ -28,17 +29,7 @@ const CreateWorkoutForm = ({ onClose, onSubmit }: CreateWorkoutProps) => {
   return (
     <View style={styles.modalContainer}>
       <View style={styles.modalContent}>
-        <View style={styles.nameAndBackWrap}>
-          <Pressable
-            onPress={onClose}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            delayLongPress={0}
-          >
-            <MaterialIcons name="arrow-back" size={24} color="white" />
-          </Pressable>
-          <AppText style={styles.name}>CRIAR TREINO</AppText>
-          <View style={{ width: 24 }} />
-        </View>
+        <BackAndTitle onBack={onClose} title={"CRIAR TREINO"} />
 
         <Controller
           control={control}
