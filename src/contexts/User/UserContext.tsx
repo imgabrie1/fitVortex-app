@@ -21,6 +21,7 @@ import {
   iCreateWorkout,
   iPatchWorkout,
   ExerciseInCreateAndPatch,
+  ExerciseResponse,
 } from "./interface";
 import { AxiosError } from "axios";
 import { Alert } from "react-native";
@@ -269,20 +270,35 @@ export const AuthProvider = ({ children }: Props) => {
   //        -------------- EXERCISE --------------
   const getAllExercise = async (
     page?: number,
-    limit?: number
-  ): Promise<Exercise[]> => {
+    limit?: number,
+    filters?: string
+  ): Promise<ExerciseResponse> => {
     assertUser();
+
     try {
       let url = "/exercise";
+
+      const queryParams: string[] = [];
+
       if (page !== undefined && limit !== undefined) {
-        url += `?page=${page}&limit=${limit}`;
+        queryParams.push(`page=${page}`, `limit=${limit}`);
       }
+
+      if (filters) {
+        queryParams.push(filters);
+      }
+
+      if (queryParams.length > 0) {
+        url += `?${queryParams.join("&")}`;
+      }
+
       const { data } = await api.get(url);
       return data;
     } catch (err: any) {
       const currentError = err as AxiosError;
       if (currentError.response?.status === 404) {
-        return [];
+        return { data: [], page: 0, lastPage: 0, total: 0, limit: 0 };
+
       }
       const msg =
         currentError?.response?.data ||
@@ -329,12 +345,10 @@ export const AuthProvider = ({ children }: Props) => {
           })
       );
 
-      // CORREÇÃO: Contar séries EXECUTADAS (do array sets) em vez das planejadas
       let totalExecutedSeries = 0;
 
       data.data.forEach((microCycle: MicroCycle) => {
         microCycle.cycleItems.forEach((cycleItem: CycleItems) => {
-          // Contar quantas séries foram realmente executadas neste ciclo
           totalExecutedSeries += cycleItem.sets.length;
         });
       });

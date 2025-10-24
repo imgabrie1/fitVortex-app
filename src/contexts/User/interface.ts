@@ -86,6 +86,14 @@ export interface Exercise {
   default_unilateral: boolean;
 }
 
+export interface ExerciseResponse {
+  data: Exercise[];
+  page: number;
+  lastPage: number;
+  total: number;
+  limit: number;
+}
+
 export interface Set {
   id: string;
   reps: number;
@@ -203,7 +211,11 @@ export type UserContextData = {
   createMicroCycle: (payload: any) => Promise<iCreateMicroCycle>;
   addMicroInMacro: (macroID: string, microID: string) => Promise<any>;
   deleteCycles: (cycle: string, cycleID: string) => Promise<void>;
-  getAllExercise: (page?: number, limit?: number) => Promise<Exercise[]>;
+  getAllExercise: (
+    page?: number,
+    limit?: number,
+    filters?: string
+  ) => Promise<ExerciseResponse>;
   createWorkout: (payload: iCreateWorkout) => Promise<any>;
   addWorkoutInMicro: (microID: string, workoutID: string) => Promise<any>;
   addExerciseInWorkout: (

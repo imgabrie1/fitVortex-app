@@ -37,7 +37,11 @@ const AddExerciseForm = ({
     <View style={styles.modalContainer}>
       <View style={styles.modalContent}>
         <View style={styles.nameAndBackWrap}>
-          <Pressable onPress={onClose}>
+          <Pressable
+            onPress={onClose}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            delayLongPress={0}
+          >
             <MaterialIcons name="arrow-back" size={24} color="white" />
           </Pressable>
           <AppText style={styles.name}>
