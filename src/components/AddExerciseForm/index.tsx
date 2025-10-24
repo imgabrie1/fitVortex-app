@@ -11,6 +11,7 @@ import * as yup from "yup";
 import { schema } from "./schema";
 import { styles } from "./styles";
 import { Exercise } from "@/contexts/User/interface";
+import BackAndTitle from "../BackAndTitle";
 
 interface AddExercisesProps {
   onClose: () => void;
@@ -36,19 +37,10 @@ const AddExerciseForm = ({
   return (
     <View style={styles.modalContainer}>
       <View style={styles.modalContent}>
-        <View style={styles.nameAndBackWrap}>
-          <Pressable
-            onPress={onClose}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            delayLongPress={0}
-          >
-            <MaterialIcons name="arrow-back" size={24} color="white" />
-          </Pressable>
-          <AppText style={styles.name}>
-            Adicionar {selectedExercise?.name ?? "Exercício"}
-          </AppText>
-          <View style={{ width: 24 }} />
-        </View>
+        <BackAndTitle
+          onBack={onClose}
+          title={`Adicionar ${selectedExercise?.name ?? "Exercício"}`}
+        />
 
         <Controller
           control={control}

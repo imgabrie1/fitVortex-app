@@ -7,7 +7,6 @@ import { themas } from "@/global/themes";
 import { styles } from "./styles";
 import { Button } from "../Button";
 
-
 interface ExerciseItemProps {
   item: Exercise;
   onAddExercise: (exercise: Exercise) => void;

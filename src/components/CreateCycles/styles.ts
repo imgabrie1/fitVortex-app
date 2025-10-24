@@ -9,17 +9,6 @@ export const styles = StyleSheet.create({
     paddingTop: 100, // deixa espaço pra header
   },
 
-  nameAndBackWrap: {
-    width: "100%",
-    position: "absolute",
-    marginLeft: 15,
-    top: 25,
-    gap: 20,
-    flexDirection: "column",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-  },
-
   name: {
     fontSize: 20,
     fontFamily: "GeologicaBold",
@@ -40,7 +29,7 @@ export const styles = StyleSheet.create({
     width: "49%",
     marginTop: 22,
     backgroundColor: themas.Colors.text,
-    color: themas.Colors.red
+    color: themas.Colors.red,
   },
 
   buttonsWrapper: {
