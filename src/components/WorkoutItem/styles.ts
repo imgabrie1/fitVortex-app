@@ -62,7 +62,7 @@ export const styles = StyleSheet.create({
 
   activeFilterDeleteWrapper: {
     gap: 8,
-    flexDirection: "row"
+    flexDirection: "row",
   },
 
   infosWrap: {
@@ -72,12 +72,6 @@ export const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: "GeologicaBold",
     color: themas.Colors.noSelectColor,
-  },
-  nameAndBackWrap: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingBottom: 18,
   },
   macrosTitles: {
     flex: 1,

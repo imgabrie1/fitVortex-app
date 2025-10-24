@@ -15,12 +15,6 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 50,
   },
-  nameAndBackWrap: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 10,
-  },
   name: {
     fontSize: 20,
     fontFamily: "GeologicaBold",

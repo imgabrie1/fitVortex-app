@@ -11,11 +11,7 @@ import {
 } from "react-native";
 import AppText from "../AppText";
 import { UserContext } from "@/contexts/User/UserContext";
-import {
-  Exercise,
-  MicroCycle,
-  Workout,
-} from "@/contexts/User/interface";
+import { Exercise, MicroCycle, Workout } from "@/contexts/User/interface";
 import { FontAwesome6, MaterialIcons } from "@expo/vector-icons";
 import { styles } from "./styles";
 import { RegisterWorkoutForm } from "../RegisterWorkoutForm";
@@ -31,11 +27,11 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import AddExerciseForm from "../AddExerciseForm";
 import CustomAlert from "../Alert";
 import FiltersByMuscle from "../FiltersByMuscle";
-import { useMuscleFilters } from "@/utils/useMuscleFilters";
 import { formatMuscleLabel } from "@/utils/formatMuscleLabel";
 import { themas } from "@/global/themes";
 import ExerciseItem from "../ExerciseItem";
 import WorkoutItem from "../WorkoutItem";
+import BackAndTitle from "../BackAndTitle";
 
 interface SelectedMicroProps {
   microId: string;
@@ -92,7 +88,11 @@ const SelectedMicro = ({
   );
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
-  const { muscles } = useMuscleFilters(getAllExercise);
+  const onBackModal = () => {
+    setRegisteringWorkout(null);
+    setSelectedWorkoutName(null);
+    setSelectedWorkoutImage(null);
+  };
 
   const {
     control,
@@ -109,21 +109,27 @@ const SelectedMicro = ({
     name: "exercises",
   });
 
-  const checkIfExerciseExistsInWorkout = useCallback((exerciseId: string): boolean => {
-    if (!targetWorkoutName) return false;
+  const checkIfExerciseExistsInWorkout = useCallback(
+    (exerciseId: string): boolean => {
+      if (!targetWorkoutName) return false;
 
-    const targetWorkout = workouts.find(
-      (w) => w.workout.name === targetWorkoutName
-    );
+      const targetWorkout = workouts.find(
+        (w) => w.workout.name === targetWorkoutName
+      );
 
-    if (!targetWorkout?.workout?.workoutExercises) return false;
+      if (!targetWorkout?.workout?.workoutExercises) return false;
 
-    return targetWorkout.workout.workoutExercises.some(
-      (we: any) => we.exercise.id === exerciseId
-    );
-  }, [targetWorkoutName, workouts]);
+      return targetWorkout.workout.workoutExercises.some(
+        (we: any) => we.exercise.id === exerciseId
+      );
+    },
+    [targetWorkoutName, workouts]
+  );
 
-  const getFormStorageKey = useCallback((microId: string) => `workoutFormValues_${microId}`, []);
+  const getFormStorageKey = useCallback(
+    (microId: string) => `workoutFormValues_${microId}`,
+    []
+  );
 
   useEffect(() => {
     const loadFormValues = async () => {
@@ -309,32 +315,35 @@ const SelectedMicro = ({
     }
   };
 
-  const loadExercises = useCallback(async (pageNumber: number, limit: number = 10) => {
-    if (loadingMore || !hasMore) return;
-    setLoadingMore(true);
+  const loadExercises = useCallback(
+    async (pageNumber: number, limit: number = 10) => {
+      if (loadingMore || !hasMore) return;
+      setLoadingMore(true);
 
-    try {
-      const data: any = await getAllExercise(pageNumber, limit);
+      try {
+        const data: any = await getAllExercise(pageNumber, limit);
 
-      if (data?.data?.length) {
-        setExercises((prev) => [...prev, ...data.data]);
-        setPage(pageNumber + 1);
-      } else {
-        setHasMore(false);
+        if (data?.data?.length) {
+          setExercises((prev) => [...prev, ...data.data]);
+          setPage(pageNumber + 1);
+        } else {
+          setHasMore(false);
+        }
+      } catch (err: any) {
+        if (
+          err?.response?.status === 404 ||
+          err?.response?.data === "No exercises"
+        ) {
+          setHasMore(false);
+        } else {
+          console.error("Erro ao carregar os exercícios:", err);
+        }
+      } finally {
+        setLoadingMore(false);
       }
-    } catch (err: any) {
-      if (
-        err?.response?.status === 404 ||
-        err?.response?.data === "No exercises"
-      ) {
-        setHasMore(false);
-      } else {
-        console.error("Erro ao carregar os exercícios:", err);
-      }
-    } finally {
-      setLoadingMore(false);
-    }
-  }, [loadingMore, hasMore]);
+    },
+    [loadingMore, hasMore]
+  );
 
   const handleLoadMore = useCallback(() => {
     if (!loadingMore && hasMore) {
@@ -491,20 +500,31 @@ const SelectedMicro = ({
     setAddExerciseModalVisible(true);
   }, []);
 
-  const renderWorkoutItem = useCallback(({ item, drag, isActive }: RenderItemParams<any>) => (
-    <WorkoutItem
-      item={item}
-      drag={drag}
-      isActive={isActive}
-      onMenuPress={handleMenuPress}
-      menuVisible={menuVisible}
-      menuOrigin={menuOrigin}
-      onAddExercise={handleAddExerciseToWorkout}
-      onEditWorkout={handleEditWorkout}
-      onDeleteWorkout={handleDeleteWorkout}
-      onRegisterWorkout={handleRegisterWorkout}
-    />
-  ), [menuVisible, menuOrigin, handleMenuPress, handleAddExerciseToWorkout, handleEditWorkout, handleDeleteWorkout, handleRegisterWorkout]);
+  const renderWorkoutItem = useCallback(
+    ({ item, drag, isActive }: RenderItemParams<any>) => (
+      <WorkoutItem
+        item={item}
+        drag={drag}
+        isActive={isActive}
+        onMenuPress={handleMenuPress}
+        menuVisible={menuVisible}
+        menuOrigin={menuOrigin}
+        onAddExercise={handleAddExerciseToWorkout}
+        onEditWorkout={handleEditWorkout}
+        onDeleteWorkout={handleDeleteWorkout}
+        onRegisterWorkout={handleRegisterWorkout}
+      />
+    ),
+    [
+      menuVisible,
+      menuOrigin,
+      handleMenuPress,
+      handleAddExerciseToWorkout,
+      handleEditWorkout,
+      handleDeleteWorkout,
+      handleRegisterWorkout,
+    ]
+  );
 
   if (stage === 1) {
     if (!micro) return null;
@@ -513,18 +533,7 @@ const SelectedMicro = ({
       <GestureHandlerRootView style={{ flex: 1 }}>
         <TouchableWithoutFeedback onPress={() => setMenuVisible(null)}>
           <View style={styles.container}>
-            <View style={styles.nameAndBackWrap}>
-              <MaterialIcons
-                name="arrow-back"
-                size={24}
-                color="white"
-                onPress={onBack}
-              />
-              <AppText style={styles.name}>
-                {micro.microCycleName?.toUpperCase()}
-              </AppText>
-              <View style={{ width: 24 }} />
-            </View>
+            <BackAndTitle onBack={onBack} title={micro.microCycleName} />
 
             {/* info treino */}
             <View style={styles.blockHeader}>
@@ -565,7 +574,7 @@ const SelectedMicro = ({
                 }}
               >
                 <View style={styles.containerModal}>
-                  <View style={styles.nameAndBackWrap}>
+                  {/* <View style={styles.nameAndBackWrap}>
                     <Pressable
                       onPress={() => {
                         setRegisteringWorkout(null);
@@ -586,7 +595,11 @@ const SelectedMicro = ({
                       {selectedWorkoutName ?? "Treino"}
                     </AppText>
                     <View style={{ width: 24 }} />
-                  </View>
+                  </View> */}
+                  <BackAndTitle
+                    title={`${selectedWorkoutName ?? "Treino"}`}
+                    onBack={onBackModal}
+                  />
 
                   {selectedWorkoutImage && (
                     <Image
@@ -633,16 +646,11 @@ const SelectedMicro = ({
     return (
       <View style={{ flex: 1 }}>
         <View style={{ marginTop: 30 }}>
-          <View style={styles.nameAndBackWrap}>
-            <Pressable
-              onPress={handleBackFromStage2}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              delayLongPress={0}
-            >
-              <MaterialIcons name="arrow-back" size={24} color="white" />
-            </Pressable>
-
-            <AppText style={styles.name}>ADICIONAR EXERCÍCIO</AppText>
+          <View style={styles.nameAndFilter}>
+            <BackAndTitle
+              onBack={handleBackFromStage2}
+              title={"ADICIONAR EXERCÍCIO"}
+            />
             <Pressable
               onPress={() => setStage(4)}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -658,8 +666,9 @@ const SelectedMicro = ({
               })}
             >
               <FontAwesome6
+              style={styles.filter}
                 name="filter"
-                size={24}
+                size={20}
                 color={themas.Colors.secondary}
               />
             </Pressable>
@@ -685,7 +694,7 @@ const SelectedMicro = ({
         <FlatList
           data={filteredExercises ?? exercises}
           keyExtractor={(item) => item.id}
-          numColumns={3}
+          numColumns={2}
           renderItem={({ item }) => (
             <ExerciseItem
               item={item}
