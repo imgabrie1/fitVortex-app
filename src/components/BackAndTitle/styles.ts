@@ -8,7 +8,7 @@ export const styles = StyleSheet.create({
     flexDirection: "column",
     alignItems: "flex-start",
     gap: 15,
-    justifyContent: "space-between",
+    justifyContent: "space-between"
   },
   name: {
     fontSize: 20,

@@ -1,30 +1,13 @@
 import { themas } from "@/global/themes";
-import { Dimensions, StyleSheet } from "react-native";
+import { StyleSheet, Dimensions } from "react-native";
 
-const { width, height } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window")
 
 export const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: themas.Colors.background,
-    marginTop: 25,
-  },
-
   repsWeightInfo: {
     padding: 5,
   },
 
-  containerModal: {
-    flex: 1,
-    backgroundColor: themas.Colors.background,
-    paddingTop: 30,
-  },
-
-  infoHeader: {
-    fontFamily: "GeologicaBold",
-    fontSize: 16,
-    color: themas.Colors.text,
-  },
   blocks: {
     backgroundColor: themas.Colors.blocks,
     borderRadius: 10,
@@ -34,58 +17,18 @@ export const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 5,
   },
-  blockHeader: {
-    backgroundColor: themas.Colors.blackTransparent,
-    borderWidth: 2,
-    borderColor: themas.Colors.secondary,
-    borderRadius: 8,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 14,
-    paddingVertical: 20,
-    gap: 1,
-    marginTop: 10,
-    marginBottom: 5,
-  },
+
   name: {
     fontSize: 20,
     fontFamily: "GeologicaBold",
   },
 
-  activeFilter: {
-    backgroundColor: themas.Colors.blocks,
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 10,
-    alignSelf: "flex-start",
-  },
-
-  activeFilterDeleteWrapper: {
-    gap: 8,
-    flexDirection: "row",
-  },
-
-  infosWrap: {
-    gap: 5,
-  },
   info: {
-    fontSize: 15,
-    fontFamily: "GeologicaBold",
-    color: themas.Colors.noSelectColor,
-  },
-  macrosTitles: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  blockSelected: {
-    backgroundColor: themas.Colors.primary,
-  },
-  infoSelected: {
     fontSize: 15,
     fontFamily: "GeologicaBold",
     color: themas.Colors.lightGray,
   },
+
   infoWorkoutWrap: {
     paddingBottom: 15,
     borderBottomColor: themas.Colors.gray,
@@ -99,29 +42,11 @@ export const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
 
-  addExerciseUl: {
-    width: "33%",
-    alignItems: "center",
-    justifyContent: "flex-start",
-    height: 240,
-    marginBottom: 5,
-    paddingTop: 5,
-    gap: 5,
-  },
-  imagemURl: {
-    width: 110,
-    height: 110,
+  exerciseImage: {
+    width: "100%",
+    height: 150,
     borderRadius: 10,
-    backgroundColor: themas.Colors.lightGray,
-  },
-  nameExercise: {
-    marginTop: 6,
-    textAlign: "center",
-    height: 38,
-  },
-
-  styledButton: {
-    width: "85%",
+    backgroundColor: themas.Colors.text,
   },
 
   editAndDeleteWrap: {
@@ -138,5 +63,59 @@ export const styles = StyleSheet.create({
     shadowColor: "#888888ff",
     shadowOpacity: 0.3,
     shadowRadius: 4,
+  },
+
+  exercisesContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between", // Alterado para space-between
+    marginTop: 8, // Reduzido de 12 para 8
+  },
+
+  exerciseItem: {
+    width: width / 2.8,
+    alignItems: "center",
+    marginBottom: 12, // Adicionado espaçamento na parte inferior
+  },
+
+  exerciseName: {
+    fontSize: 14,
+    fontFamily: "GeologicaBold",
+    textAlign: "center",
+    marginTop: 8,
+    marginBottom: 8,
+    height: height / 18,
+  },
+
+  setsContainer: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    flexWrap: "wrap",
+    width: width / 2.5
+  },
+
+  setItem: {
+    padding: 6,
+    alignItems: "center",
+  },
+
+  setInfo: {
+    fontSize: 12,
+    fontFamily: "GeologicaBold",
+    color: themas.Colors.gray,
+    textAlign: "center",
+  },
+
+  set: {
+    color: themas.Colors.primary,
+  },
+
+  notes: {
+    fontSize: 10,
+    fontFamily: "GeologicaBold",
+    color: themas.Colors.noSelectColor,
+    fontStyle: "italic",
+    textAlign: "center",
+    marginTop: 2,
   },
 });
