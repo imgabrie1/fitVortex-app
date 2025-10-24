@@ -1,9 +1,8 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useCallback } from "react";
 import {
   View,
   Modal,
   Pressable,
-  TouchableOpacity,
   Image,
   FlatList,
   ActivityIndicator,
@@ -14,13 +13,11 @@ import AppText from "../AppText";
 import { UserContext } from "@/contexts/User/UserContext";
 import {
   Exercise,
-  iPatchWorkout,
   MicroCycle,
   Workout,
 } from "@/contexts/User/interface";
 import { FontAwesome6, MaterialIcons } from "@expo/vector-icons";
 import { styles } from "./styles";
-import { Button } from "../Button";
 import { RegisterWorkoutForm } from "../RegisterWorkoutForm";
 import { useForm, useFieldArray } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -32,12 +29,13 @@ import DraggableFlatList, {
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AddExerciseForm from "../AddExerciseForm";
-import { themas } from "@/global/themes";
-import AnimatedMenu from "../AnimatedMenu";
 import CustomAlert from "../Alert";
 import FiltersByMuscle from "../FiltersByMuscle";
 import { useMuscleFilters } from "@/utils/useMuscleFilters";
 import { formatMuscleLabel } from "@/utils/formatMuscleLabel";
+import { themas } from "@/global/themes";
+import ExerciseItem from "../ExerciseItem";
+import WorkoutItem from "../WorkoutItem";
 
 interface SelectedMicroProps {
   microId: string;
@@ -111,7 +109,7 @@ const SelectedMicro = ({
     name: "exercises",
   });
 
-  const checkIfExerciseExistsInWorkout = (exerciseId: string): boolean => {
+  const checkIfExerciseExistsInWorkout = useCallback((exerciseId: string): boolean => {
     if (!targetWorkoutName) return false;
 
     const targetWorkout = workouts.find(
@@ -123,9 +121,9 @@ const SelectedMicro = ({
     return targetWorkout.workout.workoutExercises.some(
       (we: any) => we.exercise.id === exerciseId
     );
-  };
+  }, [targetWorkoutName, workouts]);
 
-  const getFormStorageKey = (microId: string) => `workoutFormValues_${microId}`;
+  const getFormStorageKey = useCallback((microId: string) => `workoutFormValues_${microId}`, []);
 
   useEffect(() => {
     const loadFormValues = async () => {
@@ -213,22 +211,13 @@ const SelectedMicro = ({
     }
   };
 
-  const toNumber = (v?: string | number | null) => {
+  const toNumber = useCallback((v?: string | number | null) => {
     if (v == null) return 0;
     const n = typeof v === "number" ? v : Number.parseFloat(String(v));
     return Number.isFinite(n) ? n : 0;
-  };
+  }, []);
 
-  const groupSetsByExercise = (sets: any[] = []) => {
-    return sets.reduce<Record<string, any[]>>((acc, s) => {
-      const exId = s?.exercise?.id ?? "unknown";
-      if (!acc[exId]) acc[exId] = [];
-      acc[exId].push(s);
-      return acc;
-    }, {});
-  };
-
-  const normalizeCycleItems = (micro: any) => {
+  const normalizeCycleItems = useCallback((micro: any) => {
     if (!micro?.cycleItems || !Array.isArray(micro.cycleItems)) return [];
     const map = new Map<string, any>();
 
@@ -250,9 +239,9 @@ const SelectedMicro = ({
     });
 
     return map.size > 0 ? Array.from(map.values()) : micro.cycleItems;
-  };
+  }, []);
 
-  const loadMicro = async () => {
+  const loadMicro = useCallback(async () => {
     try {
       setLoading(true);
       const data = await getMicroCycleByID(microId);
@@ -280,13 +269,13 @@ const SelectedMicro = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [microId]);
 
   useEffect(() => {
     loadMicro();
   }, [microId]);
 
-  const handleFormSubmit = () => {
+  const handleFormSubmit = useCallback(() => {
     if (registeringWorkout) {
       setFormValues((prev) => {
         const newValues = { ...prev };
@@ -305,7 +294,7 @@ const SelectedMicro = ({
     setRegisteringWorkout(null);
     setSelectedWorkoutName(null);
     loadMicro();
-  };
+  }, [registeringWorkout, microId]);
 
   const handleDragEnd = async ({ data }: { data: any[] }) => {
     setWorkouts(data);
@@ -320,7 +309,7 @@ const SelectedMicro = ({
     }
   };
 
-  const loadExercises = async (pageNumber: number, limit: number = 10) => {
+  const loadExercises = useCallback(async (pageNumber: number, limit: number = 10) => {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
 
@@ -345,16 +334,16 @@ const SelectedMicro = ({
     } finally {
       setLoadingMore(false);
     }
-  };
+  }, [loadingMore, hasMore]);
 
-  const handleLoadMore = () => {
+  const handleLoadMore = useCallback(() => {
     if (!loadingMore && hasMore) {
       loadExercises(page);
     }
-  };
+  }, [loadingMore, hasMore, page, loadExercises]);
 
   useEffect(() => {
-    loadExercises(page);
+    loadExercises(1);
   }, []);
 
   const handleSubmitAddExercise = async (data: any) => {
@@ -451,7 +440,7 @@ const SelectedMicro = ({
     return acc;
   }, 0);
 
-  const handleEditWorkout = (ci: any) => {
+  const handleEditWorkout = useCallback((ci: any) => {
     try {
       console.log("Editar treino:", ci.workout.name);
       // editar nome apenas (provavelmente)
@@ -460,9 +449,9 @@ const SelectedMicro = ({
     } finally {
       setMenuVisible(null);
     }
-  };
+  }, []);
 
-  const handleDeleteWorkout = async (ci: any) => {
+  const handleDeleteWorkout = useCallback(async (ci: any) => {
     try {
       console.log("Excluir treino:", ci.workout.name);
       // criar no backend essa opção
@@ -471,130 +460,53 @@ const SelectedMicro = ({
     } finally {
       setMenuVisible(null);
     }
-  };
+  }, []);
 
-  const handleClearFilter = () => {
+  const handleClearFilter = useCallback(() => {
     setFilteredExercises(null);
     setActiveFilter(null);
     setStage(2);
-  };
+  }, []);
+
+  const handleMenuPress = useCallback((e: any, itemId: string) => {
+    const { pageX, pageY } = e.nativeEvent;
+    setMenuOrigin({ x: pageX, y: pageY });
+    setMenuVisible((prev) => (prev === itemId ? null : itemId));
+  }, []);
+
+  const handleAddExerciseToWorkout = useCallback((workoutName: string) => {
+    setTargetWorkoutName(workoutName);
+    setStage(2);
+    setMenuVisible(null);
+  }, []);
+
+  const handleRegisterWorkout = useCallback((workout: any) => {
+    setRegisteringWorkout(workout);
+    setSelectedWorkoutName(workout.name);
+    setSelectedWorkoutImage(workout.imageUrl || null);
+  }, []);
+
+  const handleAddExercisePress = useCallback((exercise: Exercise) => {
+    setSelectedExercise(exercise);
+    setAddExerciseModalVisible(true);
+  }, []);
+
+  const renderWorkoutItem = useCallback(({ item, drag, isActive }: RenderItemParams<any>) => (
+    <WorkoutItem
+      item={item}
+      drag={drag}
+      isActive={isActive}
+      onMenuPress={handleMenuPress}
+      menuVisible={menuVisible}
+      menuOrigin={menuOrigin}
+      onAddExercise={handleAddExerciseToWorkout}
+      onEditWorkout={handleEditWorkout}
+      onDeleteWorkout={handleDeleteWorkout}
+      onRegisterWorkout={handleRegisterWorkout}
+    />
+  ), [menuVisible, menuOrigin, handleMenuPress, handleAddExerciseToWorkout, handleEditWorkout, handleDeleteWorkout, handleRegisterWorkout]);
 
   if (stage === 1) {
-    const renderItem = ({
-      item: ci,
-      drag,
-      isActive,
-    }: RenderItemParams<any>) => {
-      const workoutName = ci.workout.name;
-      const workoutImage = ci.workout?.imageUrl || null;
-      const workoutExercises = ci.workout?.workoutExercises ?? [];
-      const sets = Array.isArray(ci.sets) ? ci.sets : [];
-      const setsByExercise = groupSetsByExercise(sets);
-      const hasSets = sets.length > 0;
-
-      return (
-        <TouchableOpacity
-          onLongPress={drag}
-          disabled={isActive}
-          style={[
-            styles.blocks,
-            { marginTop: 12, backgroundColor: isActive ? "#333" : "#222" },
-          ]}
-        >
-          <View style={styles.infoWorkoutWrap}>
-            <View style={styles.nameAndMenuWrap}>
-              <AppText style={styles.name}>{workoutName}</AppText>
-              <TouchableOpacity
-                onPress={(e) => {
-                  e.stopPropagation();
-                  const { pageX, pageY } = e.nativeEvent;
-                  setMenuOrigin({ x: pageX, y: pageY });
-                  setMenuVisible((prev) => (prev === ci.id ? null : ci.id));
-                }}
-              >
-                <MaterialIcons
-                  name="menu"
-                  size={18}
-                  color={themas.Colors.text}
-                />
-              </TouchableOpacity>
-
-              <AnimatedMenu
-                visible={menuVisible === ci.id}
-                origin={menuOrigin}
-                style={styles.editAndDeleteWrap}
-                onAddExercise={() => {
-                  setTargetWorkoutName(ci.workout.name);
-                  setStage(2);
-                  setMenuVisible(null);
-                }}
-                onEdit={() => handleEditWorkout(ci)}
-                onDelete={() => handleDeleteWorkout(ci)}
-              />
-            </View>
-            <AppText style={styles.info}>
-              Exercícios no treino: {workoutExercises.length}
-            </AppText>
-          </View>
-
-          {hasSets ? (
-            <View style={{ marginTop: 8 }}>
-              <AppText style={[styles.info, { fontWeight: "600" }]}>
-                Séries registradas:
-              </AppText>
-
-              {Object.entries(setsByExercise).map(([exId, arr]) => {
-                const exName = arr[0]?.exercise?.name ?? "Exercício";
-                return (
-                  <View key={exId} style={{ marginTop: 8 }}>
-                    <AppText style={[styles.name, { fontSize: 14 }]}>
-                      {exName}
-                    </AppText>
-                    {arr.map((s: any) => {
-                      const weight = toNumber(s.weight).toFixed(2);
-                      return (
-                        <View key={s.id} style={styles.repsWeightInfo}>
-                          <AppText style={styles.info}>
-                            • reps: {s.reps ?? "—"} — peso: {weight}
-                          </AppText>
-                          {s.notes ? (
-                            <AppText style={styles.info}>
-                              notas: {s.notes}
-                            </AppText>
-                          ) : null}
-                        </View>
-                      );
-                    })}
-                  </View>
-                );
-              })}
-            </View>
-          ) : (
-            <View style={{ marginTop: 12 }}>
-              {workoutExercises.length <= 0 ? (
-                <Button
-                  text="Adicionar Exercícios"
-                  onPress={() => {
-                    setTargetWorkoutName(workoutName);
-                    setStage(2);
-                  }}
-                />
-              ) : (
-                <Button
-                  text="Registrar Treino"
-                  onPress={() => {
-                    setRegisteringWorkout(ci.workout);
-                    setSelectedWorkoutName(workoutName);
-                    setSelectedWorkoutImage(workoutImage);
-                  }}
-                />
-              )}
-            </View>
-          )}
-        </TouchableOpacity>
-      );
-    };
-
     if (!micro) return null;
 
     return (
@@ -629,11 +541,16 @@ const SelectedMicro = ({
             {/* ciclo de treinos */}
             <DraggableFlatList
               data={workouts}
-              renderItem={renderItem}
+              renderItem={renderWorkoutItem}
               keyExtractor={(item) => item.id}
               onDragEnd={handleDragEnd}
               containerStyle={{ flex: 1 }}
               contentContainerStyle={{ paddingBottom: 20 }}
+              maxToRenderPerBatch={5}
+              updateCellsBatchingPeriod={50}
+              windowSize={5}
+              initialNumToRender={3}
+              removeClippedSubviews={true}
             />
 
             {registeringWorkout && (
@@ -681,6 +598,7 @@ const SelectedMicro = ({
                         marginBottom: 16,
                       }}
                       resizeMode="cover"
+                      fadeDuration={0}
                     />
                   )}
 
@@ -768,45 +686,20 @@ const SelectedMicro = ({
           data={filteredExercises ?? exercises}
           keyExtractor={(item) => item.id}
           numColumns={3}
-          renderItem={({ item }) => {
-            const exerciseExists = checkIfExerciseExistsInWorkout(item.id);
-
-            return (
-              <View style={[styles.addExerciseUl]}>
-                <Image
-                  source={{ uri: item.imageURL }}
-                  style={styles.imagemURl}
-                  resizeMode="cover"
-                />
-                <AppText style={styles.nameExercise}>{item.name}</AppText>
-                {exerciseExists ? (
-                  <TouchableOpacity
-                    onPress={() => {
-                      Alert.alert("Aviso", "Este exercício já está no treino.");
-                    }}
-                  >
-                    <MaterialIcons
-                      name="check"
-                      size={28}
-                      color={themas.Colors.secondary}
-                    />
-                  </TouchableOpacity>
-                ) : (
-                  <Button
-                    text="Adicionar"
-                    styleButton={styles.styledButton}
-                    fontSize={12}
-                    onPress={() => {
-                      setSelectedExercise(item);
-                      setAddExerciseModalVisible(true);
-                    }}
-                  ></Button>
-                )}
-              </View>
-            );
-          }}
+          renderItem={({ item }) => (
+            <ExerciseItem
+              item={item}
+              onAddExercise={handleAddExercisePress}
+              exerciseExists={checkIfExerciseExistsInWorkout(item.id)}
+            />
+          )}
           onEndReached={handleLoadMore}
           onEndReachedThreshold={0.5}
+          maxToRenderPerBatch={8}
+          updateCellsBatchingPeriod={50}
+          windowSize={7}
+          initialNumToRender={6}
+          removeClippedSubviews={true}
           ListFooterComponent={() =>
             loadingMore ? <ActivityIndicator size="large" /> : null
           }
