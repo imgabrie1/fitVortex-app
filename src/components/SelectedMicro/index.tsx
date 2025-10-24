@@ -50,6 +50,7 @@ const SelectedMicro = ({
     loadingForm,
     addExerciseInWorkout,
     getAllExercise,
+    updateWorkoutOrder,
   } = useContext(UserContext);
 
   const [micro, setMicro] = useState<MicroCycle | null>(null);
@@ -151,24 +152,27 @@ const SelectedMicro = ({
     if (registeringWorkout) {
       const currentValues = formValues[registeringWorkout.id] || {};
       reset({
-        exercises: registeringWorkout.workoutExercises?.map((we: any) => {
-          const existingExercise = currentValues.exercises?.find(
-            (ex: any) => ex.exerciseId === we.exercise.id
-          );
-          if (existingExercise) return existingExercise;
+        exercises: registeringWorkout.workoutExercises
+          ?.slice()
+          .sort((a: any, b: any) => a.position - b.position)
+          .map((we: any) => {
+            const existingExercise = currentValues.exercises?.find(
+              (ex: any) => ex.exerciseId === we.exercise.id
+            );
+            if (existingExercise) return existingExercise;
 
-          const targetSets = we.targetSets || 1;
-          const sets = Array.from({ length: targetSets }, () => ({
-            reps: undefined,
-            weight: undefined,
-          }));
+            const targetSets = we.targetSets || 1;
+            const sets = Array.from({ length: targetSets }, () => ({
+              reps: undefined,
+              weight: undefined,
+            }));
 
-          return {
-            exerciseId: we.exercise.id,
-            notes: "",
-            sets,
-          };
-        }),
+            return {
+              exerciseId: we.exercise.id,
+              notes: "",
+              sets,
+            };
+          }),
       });
     }
   }, [registeringWorkout, reset]);
@@ -254,20 +258,7 @@ const SelectedMicro = ({
       setMicro(data);
       const normalized = normalizeCycleItems(data);
 
-      const savedOrderJSON = await AsyncStorage.getItem(
-        `workoutOrder_${microId}`
-      );
-      if (savedOrderJSON) {
-        const savedOrderIds = JSON.parse(savedOrderJSON) as string[];
-        normalized.sort((a: any, b: any) => {
-          const indexA = savedOrderIds.indexOf(a.id);
-          const indexB = savedOrderIds.indexOf(b.id);
-          if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-          if (indexA !== -1) return -1;
-          if (indexB !== -1) return 1;
-          return 0;
-        });
-      }
+      normalized.sort((a: any, b: any) => a.position - b.position);
 
       setWorkouts(normalized);
     } catch (err) {
@@ -305,13 +296,11 @@ const SelectedMicro = ({
   const handleDragEnd = async ({ data }: { data: any[] }) => {
     setWorkouts(data);
     try {
-      const orderIds = data.map((item) => item.id);
-      await AsyncStorage.setItem(
-        `workoutOrder_${microId}`,
-        JSON.stringify(orderIds)
-      );
+      const orderedIds = data.map((item) => item.id);
+      await updateWorkoutOrder(microId, orderedIds);
     } catch (err) {
       console.error("Erro ao salvar a ordem dos treinos:", err);
+      loadMicro();
     }
   };
 

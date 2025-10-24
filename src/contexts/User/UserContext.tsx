@@ -267,6 +267,23 @@ export const AuthProvider = ({ children }: Props) => {
     }
   };
 
+  const updateWorkoutOrder = async (
+    microCycleID: string,
+    orderedIds: string[]
+  ) => {
+    assertUser();
+    try {
+      await api.patch(`/microcycle/${microCycleID}/reorder`, { orderedIds });
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      const msg =
+        currentError?.response?.data ||
+        err?.message ||
+        "Erro ao reordenar treinos";
+      throw new Error(String(msg));
+    }
+  };
+
   //        -------------- EXERCISE --------------
   const getAllExercise = async (
     page?: number,
@@ -298,7 +315,6 @@ export const AuthProvider = ({ children }: Props) => {
       const currentError = err as AxiosError;
       if (currentError.response?.status === 404) {
         return { data: [], page: 0, lastPage: 0, total: 0, limit: 0 };
-
       }
       const msg =
         currentError?.response?.data ||
@@ -480,6 +496,7 @@ export const AuthProvider = ({ children }: Props) => {
         createWorkout,
         addWorkoutInMicro,
         addExerciseInWorkout,
+        updateWorkoutOrder,
       }}
     >
       {children}

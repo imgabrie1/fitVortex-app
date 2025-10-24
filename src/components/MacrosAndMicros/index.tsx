@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Modal,
   TouchableWithoutFeedback,
+  Alert,
 } from "react-native";
 import AppText from "../AppText";
 import { styles } from "./styles";
@@ -143,10 +144,7 @@ const MacrosAndMicros = () => {
 
         await loadMicros();
 
-        setSelectedMicroId(micros[0].id);
-        setSelectedWorkoutId(newWorkout.id);
-
-        setStage(3);
+        Alert.alert("Sucesso!", "O dia de treino foi criado.");
       }
     } catch (error) {
       console.error("Erro ao criar ou adicionar treino:", error);

@@ -56,6 +56,7 @@ export interface MicroCycle {
 export interface CycleItems {
   microCycle: any;
   id: string;
+  position: number;
   createdAt: string | Date;
   workout: Workout;
   sets: Set[];
@@ -218,6 +219,7 @@ export type UserContextData = {
   ) => Promise<ExerciseResponse>;
   createWorkout: (payload: iCreateWorkout) => Promise<any>;
   addWorkoutInMicro: (microID: string, workoutID: string) => Promise<any>;
+  updateWorkoutOrder: (microCycleID: string, orderedIds: string[]) => Promise<void>;
   addExerciseInWorkout: (
     payload: ExerciseInCreateAndPatch,
     workoutID: string
