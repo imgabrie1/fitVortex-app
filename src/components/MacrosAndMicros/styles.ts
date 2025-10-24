@@ -7,7 +7,6 @@ export const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: themas.Colors.background,
-    marginTop: 30,
   },
   blocks: {
     flex: 1,
@@ -46,7 +45,8 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "flex-start",
-    paddingLeft: 8
+    paddingLeft: 8,
+    paddingTop: 10
   },
 
   infoSelected: {
