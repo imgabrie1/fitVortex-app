@@ -18,7 +18,7 @@ import {
   MicroCycle,
   Workout,
 } from "@/contexts/User/interface";
-import { MaterialIcons } from "@expo/vector-icons";
+import { FontAwesome6, MaterialIcons } from "@expo/vector-icons";
 import { styles } from "./styles";
 import { Button } from "../Button";
 import { RegisterWorkoutForm } from "../RegisterWorkoutForm";
@@ -35,6 +35,9 @@ import AddExerciseForm from "../AddExerciseForm";
 import { themas } from "@/global/themes";
 import AnimatedMenu from "../AnimatedMenu";
 import CustomAlert from "../Alert";
+import FiltersByMuscle from "../FiltersByMuscle";
+import { useMuscleFilters } from "@/utils/useMuscleFilters";
+import { formatMuscleLabel } from "@/utils/formatMuscleLabel";
 
 interface SelectedMicroProps {
   microId: string;
@@ -68,7 +71,7 @@ const SelectedMicro = ({
     string | null
   >(null);
   const [formValues, setFormValues] = useState<Record<string, any>>({});
-  const [stage, setStage] = useState<1 | 2 | 3>(1);
+  const [stage, setStage] = useState<1 | 2 | 3 | 4>(1);
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [page, setPage] = useState(1);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -86,6 +89,12 @@ const SelectedMicro = ({
   >(undefined);
   const [menuVisible, setMenuVisible] = useState<string | null>(null);
   const [alertVisible, setAlertVisible] = useState(false);
+  const [filteredExercises, setFilteredExercises] = useState<Exercise[] | null>(
+    null
+  );
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+
+  const { muscles } = useMuscleFilters(getAllExercise);
 
   const {
     control,
@@ -102,7 +111,6 @@ const SelectedMicro = ({
     name: "exercises",
   });
 
-  // Função para verificar se exercício já existe no workout
   const checkIfExerciseExistsInWorkout = (exerciseId: string): boolean => {
     if (!targetWorkoutName) return false;
 
@@ -465,6 +473,12 @@ const SelectedMicro = ({
     }
   };
 
+  const handleClearFilter = () => {
+    setFilteredExercises(null);
+    setActiveFilter(null);
+    setStage(2);
+  };
+
   if (stage === 1) {
     const renderItem = ({
       item: ci,
@@ -641,6 +655,8 @@ const SelectedMicro = ({
                         setSelectedWorkoutName(null);
                         setSelectedWorkoutImage(null);
                       }}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      delayLongPress={0}
                     >
                       <MaterialIcons
                         name="arrow-back"
@@ -690,31 +706,73 @@ const SelectedMicro = ({
 
   //----------------- TELA DE ADICIONAR EXERCICIO (STAGE 2) -----------------
   if (stage === 2) {
+    const handleBackFromStage2 = () => {
+      setFilteredExercises(null);
+      setActiveFilter(null);
+      setStage(1);
+    };
+
     return (
       <View style={{ flex: 1 }}>
         <View style={{ marginTop: 30 }}>
           <View style={styles.nameAndBackWrap}>
-            <Pressable onPress={() => setStage(1)}>
+            <Pressable
+              onPress={handleBackFromStage2}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              delayLongPress={0}
+            >
               <MaterialIcons name="arrow-back" size={24} color="white" />
             </Pressable>
+
             <AppText style={styles.name}>ADICIONAR EXERCÍCIO</AppText>
-            <View style={{ width: 24 }} />
+            <Pressable
+              onPress={() => setStage(4)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              delayLongPress={0}
+              style={({ pressed }) => ({
+                opacity: pressed ? 0.7 : 1,
+                backgroundColor: pressed
+                  ? "rgba(255,255,255,0.1)"
+                  : "transparent",
+                padding: 8,
+                borderRadius: 8,
+                transform: [{ scale: pressed ? 0.95 : 1 }],
+              })}
+            >
+              <FontAwesome6
+                name="filter"
+                size={24}
+                color={themas.Colors.secondary}
+              />
+            </Pressable>
           </View>
         </View>
+        {activeFilter && (
+          <View style={styles.activeFilterDeleteWrapper}>
+            <View style={styles.activeFilter}>
+              <AppText>{formatMuscleLabel(activeFilter)}</AppText>
+            </View>
+            <View style={styles.activeFilter}>
+              <Pressable
+                onPress={handleClearFilter}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                delayLongPress={0}
+              >
+                <FontAwesome6 name="xmark" size={15} color="white" />
+              </Pressable>
+            </View>
+          </View>
+        )}
 
         <FlatList
-          data={exercises}
+          data={filteredExercises ?? exercises}
           keyExtractor={(item) => item.id}
           numColumns={3}
           renderItem={({ item }) => {
             const exerciseExists = checkIfExerciseExistsInWorkout(item.id);
 
             return (
-              <View
-                style={[
-                  styles.addExerciseUl,
-                ]}
-              >
+              <View style={[styles.addExerciseUl]}>
                 <Image
                   source={{ uri: item.imageURL }}
                   style={styles.imagemURl}
@@ -784,6 +842,45 @@ const SelectedMicro = ({
             }}
           />
         )}
+      </View>
+    );
+  }
+
+  if (stage === 4) {
+    const handleSelectPrimaryMuscle = async (muscleLabel: string) => {
+      try {
+        setLoading(true);
+        setActiveFilter(muscleLabel);
+        const filtersPrimaryMuscle = `primaryMuscle=${encodeURIComponent(
+          muscleLabel
+        )}`;
+        const { data } = await getAllExercise(1, 10, filtersPrimaryMuscle);
+
+        setFilteredExercises(data);
+        setPage(2);
+        setHasMore(true);
+        setStage(2);
+      } catch (err) {
+        console.error("Erro ao filtrar exercícios:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    return (
+      <View style={{ flex: 1 }}>
+        <Pressable
+          onPress={() => setStage(2)}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          delayLongPress={0}
+          style={{ marginVertical: 10 }}
+        >
+          <MaterialIcons name="arrow-back" size={24} color="white" />
+        </Pressable>
+        <FiltersByMuscle
+          getAllExercise={getAllExercise}
+          onSelectMuscle={handleSelectPrimaryMuscle}
+        />
       </View>
     );
   }

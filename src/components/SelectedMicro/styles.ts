@@ -51,6 +51,20 @@ export const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: "GeologicaBold",
   },
+
+  activeFilter: {
+    backgroundColor: themas.Colors.blocks,
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 10,
+    alignSelf: "flex-start",
+  },
+
+  activeFilterDeleteWrapper: {
+    gap: 8,
+    flexDirection: "row"
+  },
+
   infosWrap: {
     gap: 5,
   },
@@ -63,6 +77,7 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    paddingBottom: 18,
   },
   macrosTitles: {
     flex: 1,

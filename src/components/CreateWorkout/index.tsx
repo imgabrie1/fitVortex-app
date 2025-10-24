@@ -16,26 +16,27 @@ interface CreateWorkoutProps {
 }
 
 const CreateWorkoutForm = ({ onClose, onSubmit }: CreateWorkoutProps) => {
-
   const {
     control,
     handleSubmit,
     formState: { errors },
   } = useForm<FieldValues>({
     resolver: yupResolver(schema as yup.AnyObjectSchema),
-    defaultValues: { name: "", exercises: [] }
+    defaultValues: { name: "", exercises: [] },
   });
 
   return (
     <View style={styles.modalContainer}>
       <View style={styles.modalContent}>
         <View style={styles.nameAndBackWrap}>
-          <Pressable onPress={onClose}>
+          <Pressable
+            onPress={onClose}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            delayLongPress={0}
+          >
             <MaterialIcons name="arrow-back" size={24} color="white" />
           </Pressable>
-          <AppText style={styles.name}>
-            CRIAR TREINO
-          </AppText>
+          <AppText style={styles.name}>CRIAR TREINO</AppText>
           <View style={{ width: 24 }} />
         </View>
 
@@ -52,7 +53,6 @@ const CreateWorkoutForm = ({ onClose, onSubmit }: CreateWorkoutProps) => {
             />
           )}
         />
-
 
         <Button
           text="Criar Treino"
