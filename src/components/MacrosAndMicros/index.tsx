@@ -14,11 +14,11 @@ import { MacroCycle, MicroCycle } from "@/contexts/User/interface";
 import { MaterialIcons } from "@expo/vector-icons";
 import SelectedMicro from "../SelectedMicro";
 import CreateCycles from "../CreateCycles";
-import { themas } from "@/global/themes";
 import CreateWorkoutForm from "../CreateWorkout";
 import AnimatedMenu from "../AnimatedMenu";
 import { Button } from "../Button";
 import BackAndTitle from "../BackAndTitle";
+import { themas } from "@/global/themes";
 
 const MacrosAndMicros = () => {
   const {
@@ -82,6 +82,38 @@ const MacrosAndMicros = () => {
   useEffect(() => {
     loadMicros();
   }, [selectedMacro]);
+
+  const ableToRenderAdjustButton = () => {
+    if (stage !== 2 || micros.length === 0) return false;
+
+    const allWorkoutsComplete = micros.every((micro) => {
+      const cycleItemsCount = micro.cycleItems?.length || 0;
+      return cycleItemsCount === micro.trainingDays;
+    });
+
+    if (!allWorkoutsComplete) return false;
+
+    const allSetsFilled = micros.every((micro) => {
+      return (
+        micro.cycleItems?.every((cycleItem) => {
+          return cycleItem.sets?.length > 0;
+        }) ?? false
+      );
+    });
+
+    return allSetsFilled;
+  };
+
+  const shouldShowCreateWorkoutButton = () => {
+    if (stage !== 2 || micros.length === 0) return false;
+
+    const hasMissingWorkouts = micros.some((micro) => {
+      const cycleItemsCount = micro.cycleItems?.length || 0;
+      return cycleItemsCount < micro.trainingDays;
+    });
+
+    return hasMissingWorkouts;
+  };
 
   const handleCreate = async (data: any) => {
     try {
@@ -154,6 +186,7 @@ const MacrosAndMicros = () => {
   const allMicroCycleIds = macros.flatMap((macro) =>
     macro.items.map((item) => item.microCycle.id)
   );
+
 
   // -- tela de infos de micro (stage 3) --
   if (stage === 3 && selectedMicroId) {
@@ -332,8 +365,15 @@ const MacrosAndMicros = () => {
                       </TouchableOpacity>
                     </View>
 
+                    {micro.trainingDays > micro.cycleItems.length ? (
+                      <AppText style={styles.info}>
+                        Crie mais {micro.trainingDays - micro.cycleItems.length}{" "}
+                        Treinos
+                      </AppText>
+                    ) : null}
+
                     <AppText style={styles.info}>
-                      DIAS DE TREINO: {micro.trainingDays}
+                      TREINOS: {micro.cycleItems?.length || 0}
                     </AppText>
                   </TouchableOpacity>
 
@@ -367,26 +407,43 @@ const MacrosAndMicros = () => {
           </ScrollView>
         )}
 
-        {/* botão de criar ciclo */}
+        {/* botoes condicionais */}
         {stage === 1 && (
           <Button
             text="Criar Macro Ciclo"
             onPress={() => setCreateModalVisible(true)}
           />
         )}
-        {stage === 2 && micros.length <= 0 && (
-          <View>
-            <Button
-              text="Criar Micro Ciclo"
-              onPress={() => setCreateModalVisible(true)}
-            />
-          </View>
-        )}
-        {stage === 2 && micros.length > 0 && (
-          <Button
-            text="Criar dia de Treino"
-            onPress={() => setCreateWorkoutModalVisible(true)}
-          />
+
+        {stage === 2 && (
+          <>
+            {micros.length <= 0 && (
+              <Button
+                text="Criar Micro Ciclo"
+                onPress={() => setCreateModalVisible(true)}
+              />
+            )}
+
+            {micros.length > 0 && (
+              <>
+                {ableToRenderAdjustButton() ? (
+                  <Button
+                    text="Ajustar Volume"
+                    onPress={() => {
+                      console.log("Botão de ajuste pressionado");
+                    }}
+                  />
+                ) : (
+                  shouldShowCreateWorkoutButton() && (
+                    <Button
+                      text="Criar dia de Treino"
+                      onPress={() => setCreateWorkoutModalVisible(true)}
+                    />
+                  )
+                )}
+              </>
+            )}
+          </>
         )}
 
         {/* modal de criação de workout */}
