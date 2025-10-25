@@ -188,6 +188,11 @@ export interface iCreateWorkout {
 
 export type iPatchWorkout = Partial<iCreateWorkout>;
 
+export interface newMacroWithAI {
+  prompt: string | null,
+  createNewWorkout: boolean
+}
+
 export type UserContextData = {
   token: string | null;
   user: iUserResponse | null;
@@ -224,4 +229,5 @@ export type UserContextData = {
     payload: ExerciseInCreateAndPatch,
     workoutID: string
   ) => Promise<any>;
+  ajdustVolume: (macroID: string, payload: newMacroWithAI) => Promise<any>
 };

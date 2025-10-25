@@ -22,6 +22,7 @@ import {
   iPatchWorkout,
   ExerciseInCreateAndPatch,
   ExerciseResponse,
+  newMacroWithAI,
 } from "./interface";
 import { AxiosError } from "axios";
 import { Alert } from "react-native";
@@ -183,6 +184,21 @@ export const AuthProvider = ({ children }: Props) => {
         currentError?.response?.data ||
         err?.message ||
         "Erro ao criar Macro Ciclo";
+      throw new Error(String(msg));
+    }
+  };
+
+  const ajdustVolume = async (macroID: string, payload: newMacroWithAI) => {
+    assertUser();
+    try {
+      const data = await api.post(`/macrocycle/${macroID}/generate-next`, payload);
+      return data
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      const msg =
+        currentError?.response?.data ||
+        err?.message ||
+        "Erro ao ajustar o volume";
       throw new Error(String(msg));
     }
   };
@@ -497,6 +513,7 @@ export const AuthProvider = ({ children }: Props) => {
         addWorkoutInMicro,
         addExerciseInWorkout,
         updateWorkoutOrder,
+        ajdustVolume
       }}
     >
       {children}

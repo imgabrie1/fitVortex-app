@@ -10,7 +10,11 @@ import {
 import AppText from "../AppText";
 import { styles } from "./styles";
 import { UserContext } from "@/contexts/User/UserContext";
-import { MacroCycle, MicroCycle } from "@/contexts/User/interface";
+import {
+  MacroCycle,
+  MicroCycle,
+  newMacroWithAI,
+} from "@/contexts/User/interface";
 import { MaterialIcons } from "@expo/vector-icons";
 import SelectedMicro from "../SelectedMicro";
 import CreateCycles from "../CreateCycles";
@@ -19,6 +23,7 @@ import AnimatedMenu from "../AnimatedMenu";
 import { Button } from "../Button";
 import BackAndTitle from "../BackAndTitle";
 import { themas } from "@/global/themes";
+import AdjustVolumeForm from "../AdjustVolumeForm";
 
 const MacrosAndMicros = () => {
   const {
@@ -31,6 +36,7 @@ const MacrosAndMicros = () => {
     deleteCycles,
     createWorkout,
     addWorkoutInMicro,
+    ajdustVolume,
   } = useContext(UserContext);
 
   const [stage, setStage] = useState<1 | 2 | 3>(1);
@@ -41,6 +47,8 @@ const MacrosAndMicros = () => {
   const [micros, setMicros] = useState<MicroCycle[]>([]);
   const [isCreateModalVisible, setCreateModalVisible] = useState(false);
   const [isCreateWorkoutModalVisible, setCreateWorkoutModalVisible] =
+    useState(false);
+  const [isAjustVolumeModalVisible, setAjustVolumeModalVisible] =
     useState(false);
   const [menuVisible, setMenuVisible] = useState<string | null>(null);
   const [menuOrigin, setMenuOrigin] = useState<
@@ -187,6 +195,25 @@ const MacrosAndMicros = () => {
     macro.items.map((item) => item.microCycle.id)
   );
 
+  const handleAdjustVolume = async (macroID: string, payload: any) => {
+    try {
+      setAjustVolumeModalVisible(false);
+
+      const adjustPayload: newMacroWithAI = {
+        prompt: payload.prompt,
+        createNewWorkout: payload.createNewWorkout || false,
+      };
+
+      const newMacroCycle = await ajdustVolume(macroID, adjustPayload);
+
+      await loadMacros();
+      await loadMicros();
+
+      return newMacroCycle;
+    } catch (error) {
+      console.error("Erro ao ajustar volume:", error);
+    }
+  };
 
   // -- tela de infos de micro (stage 3) --
   if (stage === 3 && selectedMicroId) {
@@ -429,9 +456,7 @@ const MacrosAndMicros = () => {
                 {ableToRenderAdjustButton() ? (
                   <Button
                     text="Ajustar Volume"
-                    onPress={() => {
-                      console.log("Botão de ajuste pressionado");
-                    }}
+                    onPress={() => setAjustVolumeModalVisible(true)}
                   />
                 ) : (
                   shouldShowCreateWorkoutButton() && (
@@ -459,7 +484,7 @@ const MacrosAndMicros = () => {
           />
         </Modal>
 
-        {/* modal de criação */}
+        {/* modal de criação de ciclos */}
         <Modal
           animationType="slide"
           transparent={true}
@@ -470,6 +495,23 @@ const MacrosAndMicros = () => {
             type={stage === 1 ? "macro" : "micro"}
             onClose={() => setCreateModalVisible(false)}
             onSubmit={handleCreate}
+          />
+        </Modal>
+
+        {/* modal de ajuste de volume */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={isAjustVolumeModalVisible}
+          onRequestClose={() => setAjustVolumeModalVisible(false)}
+        >
+          <AdjustVolumeForm
+            onClose={() => setAjustVolumeModalVisible(false)}
+            onSubmit={(data) => {
+              if (selectedMacro) {
+                handleAdjustVolume(selectedMacro.id, data);
+              }
+            }}
           />
         </Modal>
       </View>
