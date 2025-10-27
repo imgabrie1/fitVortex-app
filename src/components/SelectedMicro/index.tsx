@@ -25,7 +25,7 @@ import DraggableFlatList, {
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AddExerciseForm from "../AddExerciseForm";
-import CustomAlert from "../Alert";
+import CustomAlertTwoOptions from "../AlertTwoOptions";
 import FiltersByMuscle from "../FiltersByMuscle";
 import { formatMuscleLabel } from "@/utils/formatMuscleLabel";
 import { themas } from "@/global/themes";
@@ -700,9 +700,13 @@ const SelectedMicro = ({
           />
         </Modal>
         {alertVisible && (
-          <CustomAlert
+          <CustomAlertTwoOptions
+            title="Exercício Adicionado!"
+            message="Quer adicionar mais exercícios nesse treino?"
+            buttonTextOne="Adicionar"
+            buttonTextTwo="OK"
             visible={alertVisible}
-            onAddMore={() => setAlertVisible(false)}
+            onPress={() => setAlertVisible(false)}
             onClose={() => {
               setTargetWorkoutName(null);
               loadMicro();
