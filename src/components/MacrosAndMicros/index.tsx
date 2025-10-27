@@ -207,7 +207,7 @@ const MacrosAndMicros = () => {
       const newMacroCycle = await ajdustVolume(macroID, adjustPayload);
 
       await loadMacros();
-      await loadMicros();
+      setStage(1)
 
       return newMacroCycle;
     } catch (error) {
