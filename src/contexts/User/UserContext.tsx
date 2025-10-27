@@ -22,6 +22,7 @@ import {
   iPatchWorkout,
   ExerciseInCreateAndPatch,
   ExerciseResponse,
+  newMacroWithAI,
 } from "./interface";
 import { AxiosError } from "axios";
 import { Alert } from "react-native";
@@ -187,6 +188,21 @@ export const AuthProvider = ({ children }: Props) => {
     }
   };
 
+  const ajdustVolume = async (macroID: string, payload: newMacroWithAI) => {
+    assertUser();
+    try {
+      const data = await api.post(`/macrocycle/${macroID}/generate-next`, payload);
+      return data
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      const msg =
+        currentError?.response?.data ||
+        err?.message ||
+        "Erro ao ajustar o volume";
+      throw new Error(String(msg));
+    }
+  };
+
   const deleteCycles = async (cycle: string, cycleID: string) => {
     try {
       await api.delete(`/${cycle}/${cycleID}`);
@@ -267,6 +283,23 @@ export const AuthProvider = ({ children }: Props) => {
     }
   };
 
+  const updateWorkoutOrder = async (
+    microCycleID: string,
+    orderedIds: string[]
+  ) => {
+    assertUser();
+    try {
+      await api.patch(`/microcycle/${microCycleID}/reorder`, { orderedIds });
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      const msg =
+        currentError?.response?.data ||
+        err?.message ||
+        "Erro ao reordenar treinos";
+      throw new Error(String(msg));
+    }
+  };
+
   //        -------------- EXERCISE --------------
   const getAllExercise = async (
     page?: number,
@@ -298,7 +331,6 @@ export const AuthProvider = ({ children }: Props) => {
       const currentError = err as AxiosError;
       if (currentError.response?.status === 404) {
         return { data: [], page: 0, lastPage: 0, total: 0, limit: 0 };
-
       }
       const msg =
         currentError?.response?.data ||
@@ -480,6 +512,8 @@ export const AuthProvider = ({ children }: Props) => {
         createWorkout,
         addWorkoutInMicro,
         addExerciseInWorkout,
+        updateWorkoutOrder,
+        ajdustVolume
       }}
     >
       {children}
