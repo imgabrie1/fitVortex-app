@@ -24,6 +24,8 @@ import { Button } from "../Button";
 import BackAndTitle from "../BackAndTitle";
 import { themas } from "@/global/themes";
 import AdjustVolumeForm from "../AdjustVolumeForm";
+import CustomAlertOneOption from "../AlertOneOptions";
+import CustomAlertTwoOptions from "../AlertTwoOptions";
 
 const MacrosAndMicros = () => {
   const {
@@ -54,9 +56,14 @@ const MacrosAndMicros = () => {
   const [menuOrigin, setMenuOrigin] = useState<
     { x: number; y: number } | undefined
   >(undefined);
-  const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(
-    null
-  );
+  const [AdjustVolumeAlertVisible, setAdjustVolumeAlertVisible] =
+    useState(false);
+  const [deleteCycleAlertVisible, setDeleteCycleAlertVisible] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{
+    id: string;
+    type: "macro" | "micro";
+  } | null>(null);
+  const [alertCreateWorkout, setAlertCreateWorkout] = useState(false);
 
   const loadMacros = async () => {
     if (user) {
@@ -155,17 +162,24 @@ const MacrosAndMicros = () => {
     }
   };
 
-  const handleDelete = async (cycleID: string) => {
+  const handleDelete = async () => {
+    if (!itemToDelete) return;
     try {
-      if (stage === 1) {
-        await deleteCycles("macrocycle", cycleID);
-        loadMacros();
-      } else if (stage === 2 && selectedMacro) {
-        await deleteCycles("microcycle", cycleID);
-        loadMicros();
+      await deleteCycles(
+        itemToDelete.type === "macro" ? "macrocycle" : "microcycle",
+        itemToDelete.id
+      );
+      if (itemToDelete.type === "macro") {
+        await loadMacros();
+      } else {
+        await loadMicros();
       }
     } catch (error) {
       console.error("Erro ao deletar ciclo:", JSON.stringify(error, null, 2));
+    } finally {
+      setItemToDelete(null);
+      setDeleteCycleAlertVisible(false);
+      setMenuVisible(null);
     }
   };
 
@@ -184,7 +198,9 @@ const MacrosAndMicros = () => {
 
         await loadMicros();
 
-        Alert.alert("Sucesso!", "O dia de treino foi criado.");
+        setAlertCreateWorkout(true);
+
+        // Alert.alert("Sucesso!", "O dia de treino foi criado.");
       }
     } catch (error) {
       console.error("Erro ao criar ou adicionar treino:", error);
@@ -207,7 +223,10 @@ const MacrosAndMicros = () => {
       const newMacroCycle = await ajdustVolume(macroID, adjustPayload);
 
       await loadMacros();
-      setStage(1)
+
+      setAjustVolumeModalVisible(false);
+
+      setAdjustVolumeAlertVisible(true);
 
       return newMacroCycle;
     } catch (error) {
@@ -322,8 +341,8 @@ const MacrosAndMicros = () => {
                         setMenuVisible(null);
                       }}
                       onDelete={() => {
-                        handleDelete(macro.id);
-                        setMenuVisible(null);
+                        setItemToDelete({ id: macro.id, type: "macro" });
+                        setDeleteCycleAlertVisible(true);
                       }}
                     />
                   </View>
@@ -413,8 +432,8 @@ const MacrosAndMicros = () => {
                       setMenuVisible(null);
                     }}
                     onDelete={() => {
-                      handleDelete(micro.id);
-                      setMenuVisible(null);
+                      setItemToDelete({ id: micro.id, type: "micro" });
+                      setDeleteCycleAlertVisible(true);
                     }}
                   />
                 </View>
@@ -479,7 +498,9 @@ const MacrosAndMicros = () => {
           onRequestClose={() => setCreateWorkoutModalVisible(false)}
         >
           <CreateWorkoutForm
-            onClose={() => setCreateWorkoutModalVisible(false)}
+            onClose={() => {
+              setCreateWorkoutModalVisible(false);
+            }}
             onSubmit={handleCreateWorkout}
           />
         </Modal>
@@ -514,6 +535,46 @@ const MacrosAndMicros = () => {
             }}
           />
         </Modal>
+        {AdjustVolumeAlertVisible && (
+          <CustomAlertOneOption
+            title="Volume Ajustado!"
+            message="Novo Macro Ciclo com novo volume adicionado aos Macros"
+            visible={AdjustVolumeAlertVisible}
+            onClose={() => {
+              setStage(1);
+              setAdjustVolumeAlertVisible(false);
+            }}
+          />
+        )}
+
+        {alertCreateWorkout && (
+          <CustomAlertOneOption
+          visible={alertCreateWorkout}
+          onClose={() => setAlertCreateWorkout(false)}
+          title="Treino Criado"
+          message="Treino foi criado e adicionado em todos os Micro Ciclos deste Macro Ciclo"
+          />
+        )}
+
+        {deleteCycleAlertVisible && (
+          <CustomAlertTwoOptions
+            visible={deleteCycleAlertVisible}
+            onPress={handleDelete}
+            onClose={() => {
+              setDeleteCycleAlertVisible(false);
+              setItemToDelete(null);
+              setMenuVisible(null);
+            }}
+            title={`Excluir ${
+              itemToDelete?.type === "macro" ? "Macro" : "Micro"
+            } Ciclo?`}
+            message={`Você tem certeza que deseja excluir este ${
+              itemToDelete?.type === "macro" ? "macro" : "micro"
+            } ciclo?`}
+            buttonTextOne="Excluir"
+            buttonTextTwo="Cancelar"
+          />
+        )}
       </View>
     </TouchableWithoutFeedback>
   );
