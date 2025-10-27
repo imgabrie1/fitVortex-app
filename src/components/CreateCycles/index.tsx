@@ -27,7 +27,6 @@ const CreateCycles = ({ type, onClose, onSubmit }: CreateCyclesProps) => {
 
   const [stage, setStage] = useState<1 | 2 | 3>(1);
 
-  // estados para o datepicker
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
 
@@ -65,7 +64,6 @@ const CreateCycles = ({ type, onClose, onSubmit }: CreateCyclesProps) => {
     if (stage > 1) setStage((prev) => (prev - 1) as 1 | 2 | 3);
   };
 
-  // função utilitária para formatar data
   const formatDate = (date: Date) => {
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");

@@ -55,6 +55,21 @@ const WorkoutItem = memo(
 
     const setsByExercise = groupSetsByExercise(sets);
 
+    const getExercisePosition = (exerciseId: string) => {
+      const workoutExercise = workoutExercises.find(
+        (we: any) => we.exercise.id === exerciseId
+      );
+      return workoutExercise?.position ?? 0;
+    };
+
+    const sortedSetsByExercise = Object.entries(setsByExercise).sort(
+      ([exIdA], [exIdB]) => {
+        const posA = getExercisePosition(exIdA);
+        const posB = getExercisePosition(exIdB);
+        return posA - posB;
+      }
+    );
+
     return (
       <TouchableOpacity
         onLongPress={drag}
@@ -100,7 +115,7 @@ const WorkoutItem = memo(
 
             {/* Container principal dos exercícios em linha */}
             <View style={styles.exercisesContainer}>
-              {Object.entries(setsByExercise).map(([exId, arr]) => {
+              {sortedSetsByExercise.map(([exId, arr]) => {
                 const exName = arr[0]?.exercise?.name ?? "Exercício";
                 const exImage = arr[0]?.exercise?.imageURL;
 

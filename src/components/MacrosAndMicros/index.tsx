@@ -5,19 +5,25 @@ import {
   TouchableOpacity,
   Modal,
   TouchableWithoutFeedback,
+  Alert,
 } from "react-native";
 import AppText from "../AppText";
 import { styles } from "./styles";
 import { UserContext } from "@/contexts/User/UserContext";
-import { MacroCycle, MicroCycle } from "@/contexts/User/interface";
+import {
+  MacroCycle,
+  MicroCycle,
+  newMacroWithAI,
+} from "@/contexts/User/interface";
 import { MaterialIcons } from "@expo/vector-icons";
 import SelectedMicro from "../SelectedMicro";
 import CreateCycles from "../CreateCycles";
-import { themas } from "@/global/themes";
 import CreateWorkoutForm from "../CreateWorkout";
 import AnimatedMenu from "../AnimatedMenu";
 import { Button } from "../Button";
 import BackAndTitle from "../BackAndTitle";
+import { themas } from "@/global/themes";
+import AdjustVolumeForm from "../AdjustVolumeForm";
 
 const MacrosAndMicros = () => {
   const {
@@ -30,6 +36,7 @@ const MacrosAndMicros = () => {
     deleteCycles,
     createWorkout,
     addWorkoutInMicro,
+    ajdustVolume,
   } = useContext(UserContext);
 
   const [stage, setStage] = useState<1 | 2 | 3>(1);
@@ -40,6 +47,8 @@ const MacrosAndMicros = () => {
   const [micros, setMicros] = useState<MicroCycle[]>([]);
   const [isCreateModalVisible, setCreateModalVisible] = useState(false);
   const [isCreateWorkoutModalVisible, setCreateWorkoutModalVisible] =
+    useState(false);
+  const [isAjustVolumeModalVisible, setAjustVolumeModalVisible] =
     useState(false);
   const [menuVisible, setMenuVisible] = useState<string | null>(null);
   const [menuOrigin, setMenuOrigin] = useState<
@@ -81,6 +90,38 @@ const MacrosAndMicros = () => {
   useEffect(() => {
     loadMicros();
   }, [selectedMacro]);
+
+  const ableToRenderAdjustButton = () => {
+    if (stage !== 2 || micros.length === 0) return false;
+
+    const allWorkoutsComplete = micros.every((micro) => {
+      const cycleItemsCount = micro.cycleItems?.length || 0;
+      return cycleItemsCount === micro.trainingDays;
+    });
+
+    if (!allWorkoutsComplete) return false;
+
+    const allSetsFilled = micros.every((micro) => {
+      return (
+        micro.cycleItems?.every((cycleItem) => {
+          return cycleItem.sets?.length > 0;
+        }) ?? false
+      );
+    });
+
+    return allSetsFilled;
+  };
+
+  const shouldShowCreateWorkoutButton = () => {
+    if (stage !== 2 || micros.length === 0) return false;
+
+    const hasMissingWorkouts = micros.some((micro) => {
+      const cycleItemsCount = micro.cycleItems?.length || 0;
+      return cycleItemsCount < micro.trainingDays;
+    });
+
+    return hasMissingWorkouts;
+  };
 
   const handleCreate = async (data: any) => {
     try {
@@ -143,10 +184,7 @@ const MacrosAndMicros = () => {
 
         await loadMicros();
 
-        setSelectedMicroId(micros[0].id);
-        setSelectedWorkoutId(newWorkout.id);
-
-        setStage(3);
+        Alert.alert("Sucesso!", "O dia de treino foi criado.");
       }
     } catch (error) {
       console.error("Erro ao criar ou adicionar treino:", error);
@@ -156,6 +194,26 @@ const MacrosAndMicros = () => {
   const allMicroCycleIds = macros.flatMap((macro) =>
     macro.items.map((item) => item.microCycle.id)
   );
+
+  const handleAdjustVolume = async (macroID: string, payload: any) => {
+    try {
+      setAjustVolumeModalVisible(false);
+
+      const adjustPayload: newMacroWithAI = {
+        prompt: payload.prompt,
+        createNewWorkout: payload.createNewWorkout || false,
+      };
+
+      const newMacroCycle = await ajdustVolume(macroID, adjustPayload);
+
+      await loadMacros();
+      setStage(1)
+
+      return newMacroCycle;
+    } catch (error) {
+      console.error("Erro ao ajustar volume:", error);
+    }
+  };
 
   // -- tela de infos de micro (stage 3) --
   if (stage === 3 && selectedMicroId) {
@@ -334,8 +392,15 @@ const MacrosAndMicros = () => {
                       </TouchableOpacity>
                     </View>
 
+                    {micro.trainingDays > micro.cycleItems.length ? (
+                      <AppText style={styles.info}>
+                        Crie mais {micro.trainingDays - micro.cycleItems.length}{" "}
+                        Treinos
+                      </AppText>
+                    ) : null}
+
                     <AppText style={styles.info}>
-                      DIAS DE TREINO: {micro.trainingDays}
+                      TREINOS: {micro.cycleItems?.length || 0}
                     </AppText>
                   </TouchableOpacity>
 
@@ -369,26 +434,41 @@ const MacrosAndMicros = () => {
           </ScrollView>
         )}
 
-        {/* botão de criar ciclo */}
+        {/* botoes condicionais */}
         {stage === 1 && (
           <Button
             text="Criar Macro Ciclo"
             onPress={() => setCreateModalVisible(true)}
           />
         )}
-        {stage === 2 && micros.length <= 0 && (
-          <View>
-            <Button
-              text="Criar Micro Ciclo"
-              onPress={() => setCreateModalVisible(true)}
-            />
-          </View>
-        )}
-        {stage === 2 && micros.length > 0 && (
-          <Button
-            text="Criar dia de Treino"
-            onPress={() => setCreateWorkoutModalVisible(true)}
-          />
+
+        {stage === 2 && (
+          <>
+            {micros.length <= 0 && (
+              <Button
+                text="Criar Micro Ciclo"
+                onPress={() => setCreateModalVisible(true)}
+              />
+            )}
+
+            {micros.length > 0 && (
+              <>
+                {ableToRenderAdjustButton() ? (
+                  <Button
+                    text="Ajustar Volume"
+                    onPress={() => setAjustVolumeModalVisible(true)}
+                  />
+                ) : (
+                  shouldShowCreateWorkoutButton() && (
+                    <Button
+                      text="Criar dia de Treino"
+                      onPress={() => setCreateWorkoutModalVisible(true)}
+                    />
+                  )
+                )}
+              </>
+            )}
+          </>
         )}
 
         {/* modal de criação de workout */}
@@ -404,7 +484,7 @@ const MacrosAndMicros = () => {
           />
         </Modal>
 
-        {/* modal de criação */}
+        {/* modal de criação de ciclos */}
         <Modal
           animationType="slide"
           transparent={true}
@@ -415,6 +495,23 @@ const MacrosAndMicros = () => {
             type={stage === 1 ? "macro" : "micro"}
             onClose={() => setCreateModalVisible(false)}
             onSubmit={handleCreate}
+          />
+        </Modal>
+
+        {/* modal de ajuste de volume */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={isAjustVolumeModalVisible}
+          onRequestClose={() => setAjustVolumeModalVisible(false)}
+        >
+          <AdjustVolumeForm
+            onClose={() => setAjustVolumeModalVisible(false)}
+            onSubmit={(data) => {
+              if (selectedMacro) {
+                handleAdjustVolume(selectedMacro.id, data);
+              }
+            }}
           />
         </Modal>
       </View>

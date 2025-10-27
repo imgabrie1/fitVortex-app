@@ -56,6 +56,7 @@ export interface MicroCycle {
 export interface CycleItems {
   microCycle: any;
   id: string;
+  position: number;
   createdAt: string | Date;
   workout: Workout;
   sets: Set[];
@@ -187,6 +188,11 @@ export interface iCreateWorkout {
 
 export type iPatchWorkout = Partial<iCreateWorkout>;
 
+export interface newMacroWithAI {
+  prompt: string | null,
+  createNewWorkout: boolean
+}
+
 export type UserContextData = {
   token: string | null;
   user: iUserResponse | null;
@@ -218,8 +224,10 @@ export type UserContextData = {
   ) => Promise<ExerciseResponse>;
   createWorkout: (payload: iCreateWorkout) => Promise<any>;
   addWorkoutInMicro: (microID: string, workoutID: string) => Promise<any>;
+  updateWorkoutOrder: (microCycleID: string, orderedIds: string[]) => Promise<void>;
   addExerciseInWorkout: (
     payload: ExerciseInCreateAndPatch,
     workoutID: string
   ) => Promise<any>;
+  ajdustVolume: (macroID: string, payload: newMacroWithAI) => Promise<any>
 };
