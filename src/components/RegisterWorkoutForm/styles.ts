@@ -56,7 +56,6 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     marginVertical: 5,
     width: "100%",
-    backgroundColor: "red",
   },
 
   setLabel: {
@@ -65,6 +64,14 @@ export const styles = StyleSheet.create({
     color: themas.Colors.secondary,
     fontSize: 16,
     fontFamily: "GeologicaBold",
+  },
+
+  setUniRight: {
+    color: "#046cef",
+  },
+
+  setUniLeft: {
+    color: "#04ef6eff",
   },
 
   inputRepsWeight: {
