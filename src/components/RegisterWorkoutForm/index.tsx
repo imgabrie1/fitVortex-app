@@ -47,16 +47,28 @@ export const RegisterWorkoutForm = ({
     return targetSets || 0;
   };
 
+  const getUnilateral = (exerciseId: string) => {
+    const workoutExercise = workout.workoutExercises?.find(
+      (we) => we.exercise?.id === exerciseId
+    );
+    return workoutExercise?.exercise?.default_unilateral || false;
+  };
+
   return (
     <View style={styles.container}>
       <ScrollView>
         <>
           {fields.map((item, index) => {
+            const isUnilateral = getUnilateral(item.exerciseId);
             const targetSets = getTargetSets(item.exerciseId);
             const numberOfSets =
               typeof targetSets === "number"
                 ? targetSets
                 : parseInt(targetSets, 10) || 0;
+
+            const actualNumberOfSets = isUnilateral
+              ? numberOfSets * 2
+              : numberOfSets;
 
             return (
               <View key={item.id} style={styles.ulContainer}>
@@ -69,11 +81,13 @@ export const RegisterWorkoutForm = ({
                     />
                     <AppText style={styles.exerciseName}>
                       {getExerciseName(item.exerciseId)}
+                      {isUnilateral && " (Unilateral)"}
                     </AppText>
                   </View>
 
                   <AppText style={styles.targetSets}>
                     Séries Alvo: {numberOfSets}
+                    {isUnilateral && ` (${actualNumberOfSets} lados)`}
                   </AppText>
 
                   <Controller
@@ -98,72 +112,112 @@ export const RegisterWorkoutForm = ({
                   <AppText style={styles.setRepsWeight}>Séries</AppText>
                   <AppText style={styles.setRepsWeight}>Kg</AppText>
                   <AppText style={styles.setRepsWeight}>Reps</AppText>
-
                 </View>
 
-                {Array.from({ length: numberOfSets }).map((_, setIndex) => (
-                  <View key={setIndex}>
-                    <View
-                      key={setIndex}
-                      style={[
-                        styles.setRow,
-                        {
-                          backgroundColor:
-                            setIndex % 2 === 0
-                              ? themas.Colors.background
-                              : themas.Colors.alternativeBlocks,
-                        },
-                      ]}
-                    >
-                      <AppText style={styles.setLabel}>{setIndex + 1}</AppText>
+                {Array.from({ length: actualNumberOfSets }).map(
+                  (_, setIndex) => {
+                    const isUnilateralSet = isUnilateral;
+                    const isRightSide = isUnilateralSet && setIndex % 2 === 0;
+                    const isLeftSide = isUnilateralSet && setIndex % 2 === 1;
 
-                      <Controller
-                        control={control}
-                        name={`exercises.${index}.sets.${setIndex}.weight`}
-                        render={({ field: { onChange, onBlur, value } }) => (
-                          <TextInput
-                            placeholder="--"
-                            placeholderTextColor={themas.Colors.gray}
-                            cursorColor={themas.Colors.neon}
-                            onBlur={onBlur}
-                            onChangeText={onChange}
-                            value={value}
-                            keyboardType="numeric"
-                            style={styles.inputRepsWeight}
-                            selectTextOnFocus={true}
+                    const realSetIndex = isUnilateralSet
+                      ? Math.floor(setIndex / 2)
+                      : setIndex;
+
+                    return (
+                      <View key={setIndex}>
+                        <View
+                          style={[
+                            styles.setRow,
+                            {
+                              backgroundColor:
+                                setIndex % 2 === 0
+                                  ? themas.Colors.background
+                                  : themas.Colors.alternativeBlocks,
+                            },
+                          ]}
+                        >
+                          {isUnilateralSet ? (
+                            <View>
+                              <AppText
+                                style={[
+                                  styles.setLabel,
+                                  isRightSide
+                                    ? styles.setUniRight
+                                    : styles.setUniLeft,
+                                ]}
+                              >
+                                {isRightSide ? "D" : "E"}
+                              </AppText>
+                            </View>
+                          ) : (
+                            <View>
+                              <AppText style={styles.setLabel}>
+                                {setIndex + 1}
+                              </AppText>
+                            </View>
+                          )}
+
+                          <Controller
+                            control={control}
+                            name={`exercises.${index}.sets.${setIndex}.weight`}
+                            render={({
+                              field: { onChange, onBlur, value },
+                            }) => (
+                              <TextInput
+                                placeholder="--"
+                                placeholderTextColor={themas.Colors.gray}
+                                cursorColor={themas.Colors.neon}
+                                onBlur={onBlur}
+                                onChangeText={onChange}
+                                value={value}
+                                keyboardType="numeric"
+                                style={styles.inputRepsWeight}
+                                selectTextOnFocus={true}
+                              />
+                            )}
                           />
-                        )}
-                      />
-                      <Controller
-                        control={control}
-                        name={`exercises.${index}.sets.${setIndex}.reps`}
-                        render={({ field: { onChange, onBlur, value } }) => (
-                          <TextInput
-                            placeholder="--"
-                            placeholderTextColor={themas.Colors.gray}
-                            cursorColor={themas.Colors.neon}
-                            onBlur={onBlur}
-                            onChangeText={onChange}
-                            value={value}
-                            keyboardType="numeric"
-                            style={styles.inputRepsWeight}
-                            selectTextOnFocus={true}
+                          <Controller
+                            control={control}
+                            name={`exercises.${index}.sets.${setIndex}.reps`}
+                            render={({
+                              field: { onChange, onBlur, value },
+                            }) => (
+                              <TextInput
+                                placeholder="--"
+                                placeholderTextColor={themas.Colors.gray}
+                                cursorColor={themas.Colors.neon}
+                                onBlur={onBlur}
+                                onChangeText={onChange}
+                                value={value}
+                                keyboardType="numeric"
+                                style={styles.inputRepsWeight}
+                                selectTextOnFocus={true}
+                              />
+                            )}
                           />
+                        </View>
+                        {errors.exercises?.[index]?.sets?.[setIndex]?.reps && (
+                          <AppText style={{}}>
+                            {
+                              errors.exercises[index].sets[setIndex].reps
+                                .message
+                            }
+                          </AppText>
                         )}
-                      />
-                    </View>
-                    {errors.exercises?.[index]?.sets?.[setIndex]?.reps && (
-                      <AppText style={{}}>
-                        {errors.exercises[index].sets[setIndex].reps.message}
-                      </AppText>
-                    )}
-                    {errors.exercises?.[index]?.sets?.[setIndex]?.weight && (
-                      <AppText style={{}}>
-                        {errors.exercises[index].sets[setIndex].weight.message}
-                      </AppText>
-                    )}
-                  </View>
-                ))}
+                        {errors.exercises?.[index]?.sets?.[setIndex]
+                          ?.weight && (
+                          <AppText style={{}}>
+                            {
+                              errors.exercises[index].sets[setIndex].weight
+                                .message
+                            }
+                          </AppText>
+                        )}
+                      </View>
+                    );
+                  }
+                )}
               </View>
             );
           })}
