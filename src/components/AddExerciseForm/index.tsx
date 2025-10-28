@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Modal, Pressable } from "react-native";
+import { View, Modal, Pressable, TouchableOpacity } from "react-native";
 import { useForm, Controller, FieldValues } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import AppText from "../AppText";
@@ -28,11 +28,22 @@ const AddExerciseForm = ({
   const {
     control,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<FieldValues>({
     resolver: yupResolver(schema as yup.AnyObjectSchema),
-    defaultValues: { targetSets: undefined },
+    defaultValues: {
+      targetSets: undefined,
+      default_unilateral: selectedExercise?.default_unilateral || false,
+    },
   });
+
+  const createUnilateralValue = watch("default_unilateral");
+
+  const toggleUnilateral = () => {
+    setValue("default_unilateral", !createUnilateralValue);
+  };
 
   return (
     <View style={styles.modalContainer}>
@@ -56,6 +67,28 @@ const AddExerciseForm = ({
           )}
         />
 
+        <View style={styles.toggleContainer}>
+          <AppText style={styles.toggleLabel}>Vai ser unilateral?</AppText>
+          <TouchableOpacity
+            style={[
+              styles.toggleButton,
+              createUnilateralValue && styles.toggleButtonActive,
+            ]}
+            onPress={toggleUnilateral}
+          >
+            <View
+              style={[
+                styles.toggleCircle,
+                createUnilateralValue && styles.toggleCircleActive,
+              ]}
+            />
+          </TouchableOpacity>
+        </View>
+
+        <AppText style={styles.toggleDescription}>
+          {createUnilateralValue ? "Unilateral" : "Bilateral"}
+        </AppText>
+
         <Button
           text="Adicionar ao Treino"
           onPress={handleSubmit((formData) => {
@@ -64,6 +97,7 @@ const AddExerciseForm = ({
                 {
                   exerciseId: selectedExercise?.id,
                   targetSets: Number(formData.targetSets),
+                  default_unilateral: formData.default_unilateral,
                 },
               ],
             };
