@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Image, View, ScrollView } from "react-native";
+import { Image, View, Animated } from "react-native";
 import { styles } from "./styles";
 import { UserContext } from "@/contexts/User/UserContext";
 import AppText from "../AppText";
@@ -8,9 +8,16 @@ import {
   WorkoutExerciseWithSets,
   Set,
 } from "@/contexts/User/interface";
+import { AnimationContext } from "@/contexts/Animation/AnimationContext";
 
-const WorkoutDay = () => {
+interface WorkoutDayProps {
+  hasScrollView?: boolean;
+  contentContainerStyle?: any;
+}
+
+const WorkoutDay: React.FC<WorkoutDayProps> = ({ hasScrollView = true, contentContainerStyle }) => {
   const { user, getAllWorkouts } = useContext(UserContext);
+  const { scrollY } = useContext(AnimationContext);
   const [workouts, setWorkouts] = useState<WorkoutWithSets[]>([]);
 
   useEffect(() => {
@@ -28,14 +35,6 @@ const WorkoutDay = () => {
     loadWorkouts();
   }, [user, getAllWorkouts]);
 
-  // CORREÇÃO: Filtrar workouts que têm pelo menos UM exercício com séries executadas
-  const workoutsWithExecutedSets = workouts.filter((workout) => {
-    return workout.workoutExercises.some((exercise) => 
-      exercise.sets && exercise.sets.length > 0
-    );
-  });
-
-  // Ou alternativa: filtrar workouts que têm séries totais executadas > 0
   const workoutsWithVolume = workouts.filter((workout) => {
     const totalExecutedSets = workout.workoutExercises.reduce(
       (total, exercise) => total + (exercise.sets?.length || 0),
@@ -46,21 +45,16 @@ const WorkoutDay = () => {
 
   const workoutsAbleToRender = workoutsWithVolume.length > 0;
 
-  return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={{ paddingBottom: 20 }}
-    >
+  const content = (
+    <>
       {workoutsAbleToRender ? (
         workoutsWithVolume.map((workout: WorkoutWithSets, workoutIndex: number) => {
-          // Calcular séries EXECUTADAS (não as targetSets)
           const totalExecutedSeries = workout.workoutExercises.reduce(
             (acc: number, exercise: WorkoutExerciseWithSets) =>
               acc + (exercise.sets?.length || 0),
             0
           );
 
-          // Calcular séries PLANEJADAS (targetSets)
           const totalPlannedSeries = workout.workoutExercises.reduce(
             (acc: number, exercise: WorkoutExerciseWithSets) =>
               acc + (exercise.targetSets || 0),
@@ -114,7 +108,6 @@ const WorkoutDay = () => {
                     exercise: WorkoutExerciseWithSets,
                     exerciseIndex: number
                   ) => {
-                    // Pular exercícios que não têm séries executadas
                     if (!exercise.sets || exercise.sets.length === 0) {
                       return null;
                     }
@@ -165,8 +158,26 @@ const WorkoutDay = () => {
       ) : (
         <AppText style={{}}>Nenhum treino executado encontrado.</AppText>
       )}
-    </ScrollView>
+    </>
   );
+
+  if (hasScrollView) {
+    return (
+      <Animated.ScrollView
+        style={styles.container}
+        contentContainerStyle={[{ paddingBottom: 20 }, contentContainerStyle]}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+        scrollEventThrottle={16}
+      >
+        {content}
+      </Animated.ScrollView>
+    );
+  }
+
+  return <View style={styles.container}>{content}</View>;
 };
 
 export default WorkoutDay;

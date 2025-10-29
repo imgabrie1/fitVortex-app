@@ -1,17 +1,28 @@
-import AppText from '@/components/AppText';
 import UserData from '@/components/UserData';
 import WorkoutDay from '@/components/WorkoutDay';
-import React from 'react';
-import { View, Text } from 'react-native';
+import { AnimationContext } from '@/contexts/Animation/AnimationContext';
+import React, { useContext } from 'react';
+import { Animated, Dimensions } from 'react-native';
 import { styles } from './styles';
 
+const { height } = Dimensions.get("window");
+
 const User = () => {
+  const { scrollY } = useContext(AnimationContext);
 
   return (
-    <View style={styles.container}>
-      <UserData/>
-      <WorkoutDay/>
-    </View>
+    <Animated.ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingTop: height * 0.05 }}
+      onScroll={Animated.event(
+        [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+        { useNativeDriver: true }
+      )}
+      scrollEventThrottle={16}
+    >
+      <UserData />
+      <WorkoutDay hasScrollView={false} />
+    </Animated.ScrollView>
   );
 };
 

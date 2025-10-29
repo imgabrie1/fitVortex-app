@@ -522,20 +522,6 @@ const SelectedMicro = ({
       <GestureHandlerRootView style={{ flex: 1 }}>
         <TouchableWithoutFeedback onPress={() => setMenuVisible(null)}>
           <View style={styles.container}>
-            <BackAndTitle onBack={onBack} title={micro.microCycleName} />
-
-            {/* info treino */}
-            <View style={styles.blockHeader}>
-              <AppText style={styles.infoHeader}>
-                Dias de treino: {micro.trainingDays ?? "—"}
-              </AppText>
-              {micro.volumes ? (
-                <AppText style={styles.infoHeader}>
-                  Séries por Micro: {totalSets}
-                </AppText>
-              ) : null}
-            </View>
-
             {/* ciclo de treinos */}
             <DraggableFlatList
               data={workouts}
@@ -549,6 +535,23 @@ const SelectedMicro = ({
               windowSize={5}
               initialNumToRender={3}
               removeClippedSubviews={true}
+              ListHeaderComponent={
+                <>
+                  <BackAndTitle onBack={onBack} title={micro.microCycleName} />
+
+                  {/* info treino */}
+                  <View style={styles.blockHeader}>
+                    <AppText style={styles.infoHeader}>
+                      Dias de treino: {micro.trainingDays ?? "—"}
+                    </AppText>
+                    {micro.volumes ? (
+                      <AppText style={styles.infoHeader}>
+                        Séries por Micro: {totalSets}
+                      </AppText>
+                    ) : null}
+                  </View>
+                </>
+              }
             />
 
             {registeringWorkout && (
@@ -633,7 +636,7 @@ const SelectedMicro = ({
               })}
             >
               <FontAwesome6
-              style={styles.filter}
+                style={styles.filter}
                 name="filter"
                 size={20}
                 color={themas.Colors.secondary}
