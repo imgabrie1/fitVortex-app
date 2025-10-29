@@ -15,6 +15,7 @@ import { navigationRef } from "@/navigation/RootNavigation";
 import { AuthProvider } from "@/contexts/User/UserContext";
 import { themas } from "./global/themes";
 import { StatusBar } from "react-native";
+import { AnimationProvider } from "@/contexts/Animation/AnimationContext";
 
 const MainTheme = {
   ...DefaultTheme,
@@ -46,7 +47,9 @@ export default function App() {
         backgroundColor={themas.Colors.background}
       />
       <AuthProvider>
-        <Routes />
+        <AnimationProvider>
+          <Routes />
+        </AnimationProvider>
       </AuthProvider>
     </NavigationContainer>
   );

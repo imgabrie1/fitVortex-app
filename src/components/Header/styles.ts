@@ -5,6 +5,11 @@ const { width, height } = Dimensions.get("window");
 
 export const styles = StyleSheet.create({
   container: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
     backgroundColor: themas.Colors.background,
     height: height * 0.05,
     alignItems: "flex-start",
