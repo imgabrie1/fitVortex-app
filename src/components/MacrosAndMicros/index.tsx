@@ -17,7 +17,7 @@ import {
 } from "@/contexts/User/interface";
 import { MaterialIcons } from "@expo/vector-icons";
 import SelectedMicro from "../SelectedMicro";
-import CreateCycles from "../CreateCycles";
+import CreateAndEditCycles from "../CreateAndEditCycles";
 import CreateWorkoutForm from "../CreateWorkout";
 import AnimatedMenu from "../AnimatedMenu";
 import { Button } from "../Button";
@@ -39,6 +39,7 @@ const MacrosAndMicros = () => {
     createWorkout,
     addWorkoutInMicro,
     ajdustVolume,
+    editCycles,
   } = useContext(UserContext);
 
   const [stage, setStage] = useState<1 | 2 | 3>(1);
@@ -47,7 +48,6 @@ const MacrosAndMicros = () => {
   const [selectedMicroId, setSelectedMicroId] = useState<string | null>(null);
   const [macros, setMacros] = useState<MacroCycle[]>([]);
   const [micros, setMicros] = useState<MicroCycle[]>([]);
-  const [isCreateModalVisible, setCreateModalVisible] = useState(false);
   const [isCreateWorkoutModalVisible, setCreateWorkoutModalVisible] =
     useState(false);
   const [isAjustVolumeModalVisible, setAjustVolumeModalVisible] =
@@ -64,6 +64,12 @@ const MacrosAndMicros = () => {
     type: "macro" | "micro";
   } | null>(null);
   const [alertCreateWorkout, setAlertCreateWorkout] = useState(false);
+  const [isCycleModalVisible, setCycleModalVisible] = useState(false);
+  const [editingCycle, setEditingCycle] = useState<{
+    id: string;
+    type: "macro" | "micro";
+    data: any;
+  } | null>(null);
 
   const loadMacros = async () => {
     if (user) {
@@ -156,7 +162,7 @@ const MacrosAndMicros = () => {
         }
         loadMicros();
       }
-      setCreateModalVisible(false);
+      setCycleModalVisible(false);
     } catch (error) {
       console.error("Erro ao criar ciclo:", JSON.stringify(error, null, 2));
     }
@@ -180,6 +186,30 @@ const MacrosAndMicros = () => {
       setItemToDelete(null);
       setDeleteCycleAlertVisible(false);
       setMenuVisible(null);
+    }
+  };
+
+  const handleEdit = async (
+    data: any,
+    editing: { id: string; type: "macro" | "micro" }
+  ) => {
+    try {
+      await editCycles(
+        editing.type === "macro" ? "macrocycle" : "microcycle",
+        editing.id,
+        data
+      );
+
+      if (editing.type === "macro") {
+        await loadMacros();
+      } else {
+        await loadMicros();
+      }
+    } catch (error) {
+      console.error("Erro ao editar ciclo:", error);
+    } finally {
+      setEditingCycle(null);
+      setCycleModalVisible(false);
     }
   };
 
@@ -337,7 +367,17 @@ const MacrosAndMicros = () => {
                       origin={menuOrigin}
                       style={styles.editAndDeleteWrap}
                       onEdit={() => {
-                        console.log("Editar macro:", macro.macroCycleName);
+                        setEditingCycle({
+                          id: macro.id,
+                          type: "macro",
+                          data: {
+                            macroCycleName: macro.macroCycleName,
+                            startDate: macro.startDate,
+                            endDate: macro.endDate,
+                            microQuantity: macro.microQuantity,
+                          },
+                        });
+                        setCycleModalVisible(true);
                         setMenuVisible(null);
                       }}
                       onDelete={() => {
@@ -428,7 +468,15 @@ const MacrosAndMicros = () => {
                     origin={menuOrigin}
                     style={styles.editAndDeleteWrap}
                     onEdit={() => {
-                      console.log("Editar macro:", micro.microCycleName);
+                      setEditingCycle({
+                        id: micro.id,
+                        type: "micro",
+                        data: {
+                          microCycleName: micro.microCycleName,
+                          trainingDays: micro.trainingDays,
+                        },
+                      });
+                      setCycleModalVisible(true);
                       setMenuVisible(null);
                     }}
                     onDelete={() => {
@@ -457,7 +505,8 @@ const MacrosAndMicros = () => {
         {stage === 1 && (
           <Button
             text="Criar Macro Ciclo"
-            onPress={() => setCreateModalVisible(true)}
+            onPress={() => setCycleModalVisible(true)}
+
           />
         )}
 
@@ -466,7 +515,8 @@ const MacrosAndMicros = () => {
             {micros.length <= 0 && (
               <Button
                 text="Criar Micro Ciclo"
-                onPress={() => setCreateModalVisible(true)}
+                onPress={() => setCycleModalVisible(true)}
+
               />
             )}
 
@@ -505,17 +555,32 @@ const MacrosAndMicros = () => {
           />
         </Modal>
 
-        {/* modal de criação de ciclos */}
+        {/* modal de criação e edição de ciclos */}
         <Modal
           animationType="slide"
           transparent={true}
-          visible={isCreateModalVisible}
-          onRequestClose={() => setCreateModalVisible(false)}
+          visible={isCycleModalVisible}
+          onRequestClose={() => {
+            setCycleModalVisible(false);
+            setEditingCycle(null);
+          }}
         >
-          <CreateCycles
-            type={stage === 1 ? "macro" : "micro"}
-            onClose={() => setCreateModalVisible(false)}
-            onSubmit={handleCreate}
+          <CreateAndEditCycles
+            type={
+              editingCycle ? editingCycle.type : stage === 1 ? "macro" : "micro"
+            }
+            onClose={() => {
+              setCycleModalVisible(false);
+              setEditingCycle(null);
+            }}
+            onSubmit={(data) => {
+              if (editingCycle) {
+                handleEdit(data, editingCycle);
+              } else {
+                handleCreate(data);
+              }
+            }}
+            initialData={editingCycle?.data}
           />
         </Modal>
 
@@ -549,10 +614,10 @@ const MacrosAndMicros = () => {
 
         {alertCreateWorkout && (
           <CustomAlertOneOption
-          visible={alertCreateWorkout}
-          onClose={() => setAlertCreateWorkout(false)}
-          title="Treino Criado"
-          message="Treino foi criado e adicionado em todos os Micro Ciclos deste Macro Ciclo"
+            visible={alertCreateWorkout}
+            onClose={() => setAlertCreateWorkout(false)}
+            title="Treino Criado"
+            message="Treino foi criado e adicionado em todos os Micro Ciclos deste Macro Ciclo"
           />
         )}
 
