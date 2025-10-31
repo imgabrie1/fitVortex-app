@@ -17,7 +17,11 @@ export const styles = StyleSheet.create({
   containerModal: {
     flex: 1,
     backgroundColor: themas.Colors.background,
-    paddingTop: 30,
+    paddingTop: 15,
+  },
+
+  teste: {
+    paddingLeft: 10,
   },
 
   infoHeader: {
@@ -56,11 +60,11 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     // backgroundColor: "red",
     alignItems: "flex-end",
-    justifyContent: "space-between"
+    justifyContent: "space-between",
   },
 
-  filter:{
-    paddingBottom: 10
+  filter: {
+    paddingBottom: 10,
   },
 
   activeFilter: {

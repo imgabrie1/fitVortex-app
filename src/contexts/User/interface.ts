@@ -193,6 +193,14 @@ export interface newMacroWithAI {
   createNewWorkout: boolean
 }
 
+export interface WorkoutResponse {
+  data: WorkoutWithSets[];
+  page: number;
+  lastPage: number;
+  total: number;
+  limit: number;
+}
+
 export type UserContextData = {
   token: string | null;
   user: iUserResponse | null;
@@ -203,7 +211,7 @@ export type UserContextData = {
   login: (creds: Credentials) => Promise<void>;
   logout: () => Promise<void>;
   registerUser: (data: iDataRegister) => Promise<void>;
-  getAllWorkouts: () => Promise<WorkoutWithSets[]>;
+  getAllWorkouts: (page?: number, limit?: number) => Promise<WorkoutResponse>;
   getAllMacroCycles: () => Promise<MacroCycle[]>;
   getAllMicroCycles: () => Promise<any>;
   getMacroCycleByID: (macroID: string) => Promise<any>;
