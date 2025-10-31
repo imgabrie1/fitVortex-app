@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { View, Pressable, Platform } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View } from "react-native";
 import DateTimePicker, {
   DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
@@ -8,7 +8,6 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { macroSchema, microSchema } from "./schema";
 import { styles } from "./styles";
-import AppText from "../AppText";
 import { Input } from "../Input";
 import { Button } from "../Button";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -19,16 +18,34 @@ interface CreateCyclesProps {
   type: "macro" | "micro";
   onClose: () => void;
   onSubmit: (data: any) => void;
+  initialData?: any;
 }
 
-const CreateCycles = ({ type, onClose, onSubmit }: CreateCyclesProps) => {
+const CreateAndEditCycles = ({
+  type,
+  onClose,
+  onSubmit,
+  initialData,
+}: CreateCyclesProps) => {
   const isMacro = type === "macro";
   const schema = isMacro ? macroSchema : microSchema;
+  const isEditing = !!initialData;
 
   const [stage, setStage] = useState<1 | 2 | 3>(1);
-
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+
+  const defaultValues = isMacro
+    ? {
+        macroCycleName: initialData?.macroCycleName || "",
+        startDate: initialData?.startDate || "",
+        endDate: initialData?.endDate || "",
+        microQuantity: initialData?.microQuantity || undefined,
+      }
+    : {
+        microCycleName: initialData?.microCycleName || "",
+        trainingDays: initialData?.trainingDays || undefined,
+      };
 
   const {
     control,
@@ -38,15 +55,33 @@ const CreateCycles = ({ type, onClose, onSubmit }: CreateCyclesProps) => {
     formState: { errors },
   } = useForm<FieldValues>({
     resolver: yupResolver(schema as yup.AnyObjectSchema),
-    defaultValues: isMacro
-      ? {
-          macroCycleName: "",
-          startDate: "",
-          endDate: "",
-          microQuantity: undefined,
-        }
-      : { microCycleName: "", trainingDays: undefined },
+    defaultValues,
   });
+
+  useEffect(() => {
+    if (initialData) {
+      const formattedData = { ...initialData };
+      if (isMacro) {
+        if (formattedData.startDate && typeof formattedData.startDate === 'string') {
+          const parts = formattedData.startDate.split('T')[0].split('-');
+          if (parts.length === 3) {
+            const [year, month, day] = parts;
+            formattedData.startDate = `${day}-${month}-${year}`;
+          }
+        }
+        if (formattedData.endDate && typeof formattedData.endDate === 'string') {
+          const parts = formattedData.endDate.split('T')[0].split('-');
+          if (parts.length === 3) {
+            const [year, month, day] = parts;
+            formattedData.endDate = `${day}-${month}-${year}`;
+          }
+        }
+      }
+      Object.entries(formattedData).forEach(([key, value]) => {
+        setValue(key, value);
+      });
+    }
+  }, [initialData, setValue, isMacro]);
 
   const nextStage = async () => {
     if (!isMacro) return;
@@ -88,7 +123,9 @@ const CreateCycles = ({ type, onClose, onSubmit }: CreateCyclesProps) => {
     <View style={styles.modalContainer}>
       <BackAndTitle
         onBack={onClose}
-        title={`CRIAR ${isMacro ? "MACRO" : "MICRO"} CICLO`}
+        title={`${isEditing ? "EDITAR" : "CRIAR"} ${
+          isMacro ? "MACRO" : "MICRO"
+        } CICLO`}
       />
 
       {isMacro ? (
@@ -196,23 +233,20 @@ const CreateCycles = ({ type, onClose, onSubmit }: CreateCyclesProps) => {
                 textColor={themas.Colors.primary}
               />
             )}
-            {stage === 2 && (
+
+            {stage < 3 && (
               <Button
                 text="Próximo"
                 onPress={nextStage}
-                styleButton={styles.styledButton}
+                styleButton={
+                  stage === 1 ? styles.styledButtonAlone : styles.styledButton
+                }
               />
             )}
-            {stage === 1 && (
-              <Button
-                text="Próximo"
-                onPress={nextStage}
-                styleButton={styles.styledButtonAlone}
-              />
-            )}
+
             {stage === 3 && (
               <Button
-                text="Criar Ciclo"
+                text={isEditing ? "Salvar Alterações" : "Criar Macro"}
                 onPress={handleSubmit(onSubmit)}
                 styleButton={styles.styledButton}
               />
@@ -249,7 +283,7 @@ const CreateCycles = ({ type, onClose, onSubmit }: CreateCyclesProps) => {
             )}
           />
           <Button
-            text="Criar Ciclo"
+            text={isEditing ? "Salvar Alterações" : "Criar Micro"}
             onPress={handleSubmit(onSubmit)}
             styleButton={styles.styledButton}
           />
@@ -259,4 +293,4 @@ const CreateCycles = ({ type, onClose, onSubmit }: CreateCyclesProps) => {
   );
 };
 
-export default CreateCycles;
+export default CreateAndEditCycles;

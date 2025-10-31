@@ -191,8 +191,11 @@ export const AuthProvider = ({ children }: Props) => {
   const ajdustVolume = async (macroID: string, payload: newMacroWithAI) => {
     assertUser();
     try {
-      const data = await api.post(`/macrocycle/${macroID}/generate-next`, payload);
-      return data
+      const data = await api.post(
+        `/macrocycle/${macroID}/generate-next`,
+        payload
+      );
+      return data;
     } catch (err: any) {
       const currentError = err as AxiosError;
       const msg =
@@ -210,6 +213,19 @@ export const AuthProvider = ({ children }: Props) => {
       const currentError = err as AxiosError;
       const msg =
         currentError?.response?.data || err?.message || "Erro ao deletar Ciclo";
+      throw new Error(String(msg));
+    }
+  };
+
+  const editCycles = async (cycle: string, cycleID: string, payload: any) => {
+    assertUser();
+    try {
+      const { data } = await api.patch(`/${cycle}/${cycleID}`, payload);
+      return data
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      const msg =
+        currentError?.response?.data || err?.message || "Erro ao Editar Ciclo";
       throw new Error(String(msg));
     }
   };
@@ -513,7 +529,8 @@ export const AuthProvider = ({ children }: Props) => {
         addWorkoutInMicro,
         addExerciseInWorkout,
         updateWorkoutOrder,
-        ajdustVolume
+        ajdustVolume,
+        editCycles
       }}
     >
       {children}
