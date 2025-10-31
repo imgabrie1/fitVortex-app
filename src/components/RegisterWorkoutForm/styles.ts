@@ -11,7 +11,7 @@ export const styles = StyleSheet.create({
     backgroundColor: themas.Colors.background,
     padding: padding_H,
     flexDirection: "column",
-    paddingBottom: 80,
+    // paddingBottom: 100,
   },
 
   ulContainer: {
@@ -23,20 +23,20 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     backgroundColor: themas.Colors.background,
     justifyContent: "space-evenly",
-    gap: "35%"
+    gap: "38%",
   },
 
   infoHeaderExerciseNotes: {
     paddingBottom: 15,
     flexDirection: "column",
-    gap: 10
+    gap: 10,
   },
 
   infoHeaderExercise: {
     flexDirection: "row",
     alignItems: "center",
     height: height * 0.1,
-    gap: 15
+    gap: 15,
   },
 
   notes: {
@@ -82,7 +82,11 @@ export const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 6,
     color: themas.Colors.text,
+    paddingLeft: 20
+  },
 
+  teste: {
+    // paddingLeft: 20
   },
 
   exerciseName: {
@@ -92,12 +96,16 @@ export const styles = StyleSheet.create({
 
   targetSets: {
     fontSize: 14,
-    color: themas.Colors.lightGray
+    color: themas.Colors.lightGray,
   },
 
   setRepsWeight: {
     color: themas.Colors.text,
     fontFamily: "GeologicaBold",
-    fontSize: 12
+    fontSize: 12,
+  },
+
+  button: {
+    marginBottom: 10
   },
 });

@@ -23,6 +23,7 @@ import {
   ExerciseInCreateAndPatch,
   ExerciseResponse,
   newMacroWithAI,
+  WorkoutResponse,
 } from "./interface";
 import { AxiosError } from "axios";
 import { Alert } from "react-native";
@@ -51,10 +52,12 @@ export const AuthProvider = ({ children }: Props) => {
 
         if (storedToken && storedUser) {
           setToken(storedToken);
-          setUser(JSON.parse(storedUser));
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
           api.defaults.headers.common[
             "Authorization"
           ] = `Bearer ${storedToken}`;
+          await getTotalVolume(parsedUser.id);
         }
       } catch (err) {
         console.warn("Erro carregando dados:", err);
@@ -63,6 +66,21 @@ export const AuthProvider = ({ children }: Props) => {
       }
     })();
   }, []);
+
+  const getTotalVolume = async (userId: number) => {
+    try {
+      const { data } = await api.get(`/workout/${userId}`);
+      let totalExecutedSeries = 0;
+      data.data.forEach((microCycle: MicroCycle) => {
+        microCycle.cycleItems.forEach((cycleItem: CycleItems) => {
+          totalExecutedSeries += cycleItem.sets.length;
+        });
+      });
+      setVolumes(totalExecutedSeries);
+    } catch (error) {
+      console.warn("Erro ao buscar o volume total:", error);
+    }
+  };
 
   //      -------------- Auth --------------
   const requireUser = () => {
@@ -108,6 +126,7 @@ export const AuthProvider = ({ children }: Props) => {
       api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       setToken(token);
       setUser(user);
+      await getTotalVolume(user.id);
 
       navigate("BottomRoutes", { screen: "Home" });
     } catch (err: any) {
@@ -357,11 +376,23 @@ export const AuthProvider = ({ children }: Props) => {
   };
 
   //        -------------- WORKOUT --------------
-  const getAllWorkouts = async (): Promise<WorkoutWithSets[]> => {
+  const getAllWorkouts = async (page?: number, limit?: number): Promise<WorkoutResponse> => {
     const currentUser = requireUser();
 
     try {
-      const { data } = await api.get(`/workout/${currentUser.id}`);
+      let url = `/workout/${currentUser.id}`;
+
+      const queryParams: string[] = [];
+
+      if (page !== undefined && limit !== undefined) {
+        queryParams.push(`page=${page}`, `limit=${limit}`);
+      }
+
+      if (queryParams.length > 0) {
+        url += `?${queryParams.join("&")}`;
+      }
+
+      const { data } = await api.get(url);
 
       const workouts: WorkoutWithSets[] = data.data.flatMap(
         (microCycle: MicroCycle) =>
@@ -393,21 +424,11 @@ export const AuthProvider = ({ children }: Props) => {
           })
       );
 
-      let totalExecutedSeries = 0;
-
-      data.data.forEach((microCycle: MicroCycle) => {
-        microCycle.cycleItems.forEach((cycleItem: CycleItems) => {
-          totalExecutedSeries += cycleItem.sets.length;
-        });
-      });
-
-      setVolumes(totalExecutedSeries);
-      return workouts;
+      return { ...data, data: workouts };
     } catch (err: any) {
       const currentError = err as AxiosError;
       if (currentError.response?.status === 404) {
-        setVolumes(0);
-        return [];
+        return { data: [], page: 1, lastPage: 1, total: 0, limit: 10 };
       }
       const msg =
         currentError?.response?.data ||
@@ -419,7 +440,9 @@ export const AuthProvider = ({ children }: Props) => {
 
   const refreshWorkoutsData = async () => {
     try {
-      await getAllWorkouts();
+      if (user) {
+        await getTotalVolume(user.id);
+      }
     } catch (error) {
       console.warn("Erro ao atualizar dados:", error);
     }
