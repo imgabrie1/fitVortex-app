@@ -230,4 +230,5 @@ export type UserContextData = {
     workoutID: string
   ) => Promise<any>;
   ajdustVolume: (macroID: string, payload: newMacroWithAI) => Promise<any>
+  editCycles: (cycle: string, cycleID: string, payload: any) => Promise<any>;
 };
