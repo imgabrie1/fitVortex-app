@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   TouchableWithoutFeedback,
   Alert,
+  ScrollView,
 } from "react-native";
 import AppText from "../AppText";
 import { UserContext } from "@/contexts/User/UserContext";
@@ -566,34 +567,38 @@ const SelectedMicro = ({
                 }}
               >
                 <View style={styles.containerModal}>
-                  <BackAndTitle
-                    title={`${selectedWorkoutName ?? "Treino"}`}
-                    onBack={onBackModal}
-                  />
+                  <ScrollView>
+                    <View style={styles.teste}>
+                      <BackAndTitle
+                        title={`${selectedWorkoutName ?? "Treino"}`}
+                        onBack={onBackModal}
+                      />
+                    </View>
 
-                  {selectedWorkoutImage && (
-                    <Image
-                      source={{ uri: selectedWorkoutImage }}
-                      style={{
-                        width: "100%",
-                        height: 200,
-                        borderRadius: 12,
-                        marginBottom: 16,
-                      }}
-                      resizeMode="cover"
-                      fadeDuration={0}
+                    {selectedWorkoutImage && (
+                      <Image
+                        source={{ uri: selectedWorkoutImage }}
+                        style={{
+                          width: "100%",
+                          height: 200,
+                          borderRadius: 12,
+                          marginBottom: 16,
+                        }}
+                        resizeMode="cover"
+                        fadeDuration={0}
+                      />
+                    )}
+
+                    <RegisterWorkoutForm
+                      workout={registeringWorkout}
+                      control={control}
+                      errors={errors}
+                      fields={fields}
+                      handleSubmit={handleSubmit}
+                      onSubmit={onSubmit}
+                      loadingForm={loadingForm}
                     />
-                  )}
-
-                  <RegisterWorkoutForm
-                    workout={registeringWorkout}
-                    control={control}
-                    errors={errors}
-                    fields={fields}
-                    handleSubmit={handleSubmit}
-                    onSubmit={onSubmit}
-                    loadingForm={loadingForm}
-                  />
+                  </ScrollView>
                 </View>
               </Modal>
             )}
@@ -615,52 +620,6 @@ const SelectedMicro = ({
 
     return (
       <View style={{ flex: 1 }}>
-        <View style={{ marginTop: 30 }}>
-          <View style={styles.nameAndFilter}>
-            <BackAndTitle
-              onBack={handleBackFromStage2}
-              title={"ADICIONAR EXERCÍCIO"}
-            />
-            <Pressable
-              onPress={() => setStage(4)}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-              delayLongPress={0}
-              style={({ pressed }) => ({
-                opacity: pressed ? 0.7 : 1,
-                backgroundColor: pressed
-                  ? "rgba(255,255,255,0.1)"
-                  : "transparent",
-                padding: 8,
-                borderRadius: 8,
-                transform: [{ scale: pressed ? 0.95 : 1 }],
-              })}
-            >
-              <FontAwesome6
-                style={styles.filter}
-                name="filter"
-                size={20}
-                color={themas.Colors.secondary}
-              />
-            </Pressable>
-          </View>
-        </View>
-        {activeFilter && (
-          <View style={styles.activeFilterDeleteWrapper}>
-            <View style={styles.activeFilter}>
-              <AppText>{formatMuscleLabel(activeFilter)}</AppText>
-            </View>
-            <View style={styles.activeFilter}>
-              <Pressable
-                onPress={handleClearFilter}
-                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                delayLongPress={0}
-              >
-                <FontAwesome6 name="xmark" size={15} color="white" />
-              </Pressable>
-            </View>
-          </View>
-        )}
-
         <FlatList
           data={filteredExercises ?? exercises}
           keyExtractor={(item) => item.id}
@@ -679,6 +638,55 @@ const SelectedMicro = ({
           windowSize={7}
           initialNumToRender={6}
           removeClippedSubviews={true}
+          ListHeaderComponent={
+            <>
+              <View>
+                <View style={styles.nameAndFilter}>
+                  <BackAndTitle
+                    onBack={handleBackFromStage2}
+                    title={"ADICIONAR EXERCÍCIO"}
+                  />
+                  <Pressable
+                    onPress={() => setStage(4)}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    delayLongPress={0}
+                    style={({ pressed }) => ({
+                      opacity: pressed ? 0.7 : 1,
+                      backgroundColor: pressed
+                        ? "rgba(255,255,255,0.1)"
+                        : "transparent",
+                      padding: 8,
+                      borderRadius: 8,
+                      transform: [{ scale: pressed ? 0.95 : 1 }],
+                    })}
+                  >
+                    <FontAwesome6
+                      style={styles.filter}
+                      name="filter"
+                      size={20}
+                      color={themas.Colors.secondary}
+                    />
+                  </Pressable>
+                </View>
+              </View>
+              {activeFilter && (
+                <View style={styles.activeFilterDeleteWrapper}>
+                  <View style={styles.activeFilter}>
+                    <AppText>{formatMuscleLabel(activeFilter)}</AppText>
+                  </View>
+                  <View style={styles.activeFilter}>
+                    <Pressable
+                      onPress={handleClearFilter}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      delayLongPress={0}
+                    >
+                      <FontAwesome6 name="xmark" size={15} color="white" />
+                    </Pressable>
+                  </View>
+                </View>
+              )}
+            </>
+          }
           ListFooterComponent={() =>
             loadingMore ? <ActivityIndicator size="large" /> : null
           }

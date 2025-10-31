@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Image, View, Animated } from "react-native";
+import { FlatList, View, ActivityIndicator, Image } from "react-native";
 import { styles } from "./styles";
 import { UserContext } from "@/contexts/User/UserContext";
 import AppText from "../AppText";
@@ -8,176 +8,164 @@ import {
   WorkoutExerciseWithSets,
   Set,
 } from "@/contexts/User/interface";
-import { AnimationContext } from "@/contexts/Animation/AnimationContext";
 
 interface WorkoutDayProps {
   hasScrollView?: boolean;
   contentContainerStyle?: any;
+  ListHeaderComponent?: React.ReactElement | null;
 }
 
-const WorkoutDay: React.FC<WorkoutDayProps> = ({ hasScrollView = true, contentContainerStyle }) => {
+const WorkoutDay: React.FC<WorkoutDayProps> = ({ hasScrollView = true, contentContainerStyle, ListHeaderComponent = null }) => {
   const { user, getAllWorkouts } = useContext(UserContext);
-  const { scrollY } = useContext(AnimationContext);
   const [workouts, setWorkouts] = useState<WorkoutWithSets[]>([]);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
-  useEffect(() => {
-    const loadWorkouts = async () => {
+  const loadWorkouts = async () => {
+    if (loading || !hasMore) return;
+
+    setLoading(true);
+    try {
       if (user) {
-        try {
-          const data: WorkoutWithSets[] = await getAllWorkouts();
-          setWorkouts(data);
-        } catch (error) {
-          console.error("Erro ao buscar treinos:", error);
+        const data = await getAllWorkouts(page, 10);
+        setWorkouts((prevWorkouts) => [...prevWorkouts, ...data.data]);
+        setPage((prevPage) => prevPage + 1);
+        if (data.page >= data.lastPage) {
+          setHasMore(false);
         }
       }
-    };
+    } catch (error) {
+      console.error("Erro ao buscar treinos:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadWorkouts();
-  }, [user, getAllWorkouts]);
+  }, [user]);
 
-  const workoutsWithVolume = workouts.filter((workout) => {
-    const totalExecutedSets = workout.workoutExercises.reduce(
-      (total, exercise) => total + (exercise.sets?.length || 0),
+  const renderFooter = () => {
+    if (!loading) return null;
+    return <ActivityIndicator style={{ marginVertical: 20 }} />;
+  };
+
+  const renderItem = ({ item: workout }: { item: WorkoutWithSets }) => {
+    const totalExecutedSeries = workout.workoutExercises.reduce(
+      (acc: number, exercise: WorkoutExerciseWithSets) =>
+        acc + (exercise.sets?.length || 0),
       0
     );
-    return totalExecutedSets > 0;
-  });
 
-  const workoutsAbleToRender = workoutsWithVolume.length > 0;
-
-  const content = (
-    <>
-      {workoutsAbleToRender ? (
-        workoutsWithVolume.map((workout: WorkoutWithSets, workoutIndex: number) => {
-          const totalExecutedSeries = workout.workoutExercises.reduce(
-            (acc: number, exercise: WorkoutExerciseWithSets) =>
-              acc + (exercise.sets?.length || 0),
-            0
-          );
-
-          const totalPlannedSeries = workout.workoutExercises.reduce(
-            (acc: number, exercise: WorkoutExerciseWithSets) =>
-              acc + (exercise.targetSets || 0),
-            0
-          );
-
-          const date = new Date(workout.createdAt);
-          const formattedDate = date.toLocaleDateString("pt-BR", {
-            weekday: "long",
-            day: "2-digit",
-            month: "long",
-            timeZone: "UTC",
-          });
-          const formattedTime = date.toLocaleTimeString("pt-BR", {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-
-          return (
-            <View key={`${workout.id}-${workoutIndex}`} style={styles.card}>
-              <View style={styles.headerInfo}>
-                <View style={styles.nameWhenWrap}>
-                  <AppText style={styles.nameWorkout}>{workout.name}</AppText>
-                  <AppText style={styles.dayText}>
-                    {formattedDate} às {formattedTime}
-                  </AppText>
-                </View>
-
-                <View style={styles.setsDurationWrap}>
-                  <View style={styles.bottomInfoWrap}>
-                    <AppText style={styles.bottomInfo}>Duração: </AppText>
-                    <AppText style={styles.bottomInfoValue}>
-                      em produção...
-                    </AppText>
-                  </View>
-
-                  <View style={styles.bottomInfoWrap}>
-                    <AppText style={styles.bottomInfo}>
-                      Séries executadas:{" "}
-                    </AppText>
-                    <AppText style={styles.bottomInfoValue}>
-                      {totalExecutedSeries}/{totalPlannedSeries}
-                    </AppText>
-                  </View>
-                </View>
-              </View>
-
-              <View style={styles.exercisesContainer}>
-                {workout.workoutExercises.map(
-                  (
-                    exercise: WorkoutExerciseWithSets,
-                    exerciseIndex: number
-                  ) => {
-                    if (!exercise.sets || exercise.sets.length === 0) {
-                      return null;
-                    }
-
-                    const repsArray = exercise.sets.map((s: Set) => s.reps);
-
-                    let repsText = "— reps";
-                    if (repsArray.length > 0) {
-                      const minReps = Math.min(...repsArray);
-                      const maxReps = Math.max(...repsArray);
-
-                      repsText =
-                        minReps === maxReps
-                          ? `${maxReps} reps`
-                          : `${maxReps} - ${minReps} reps`;
-                    }
-
-                    return (
-                      <View
-                        key={`${exercise.id}-${workoutIndex}-${exerciseIndex}`}
-                        style={styles.exerciseCard}
-                      >
-                        <Image
-                          source={{ uri: exercise.exercise.imageURL }}
-                          style={styles.exerciseImage}
-                          resizeMode="cover"
-                        />
-                        <AppText style={styles.nameExercise}>
-                          {exercise.exercise.name}
-                        </AppText>
-                        <View style={styles.infoSetsWrap}>
-                          <AppText style={styles.infoSets}>
-                            {exercise.sets.length} de {exercise.targetSets} séries{" • "}
-                          </AppText>
-                          <AppText style={styles.infoSets}>{repsText}</AppText>
-                        </View>
-                      </View>
-                    );
-                  }
-                )}
-              </View>
-              <View style={styles.separatorWrapper}>
-                <View style={styles.separator} />
-              </View>
-            </View>
-          );
-        })
-      ) : (
-        <AppText style={{}}>Nenhum treino executado encontrado.</AppText>
-      )}
-    </>
-  );
-
-  if (hasScrollView) {
-    return (
-      <Animated.ScrollView
-        style={styles.container}
-        contentContainerStyle={[{ paddingBottom: 20 }, contentContainerStyle]}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: true }
-        )}
-        scrollEventThrottle={16}
-      >
-        {content}
-      </Animated.ScrollView>
+    const totalPlannedSeries = workout.workoutExercises.reduce(
+      (acc: number, exercise: WorkoutExerciseWithSets) =>
+        acc + (exercise.targetSets || 0),
+      0
     );
-  }
 
-  return <View style={styles.container}>{content}</View>;
+    const date = new Date(workout.createdAt);
+    const formattedDate = date.toLocaleDateString("pt-BR", {
+      weekday: "long",
+      day: "2-digit",
+      month: "long",
+      timeZone: "UTC",
+    });
+    const formattedTime = date.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    return (
+      <View style={styles.card}>
+        <View style={styles.headerInfo}>
+          <View style={styles.nameWhenWrap}>
+            <AppText style={styles.nameWorkout}>{workout.name}</AppText>
+            <AppText style={styles.dayText}>
+              {formattedDate} às {formattedTime}
+            </AppText>
+          </View>
+
+          <View style={styles.setsDurationWrap}>
+            <View style={styles.bottomInfoWrap}>
+              <AppText style={styles.bottomInfo}>Duração: </AppText>
+              <AppText style={styles.bottomInfoValue}>em produção...</AppText>
+            </View>
+
+            <View style={styles.bottomInfoWrap}>
+              <AppText style={styles.bottomInfo}>Séries executadas: </AppText>
+              <AppText style={styles.bottomInfoValue}>
+                {totalExecutedSeries}/{totalPlannedSeries}
+              </AppText>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.exercisesContainer}>
+          {workout.workoutExercises.map(
+            (exercise: WorkoutExerciseWithSets, exerciseIndex: number) => {
+              if (!exercise.sets || exercise.sets.length === 0) {
+                return null;
+              }
+
+              const repsArray = exercise.sets.map((s: Set) => s.reps);
+
+              let repsText = "— reps";
+              if (repsArray.length > 0) {
+                const minReps = Math.min(...repsArray);
+                const maxReps = Math.max(...repsArray);
+
+                repsText =
+                  minReps === maxReps
+                    ? `${maxReps} reps`
+                    : `${maxReps} - ${minReps} reps`;
+              }
+
+              return (
+                <View
+                  key={`${exercise.id}-${workout.id}-${exerciseIndex}`}
+                  style={styles.exerciseCard}
+                >
+                  <Image
+                    source={{ uri: exercise.exercise.imageURL }}
+                    style={styles.exerciseImage}
+                    resizeMode="cover"
+                  />
+                  <AppText style={styles.nameExercise}>
+                    {exercise.exercise.name}
+                  </AppText>
+                  <View style={styles.infoSetsWrap}>
+                    <AppText style={styles.infoSets}>
+                      {exercise.sets.length} de {exercise.targetSets} séries{" • "}
+                    </AppText>
+                    <AppText style={styles.infoSets}>{repsText}</AppText>
+                  </View>
+                </View>
+              );
+            }
+          )}
+        </View>
+        <View style={styles.separatorWrapper}>
+          <View style={styles.separator} />
+        </View>
+      </View>
+    );
+  };
+
+  return (
+    <FlatList
+      data={workouts.filter(workout => workout.workoutExercises.reduce((total, exercise) => total + (exercise.sets?.length || 0), 0) > 0)}
+      renderItem={renderItem}
+      keyExtractor={(item, index) => `${item.id}-${index}`}
+      style={styles.container}
+      contentContainerStyle={[{ paddingBottom: 20 }, contentContainerStyle]}
+      onEndReached={loadWorkouts}
+      onEndReachedThreshold={0.5}
+      ListFooterComponent={renderFooter}
+      ListHeaderComponent={ListHeaderComponent}
+      ListEmptyComponent={<AppText style={{}}>Nenhum treino executado encontrado.</AppText>}
+    />
+  );
 };
 
 export default WorkoutDay;
