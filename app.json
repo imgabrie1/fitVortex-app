@@ -24,6 +24,11 @@
     },
     "ios": {
       "bundleIdentifier": "com.imgabrie1.fitVortexapp"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "d35b9fa8-7878-458e-af60-819e51dbbd35"
+      }
     }
   }
 }
