@@ -29,14 +29,21 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({ hasScrollView = true, contentCo
     try {
       if (user) {
         const data = await getAllWorkouts(page, 10);
-        setWorkouts((prevWorkouts) => [...prevWorkouts, ...data.data]);
-        setPage((prevPage) => prevPage + 1);
-        if (data.page >= data.lastPage) {
+        if (data && data.data && data.data.length > 0) {
+          setWorkouts((prevWorkouts) => [...prevWorkouts, ...data.data]);
+          setPage((prevPage) => prevPage + 1);
+          if (data.page >= data.lastPage) {
+            setHasMore(false);
+          }
+        } else {
           setHasMore(false);
         }
+      } else {
+        setHasMore(false);
       }
     } catch (error) {
       console.error("Erro ao buscar treinos:", error);
+      setHasMore(false);
     } finally {
       setLoading(false);
     }
@@ -158,7 +165,7 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({ hasScrollView = true, contentCo
       renderItem={renderItem}
       keyExtractor={(item, index) => `${item.id}-${index}`}
       style={styles.container}
-      contentContainerStyle={[{ paddingBottom: 20 }, contentContainerStyle]}
+      contentContainerStyle={[{ paddingBottom: 20, paddingTop: 20 }, contentContainerStyle]}
       onEndReached={loadWorkouts}
       onEndReachedThreshold={0.5}
       ListFooterComponent={renderFooter}

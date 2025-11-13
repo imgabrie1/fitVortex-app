@@ -1,22 +1,19 @@
-import AppText from "@/components/AppText";
-import { UserContext } from "@/contexts/User/UserContext";
-import React, { useContext } from "react";
-import { View, Text, TouchableOpacity, Dimensions } from "react-native";
-import { style } from "./styles";
 import WorkoutDay from "@/components/WorkoutDay";
+import React from "react";
+import { Dimensions, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { style } from "./styles";
 
 const { height } = Dimensions.get("window");
 
 const Home = () => {
-  const { logout } = useContext(UserContext);
-
-  const onLogout = async () => {
-    await logout();
-  };
+  const insets = useSafeAreaInsets();
+  const headerHeight = height * 0.05;
+  const paddingTop = headerHeight + insets.top;
 
   return (
     <View style={style.container}>
-      <WorkoutDay contentContainerStyle={{ paddingTop: height * 0.05 }} />
+      <WorkoutDay contentContainerStyle={{ paddingTop }} />
     </View>
   );
 };

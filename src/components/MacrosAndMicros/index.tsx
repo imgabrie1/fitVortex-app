@@ -282,7 +282,7 @@ const MacrosAndMicros = () => {
   // -- tela principal --
   return (
     <TouchableWithoutFeedback onPress={() => setMenuVisible(null)}>
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, marginTop: 15 }}>
         {/* ------------------ STAGE 1: MACROS ------------------ */}
         {stage === 1 && (
           <ScrollView
