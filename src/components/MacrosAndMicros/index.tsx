@@ -296,6 +296,14 @@ const MacrosAndMicros = () => {
 
             {macros.length > 0 ? (
               macros.map((macro, index) => {
+                const startDate = macro.startDate
+                  ? new Date(macro.startDate).toLocaleDateString("pt-BR", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      timeZone: "UTC",
+                    })
+                  : "—";
+
                 const endDate = macro.endDate
                   ? new Date(macro.endDate).toLocaleDateString("pt-BR", {
                       day: "2-digit",
@@ -349,7 +357,15 @@ const MacrosAndMicros = () => {
                             isLastCreated && styles.infoSelected,
                           ]}
                         >
-                          Término previsto: {endDate}
+                          Início: {startDate}
+                        </AppText>
+                        <AppText
+                          style={[
+                            styles.info,
+                            isLastCreated && styles.infoSelected,
+                          ]}
+                        >
+                          Término: {endDate}
                         </AppText>
                         <AppText
                           style={[

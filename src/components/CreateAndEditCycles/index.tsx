@@ -119,6 +119,21 @@ const CreateAndEditCycles = ({
     if (fieldName === "endDate") setShowEndPicker(false);
   };
 
+  const handleFormSubmit = (data: FieldValues) => {
+    const formattedData = { ...data };
+    if (isMacro) {
+      if (formattedData.startDate) {
+        const [day, month, year] = formattedData.startDate.split("-");
+        formattedData.startDate = `${year}-${month}-${day}`;
+      }
+      if (formattedData.endDate) {
+        const [day, month, year] = formattedData.endDate.split("-");
+        formattedData.endDate = `${year}-${month}-${day}`;
+      }
+    }
+    onSubmit(formattedData);
+  };
+
   return (
     <View style={styles.modalContainer}>
       <BackAndTitle
@@ -247,7 +262,7 @@ const CreateAndEditCycles = ({
             {stage === 3 && (
               <Button
                 text={isEditing ? "Salvar Alterações" : "Criar Macro"}
-                onPress={handleSubmit(onSubmit)}
+                onPress={handleSubmit(handleFormSubmit)}
                 styleButton={styles.styledButton}
               />
             )}
