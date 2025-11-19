@@ -596,7 +596,6 @@ const SelectedMicro = ({
                       fields={fields}
                       handleSubmit={handleSubmit}
                       onSubmit={onSubmit}
-                      loadingForm={loadingForm}
                     />
                   </ScrollView>
                 </View>
@@ -715,7 +714,7 @@ const SelectedMicro = ({
             title="Exercício Adicionado!"
             message="Quer adicionar mais exercícios nesse treino?"
             buttonTextOne="Adicionar"
-            buttonTextTwo="OK"
+            buttonTextTwo="Fechar"
             visible={alertVisible}
             onPress={() => setAlertVisible(false)}
             onClose={() => {

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { View, Modal, Pressable, TouchableOpacity } from "react-native";
 import { useForm, Controller, FieldValues } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -12,6 +12,7 @@ import { schema } from "./schema";
 import { styles } from "./styles";
 import { Exercise } from "@/contexts/User/interface";
 import BackAndTitle from "../BackAndTitle";
+import { UserContext } from "@/contexts/User/UserContext";
 
 interface AddExercisesProps {
   onClose: () => void;
@@ -39,6 +40,8 @@ const AddExerciseForm = ({
     },
   });
 
+  const { loadingForm } = useContext(UserContext);
+
   const createUnilateralValue = watch("default_unilateral");
 
   const toggleUnilateral = () => {
@@ -63,6 +66,7 @@ const AddExerciseForm = ({
               onChangeText={onChange}
               value={value}
               error={errors.root?.message}
+              keyboardType="numeric"
             />
           )}
         />
@@ -104,6 +108,7 @@ const AddExerciseForm = ({
             onSubmit(payload);
           })}
           styleButton={styles.styledButton}
+          loading={loadingForm}
         />
       </View>
     </View>

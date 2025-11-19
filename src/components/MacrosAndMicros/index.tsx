@@ -40,7 +40,10 @@ const MacrosAndMicros = () => {
     addWorkoutInMicro,
     ajdustVolume,
     editCycles,
+    loadingForm
+
   } = useContext(UserContext);
+
 
   const [stage, setStage] = useState<1 | 2 | 3>(1);
   const [selectedMacro, setSelectedMacro] = useState<MacroCycle | null>(null);
@@ -548,6 +551,7 @@ const MacrosAndMicros = () => {
                     <Button
                       text="Criar dia de Treino"
                       onPress={() => setCreateWorkoutModalVisible(true)}
+                      loading={loadingForm}
                     />
                   )
                 )}

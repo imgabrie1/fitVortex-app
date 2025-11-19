@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { View } from "react-native";
 import DateTimePicker, {
   DateTimePickerEvent,
@@ -13,6 +13,7 @@ import { Button } from "../Button";
 import { MaterialIcons } from "@expo/vector-icons";
 import { themas } from "@/global/themes";
 import BackAndTitle from "../BackAndTitle";
+import { UserContext } from "@/contexts/User/UserContext";
 
 interface CreateCyclesProps {
   type: "macro" | "micro";
@@ -30,6 +31,8 @@ const CreateAndEditCycles = ({
   const isMacro = type === "macro";
   const schema = isMacro ? macroSchema : microSchema;
   const isEditing = !!initialData;
+
+  const { loadingForm } = useContext(UserContext);
 
   const [stage, setStage] = useState<1 | 2 | 3>(1);
   const [showStartPicker, setShowStartPicker] = useState(false);
@@ -264,6 +267,7 @@ const CreateAndEditCycles = ({
                 text={isEditing ? "Salvar Alterações" : "Criar Macro"}
                 onPress={handleSubmit(handleFormSubmit)}
                 styleButton={styles.styledButton}
+                loading={loadingForm}
               />
             )}
           </View>
@@ -301,6 +305,7 @@ const CreateAndEditCycles = ({
             text={isEditing ? "Salvar Alterações" : "Criar Micro"}
             onPress={handleSubmit(onSubmit)}
             styleButton={styles.styledButton}
+            loading={loadingForm}
           />
         </>
       )}
