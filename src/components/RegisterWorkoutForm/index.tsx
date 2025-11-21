@@ -25,7 +25,6 @@ export const RegisterWorkoutForm = ({
   handleSubmit,
   onSubmit,
 }: RegisterWorkoutFormProps) => {
-
   const { loadingForm } = useContext(UserContext);
 
   const getExerciseName = (exerciseId: string) => {
@@ -53,7 +52,11 @@ export const RegisterWorkoutForm = ({
     const workoutExercise = workout.workoutExercises?.find(
       (we) => we.exercise?.id === exerciseId
     );
-    return workoutExercise?.exercise?.default_unilateral || false;
+    if (!workoutExercise) return false;
+    if (typeof (workoutExercise as any).is_unilateral === "boolean") {
+      return (workoutExercise as any).is_unilateral as boolean;
+    }
+    return workoutExercise.exercise?.default_unilateral || false;
   };
 
   return (

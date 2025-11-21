@@ -36,16 +36,16 @@ const AddExerciseForm = ({
     resolver: yupResolver(schema as yup.AnyObjectSchema),
     defaultValues: {
       targetSets: undefined,
-      default_unilateral: selectedExercise?.default_unilateral || false,
+      is_unilateral: selectedExercise?.default_unilateral || false,
     },
   });
 
   const { loadingForm } = useContext(UserContext);
 
-  const createUnilateralValue = watch("default_unilateral");
+  const createUnilateralValue = watch("is_unilateral");
 
   const toggleUnilateral = () => {
-    setValue("default_unilateral", !createUnilateralValue);
+    setValue("is_unilateral", !createUnilateralValue);
   };
 
   return (
@@ -101,7 +101,7 @@ const AddExerciseForm = ({
                 {
                   exerciseId: selectedExercise?.id,
                   targetSets: Number(formData.targetSets),
-                  default_unilateral: formData.default_unilateral,
+                  is_unilateral: formData.is_unilateral,
                 },
               ],
             };
