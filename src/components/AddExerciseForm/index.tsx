@@ -96,16 +96,12 @@ const AddExerciseForm = ({
         <Button
           text="Adicionar ao Treino"
           onPress={handleSubmit((formData) => {
-            const payload = {
-              exercises: [
-                {
-                  exerciseId: selectedExercise?.id,
-                  targetSets: Number(formData.targetSets),
-                  is_unilateral: formData.is_unilateral,
-                },
-              ],
+            const newExercise = {
+              exerciseId: selectedExercise?.id,
+              targetSets: Number(formData.targetSets),
+              is_unilateral: formData.is_unilateral,
             };
-            onSubmit(payload);
+            onSubmit(newExercise);
           })}
           styleButton={styles.styledButton}
           loading={loadingForm}

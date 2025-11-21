@@ -345,7 +345,7 @@ const SelectedMicro = ({
     loadExercises(1);
   }, []);
 
-  const handleSubmitAddExercise = async (data: any) => {
+  const handleSubmitAddExercise = async (newExercise: any) => {
     if (!targetWorkoutName) {
       console.error("Nenhum nome de treino alvo definido.");
       return;
@@ -363,8 +363,6 @@ const SelectedMicro = ({
         setLoading(false);
         return;
       }
-
-      const newExercise = data.exercises[0];
 
       const exerciseAlreadyExists = workoutsToUpdate.some((workoutItem) =>
         workoutItem.workout.workoutExercises.some(
@@ -393,6 +391,7 @@ const SelectedMicro = ({
           (we: any) => ({
             exerciseId: we.exercise.id,
             targetSets: we.targetSets,
+            is_unilateral: we.is_unilateral,
           })
         );
 
@@ -413,6 +412,7 @@ const SelectedMicro = ({
                       {
                         exercise: { id: newExercise.exerciseId },
                         targetSets: newExercise.targetSets,
+                        is_unilateral: newExercise.is_unilateral,
                       },
                     ],
                   },
