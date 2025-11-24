@@ -57,7 +57,7 @@ const SelectedMicro = ({
   const [micro, setMicro] = useState<MicroCycle | null>(null);
   const [workouts, setWorkouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [registeringWorkout, setRegisteringWorkout] = useState<Workout | null>(
+  const [registeringWorkout, setRegisteringWorkout] = useState<any | null>(
     null
   );
   const [selectedWorkoutName, setSelectedWorkoutName] = useState<string | null>(
@@ -153,7 +153,7 @@ const SelectedMicro = ({
     if (registeringWorkout) {
       const currentValues = formValues[registeringWorkout.id] || {};
       reset({
-        exercises: registeringWorkout.workoutExercises
+        exercises: registeringWorkout.workout?.workoutExercises
           ?.slice()
           .sort((a: any, b: any) => a.position - b.position)
           .map((we: any) => {
@@ -210,7 +210,7 @@ const SelectedMicro = ({
     const finalPayload = { exercises: exercisesPayload };
 
     try {
-      await toWorkOut(microId, registeringWorkout.id, finalPayload);
+      await toWorkOut(microId, registeringWorkout.workout.id, finalPayload);
       handleFormSubmit();
     } catch (err: any) {
       const currentError = err as AxiosError;
@@ -481,8 +481,8 @@ const SelectedMicro = ({
 
   const handleRegisterWorkout = useCallback((workout: any) => {
     setRegisteringWorkout(workout);
-    setSelectedWorkoutName(workout.name);
-    setSelectedWorkoutImage(workout.imageUrl || null);
+    setSelectedWorkoutName(workout.workout.name);
+    setSelectedWorkoutImage(workout.workout.imageUrl || null);
   }, []);
 
   const handleAddExercisePress = useCallback((exercise: Exercise) => {
@@ -515,6 +515,14 @@ const SelectedMicro = ({
       handleRegisterWorkout,
     ]
   );
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color={themas.Colors.secondary} />
+      </View>
+    );
+  }
 
   if (stage === 1) {
     if (!micro) return null;
@@ -590,7 +598,7 @@ const SelectedMicro = ({
                     )}
 
                     <RegisterWorkoutForm
-                      workout={registeringWorkout}
+                      workout={registeringWorkout.workout}
                       control={control}
                       errors={errors}
                       fields={fields}

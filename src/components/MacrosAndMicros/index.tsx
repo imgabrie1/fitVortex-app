@@ -6,6 +6,7 @@ import {
   Modal,
   TouchableWithoutFeedback,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import AppText from "../AppText";
 import { styles } from "./styles";
@@ -40,10 +41,8 @@ const MacrosAndMicros = () => {
     addWorkoutInMicro,
     ajdustVolume,
     editCycles,
-    loadingForm
-
+    loadingForm,
   } = useContext(UserContext);
-
 
   const [stage, setStage] = useState<1 | 2 | 3>(1);
   const [selectedMacro, setSelectedMacro] = useState<MacroCycle | null>(null);
@@ -73,14 +72,19 @@ const MacrosAndMicros = () => {
     type: "macro" | "micro";
     data: any;
   } | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const loadMacros = async () => {
     if (user) {
+      setLoading(true)
       try {
         const data: MacroCycle[] = await getAllMacroCycles();
         setMacros(data);
       } catch (error) {
         console.error("Erro ao buscar Macro Ciclos:", error);
+      } finally{
+      setLoading(false)
+
       }
     }
   };
@@ -91,6 +95,7 @@ const MacrosAndMicros = () => {
 
   const loadMicros = async () => {
     if (selectedMacro) {
+      setLoading(true)
       try {
         const data = await getMacroCycleByID(selectedMacro.id);
         const extractedMicros = (data.items ?? []).map(
@@ -99,6 +104,8 @@ const MacrosAndMicros = () => {
         setMicros(extractedMicros);
       } catch (error) {
         console.error("Erro ao buscar Micro Ciclos:", error);
+      } finally {
+        setLoading(false)
       }
     }
   };
@@ -232,8 +239,6 @@ const MacrosAndMicros = () => {
         await loadMicros();
 
         setAlertCreateWorkout(true);
-
-        // Alert.alert("Sucesso!", "O dia de treino foi criado.");
       }
     } catch (error) {
       console.error("Erro ao criar ou adicionar treino:", error);
@@ -266,6 +271,14 @@ const MacrosAndMicros = () => {
       console.error("Erro ao ajustar volume:", error);
     }
   };
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color={themas.Colors.secondary} />
+      </View>
+    );
+  }
 
   // -- tela de infos de micro (stage 3) --
   if (stage === 3 && selectedMicroId) {
@@ -525,7 +538,6 @@ const MacrosAndMicros = () => {
           <Button
             text="Criar Macro Ciclo"
             onPress={() => setCycleModalVisible(true)}
-
           />
         )}
 
@@ -535,7 +547,6 @@ const MacrosAndMicros = () => {
               <Button
                 text="Criar Micro Ciclo"
                 onPress={() => setCycleModalVisible(true)}
-
               />
             )}
 

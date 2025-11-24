@@ -9,7 +9,7 @@ import { themas } from "@/global/themes";
 import { UserContext } from "@/contexts/User/UserContext";
 
 interface RegisterWorkoutFormProps {
-  workout: Workout;
+  workout: any;
   control: any;
   errors: any;
   fields: any[];
@@ -27,30 +27,32 @@ export const RegisterWorkoutForm = ({
 }: RegisterWorkoutFormProps) => {
   const { loadingForm } = useContext(UserContext);
 
+  const workoutData = workout.workout || workout;
+
   const getExerciseName = (exerciseId: string) => {
-    const exerciseName = workout.workoutExercises?.find(
-      (we) => we.exercise?.id === exerciseId
+    const exerciseName = workoutData.workoutExercises?.find(
+      (we: any) => we.exercise?.id === exerciseId
     )?.exercise?.name;
     return exerciseName || `Exercício`;
   };
 
   const getExerciseImg = (exerciseId: string) => {
-    const exerciseImg = workout.workoutExercises?.find(
-      (we) => we.exercise?.id === exerciseId
+    const exerciseImg = workoutData.workoutExercises?.find(
+      (we: any) => we.exercise?.id === exerciseId
     )?.exercise?.imageURL;
     return exerciseImg || `Erro ao carregar imagem`;
   };
 
   const getTargetSets = (exerciseId: string) => {
-    const targetSets = workout.workoutExercises?.find(
-      (we) => we.exercise?.id === exerciseId
+    const targetSets = workoutData.workoutExercises?.find(
+      (we: any) => we.exercise?.id === exerciseId
     )?.targetSets;
     return targetSets || 0;
   };
 
   const getUnilateral = (exerciseId: string) => {
-    const workoutExercise = workout.workoutExercises?.find(
-      (we) => we.exercise?.id === exerciseId
+    const workoutExercise = workoutData.workoutExercises?.find(
+      (we: any) => we.exercise?.id === exerciseId
     );
     if (!workoutExercise) return false;
     if (typeof (workoutExercise as any).is_unilateral === "boolean") {

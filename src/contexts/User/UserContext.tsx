@@ -265,7 +265,6 @@ export const AuthProvider = ({ children }: Props) => {
   //        -------------- MICRO --------------
   const getMicroCycleByID = async (microID: string): Promise<MicroCycle> => {
     assertUser();
-
     try {
       const { data } = await api.get(`/microcycle/${microID}`);
       return data;
