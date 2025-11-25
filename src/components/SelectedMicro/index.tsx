@@ -267,6 +267,7 @@ const SelectedMicro = ({
     } finally {
       setLoading(false);
     }
+
   }, [microId]);
 
   useEffect(() => {
