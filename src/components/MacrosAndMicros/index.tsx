@@ -6,6 +6,7 @@ import {
   Modal,
   TouchableWithoutFeedback,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import AppText from "../AppText";
 import { styles } from "./styles";
@@ -40,6 +41,7 @@ const MacrosAndMicros = () => {
     addWorkoutInMicro,
     ajdustVolume,
     editCycles,
+    loadingForm,
   } = useContext(UserContext);
 
   const [stage, setStage] = useState<1 | 2 | 3>(1);
@@ -70,14 +72,19 @@ const MacrosAndMicros = () => {
     type: "macro" | "micro";
     data: any;
   } | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const loadMacros = async () => {
     if (user) {
+      setLoading(true)
       try {
         const data: MacroCycle[] = await getAllMacroCycles();
         setMacros(data);
       } catch (error) {
         console.error("Erro ao buscar Macro Ciclos:", error);
+      } finally{
+      setLoading(false)
+
       }
     }
   };
@@ -88,6 +95,7 @@ const MacrosAndMicros = () => {
 
   const loadMicros = async () => {
     if (selectedMacro) {
+      setLoading(true)
       try {
         const data = await getMacroCycleByID(selectedMacro.id);
         const extractedMicros = (data.items ?? []).map(
@@ -96,6 +104,8 @@ const MacrosAndMicros = () => {
         setMicros(extractedMicros);
       } catch (error) {
         console.error("Erro ao buscar Micro Ciclos:", error);
+      } finally {
+        setLoading(false)
       }
     }
   };
@@ -229,8 +239,6 @@ const MacrosAndMicros = () => {
         await loadMicros();
 
         setAlertCreateWorkout(true);
-
-        // Alert.alert("Sucesso!", "O dia de treino foi criado.");
       }
     } catch (error) {
       console.error("Erro ao criar ou adicionar treino:", error);
@@ -264,6 +272,14 @@ const MacrosAndMicros = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color={themas.Colors.secondary} />
+      </View>
+    );
+  }
+
   // -- tela de infos de micro (stage 3) --
   if (stage === 3 && selectedMicroId) {
     return (
@@ -282,7 +298,7 @@ const MacrosAndMicros = () => {
   // -- tela principal --
   return (
     <TouchableWithoutFeedback onPress={() => setMenuVisible(null)}>
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, marginTop: 15 }}>
         {/* ------------------ STAGE 1: MACROS ------------------ */}
         {stage === 1 && (
           <ScrollView
@@ -296,6 +312,14 @@ const MacrosAndMicros = () => {
 
             {macros.length > 0 ? (
               macros.map((macro, index) => {
+                const startDate = macro.startDate
+                  ? new Date(macro.startDate).toLocaleDateString("pt-BR", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      timeZone: "UTC",
+                    })
+                  : "—";
+
                 const endDate = macro.endDate
                   ? new Date(macro.endDate).toLocaleDateString("pt-BR", {
                       day: "2-digit",
@@ -349,7 +373,15 @@ const MacrosAndMicros = () => {
                             isLastCreated && styles.infoSelected,
                           ]}
                         >
-                          Término previsto: {endDate}
+                          Início: {startDate}
+                        </AppText>
+                        <AppText
+                          style={[
+                            styles.info,
+                            isLastCreated && styles.infoSelected,
+                          ]}
+                        >
+                          Término: {endDate}
                         </AppText>
                         <AppText
                           style={[
@@ -506,7 +538,6 @@ const MacrosAndMicros = () => {
           <Button
             text="Criar Macro Ciclo"
             onPress={() => setCycleModalVisible(true)}
-
           />
         )}
 
@@ -516,7 +547,6 @@ const MacrosAndMicros = () => {
               <Button
                 text="Criar Micro Ciclo"
                 onPress={() => setCycleModalVisible(true)}
-
               />
             )}
 
@@ -532,6 +562,7 @@ const MacrosAndMicros = () => {
                     <Button
                       text="Criar dia de Treino"
                       onPress={() => setCreateWorkoutModalVisible(true)}
+                      loading={loadingForm}
                     />
                   )
                 )}

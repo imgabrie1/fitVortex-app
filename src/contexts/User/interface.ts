@@ -74,6 +74,7 @@ export interface WorkoutExercise {
   id: string;
   targetSets: number;
   exercise: Exercise;
+  is_unilateral?: boolean;
 }
 
 export interface Exercise {
@@ -175,6 +176,7 @@ export interface iCreateMicroCycle {
 export interface ExerciseTarget {
   exerciseId: string;
   targetSets: number;
+  is_unilateral: boolean;
 }
 
 export interface ExerciseInCreateAndPatch {
@@ -183,14 +185,14 @@ export interface ExerciseInCreateAndPatch {
 
 export interface iCreateWorkout {
   name: string;
-  exercises: ExerciseInCreateAndPatch;
+  exercises: ExerciseInCreateAndPatch["exercises"];
 }
 
 export type iPatchWorkout = Partial<iCreateWorkout>;
 
 export interface newMacroWithAI {
-  prompt: string | null,
-  createNewWorkout: boolean
+  prompt: string | null;
+  createNewWorkout: boolean;
 }
 
 export interface WorkoutResponse {
@@ -232,11 +234,14 @@ export type UserContextData = {
   ) => Promise<ExerciseResponse>;
   createWorkout: (payload: iCreateWorkout) => Promise<any>;
   addWorkoutInMicro: (microID: string, workoutID: string) => Promise<any>;
-  updateWorkoutOrder: (microCycleID: string, orderedIds: string[]) => Promise<void>;
+  updateWorkoutOrder: (
+    microCycleID: string,
+    orderedIds: string[]
+  ) => Promise<void>;
   addExerciseInWorkout: (
     payload: ExerciseInCreateAndPatch,
     workoutID: string
   ) => Promise<any>;
-  ajdustVolume: (macroID: string, payload: newMacroWithAI) => Promise<any>
+  ajdustVolume: (macroID: string, payload: newMacroWithAI) => Promise<any>;
   editCycles: (cycle: string, cycleID: string, payload: any) => Promise<any>;
 };

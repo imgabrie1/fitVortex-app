@@ -194,6 +194,7 @@ export const AuthProvider = ({ children }: Props) => {
 
   const createMacroCycle = async (payload: any): Promise<iCreateMacroCycle> => {
     assertUser();
+    setLoadingForm(true);
     try {
       const { data } = await api.post("/macrocycle", payload);
       return data;
@@ -204,11 +205,14 @@ export const AuthProvider = ({ children }: Props) => {
         err?.message ||
         "Erro ao criar Macro Ciclo";
       throw new Error(String(msg));
+    } finally {
+      setLoadingForm(false);
     }
   };
 
   const ajdustVolume = async (macroID: string, payload: newMacroWithAI) => {
     assertUser();
+    setLoadingForm(true);
     try {
       const data = await api.post(
         `/macrocycle/${macroID}/generate-next`,
@@ -222,10 +226,14 @@ export const AuthProvider = ({ children }: Props) => {
         err?.message ||
         "Erro ao ajustar o volume";
       throw new Error(String(msg));
+    } finally {
+      setLoadingForm(false);
     }
   };
 
   const deleteCycles = async (cycle: string, cycleID: string) => {
+    assertUser();
+    setLoadingForm(true);
     try {
       await api.delete(`/${cycle}/${cycleID}`);
     } catch (err: any) {
@@ -233,26 +241,30 @@ export const AuthProvider = ({ children }: Props) => {
       const msg =
         currentError?.response?.data || err?.message || "Erro ao deletar Ciclo";
       throw new Error(String(msg));
+    } finally {
+      setLoadingForm(false);
     }
   };
 
   const editCycles = async (cycle: string, cycleID: string, payload: any) => {
     assertUser();
+    setLoadingForm(true);
     try {
       const { data } = await api.patch(`/${cycle}/${cycleID}`, payload);
-      return data
+      return data;
     } catch (err: any) {
       const currentError = err as AxiosError;
       const msg =
         currentError?.response?.data || err?.message || "Erro ao Editar Ciclo";
       throw new Error(String(msg));
+    } finally {
+      setLoadingForm(false);
     }
   };
 
   //        -------------- MICRO --------------
   const getMicroCycleByID = async (microID: string): Promise<MicroCycle> => {
     assertUser();
-
     try {
       const { data } = await api.get(`/microcycle/${microID}`);
       return data;
@@ -288,6 +300,7 @@ export const AuthProvider = ({ children }: Props) => {
 
   const createMicroCycle = async (payload: any): Promise<iCreateMicroCycle> => {
     assertUser();
+    setLoadingForm(true);
     try {
       const { data } = await api.post("/microcycle", payload);
       return data;
@@ -298,6 +311,8 @@ export const AuthProvider = ({ children }: Props) => {
         err?.message ||
         "Erro ao criar Micro Ciclo";
       throw new Error(String(msg));
+    } finally {
+      setLoadingForm(false);
     }
   };
 
@@ -306,6 +321,7 @@ export const AuthProvider = ({ children }: Props) => {
     microID: string
   ): Promise<any> => {
     assertUser();
+    setLoadingForm(true);
     try {
       await api.patch(`/macrocycle/${macroID}/micro/${microID}`);
     } catch (err: any) {
@@ -315,6 +331,8 @@ export const AuthProvider = ({ children }: Props) => {
         err?.message ||
         "Erro ao adicionar micro no macro";
       throw new Error(String(msg));
+    } finally {
+      setLoadingForm(false);
     }
   };
 
@@ -376,7 +394,10 @@ export const AuthProvider = ({ children }: Props) => {
   };
 
   //        -------------- WORKOUT --------------
-  const getAllWorkouts = async (page?: number, limit?: number): Promise<WorkoutResponse> => {
+  const getAllWorkouts = async (
+    page?: number,
+    limit?: number
+  ): Promise<WorkoutResponse> => {
     const currentUser = requireUser();
 
     try {
@@ -454,6 +475,7 @@ export const AuthProvider = ({ children }: Props) => {
     workoutData: any
   ): Promise<any> => {
     assertUser();
+    setLoadingForm(true);
     try {
       const { data } = await api.patch(
         `microcycle/${microID}/workouts/${workoutID}/record`,
@@ -474,11 +496,14 @@ export const AuthProvider = ({ children }: Props) => {
       const msg =
         errorData || err?.message || "Erro ao registrar o treino. Desculpa :(";
       throw new Error(String(msg));
+    } finally {
+      setLoadingForm(false);
     }
   };
 
   const createWorkout = async (payload: iCreateWorkout): Promise<any> => {
     assertUser();
+    setLoadingForm(true);
     try {
       const { data } = await api.post("/workout", payload);
       return data;
@@ -487,6 +512,8 @@ export const AuthProvider = ({ children }: Props) => {
       const msg =
         currentError?.response?.data || err?.message || "Erro ao criar treino";
       throw new Error(String(msg));
+    } finally {
+      setLoadingForm(false);
     }
   };
 
@@ -495,6 +522,7 @@ export const AuthProvider = ({ children }: Props) => {
     workoutID: string
   ): Promise<any> => {
     assertUser();
+    setLoadingForm(true);
     try {
       await api.patch(`/microcycle/${microID}/workouts/${workoutID}`);
     } catch (err: any) {
@@ -504,6 +532,8 @@ export const AuthProvider = ({ children }: Props) => {
         err?.message ||
         "Erro ao adicionar treino no micro";
       throw new Error(String(msg));
+    } finally {
+      setLoadingForm(false);
     }
   };
 
@@ -512,6 +542,7 @@ export const AuthProvider = ({ children }: Props) => {
     workoutID: string
   ) => {
     assertUser();
+    setLoadingForm(true);
     try {
       const { data } = await api.patch(`workout/${workoutID}`, payload);
       return data;
@@ -522,6 +553,8 @@ export const AuthProvider = ({ children }: Props) => {
         err?.message ||
         "Erro ao adicionar exercício no treino";
       throw new Error(String(msg));
+    } finally {
+      setLoadingForm(false);
     }
   };
 
@@ -553,7 +586,7 @@ export const AuthProvider = ({ children }: Props) => {
         addExerciseInWorkout,
         updateWorkoutOrder,
         ajdustVolume,
-        editCycles
+        editCycles,
       }}
     >
       {children}
