@@ -340,6 +340,7 @@ const MacrosAndMicros = () => {
                       onPress={() => {
                         setSelectedMacro(macro);
                         setStage(2);
+                        console.log(macro.id)
                       }}
                       activeOpacity={0.8}
                     >

@@ -1,6 +1,6 @@
 import { themas } from "@/global/themes";
 import { MaterialIcons } from "@expo/vector-icons";
-import { memo } from "react";
+import { memo, useState } from "react";
 import { Image, TouchableOpacity, View } from "react-native";
 import AnimatedMenu from "../AnimatedMenu";
 import AppText from "../AppText";
@@ -33,10 +33,16 @@ const WorkoutItem = memo(
     onDeleteWorkout,
     onRegisterWorkout,
   }: WorkoutItemProps) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+
     const workoutName = item.workout.name;
     const workoutExercises = item.workout?.workoutExercises ?? [];
     const sets = Array.isArray(item.sets) ? item.sets : [];
     const hasSets = sets.length > 0;
+
+    const openOptions = () => {
+      setIsExpanded((prev) => !prev);
+    };
 
     const groupSetsByExercise = (sets: any[] = []) => {
       return sets.reduce<Record<string, any[]>>((acc, s) => {
@@ -84,7 +90,7 @@ const WorkoutItem = memo(
           },
         ]}
       >
-        <View style={styles.infoWorkoutWrap}>
+        <TouchableOpacity style={styles.infoWorkoutWrap} onPress={openOptions}>
           <View style={styles.nameAndMenuWrap}>
             <AppText style={styles.name}>{workoutName}</AppText>
             <TouchableOpacity onPress={(e) => onMenuPress(e, item.id)}>
@@ -103,9 +109,9 @@ const WorkoutItem = memo(
           <AppText style={styles.info}>
             Exercícios no treino: {workoutExercises.length}
           </AppText>
-        </View>
+        </TouchableOpacity>
 
-        {hasSets ? (
+        {isExpanded && hasSets && (
           <View style={{ marginTop: 8 }}>
             <View>
               <AppText style={[styles.info, { fontWeight: "600" }]}>
@@ -140,31 +146,35 @@ const WorkoutItem = memo(
                         .slice()
                         .sort((a, b) => a.id.localeCompare(b.id))
                         .map((s: any, index: number) => {
-                        const weight = toNumber(s.weight).toFixed(1);
-                        return (
-                          <View key={s.id} style={styles.setItem}>
-                            <AppText style={[styles.setInfo, styles.set]}>
-                              Série {index + 1}
-                            </AppText>
-                            <AppText style={styles.setInfo}>
-                              {s.reps ?? "—"} reps
-                            </AppText>
-                            <AppText style={styles.setInfo}>
-                              {weight} kg
-                            </AppText>
-                            {s.notes ? (
-                              <AppText style={styles.notes}>{s.notes}</AppText>
-                            ) : null}
-                          </View>
-                        );
-                      })}
+                          const weight = toNumber(s.weight).toFixed(1);
+                          return (
+                            <View key={s.id} style={styles.setItem}>
+                              <AppText style={[styles.setInfo, styles.set]}>
+                                Série {index + 1}
+                              </AppText>
+                              <AppText style={styles.setInfo}>
+                                {s.reps ?? "—"} reps
+                              </AppText>
+                              <AppText style={styles.setInfo}>
+                                {weight} kg
+                              </AppText>
+                              {s.notes ? (
+                                <AppText style={styles.notes}>
+                                  {s.notes}
+                                </AppText>
+                              ) : null}
+                            </View>
+                          );
+                        })}
                     </View>
                   </View>
                 );
               })}
             </View>
           </View>
-        ) : (
+        )}
+
+        {isExpanded && !hasSets && (
           <View style={{ marginTop: 12 }}>
             {workoutExercises.length <= 0 ? (
               <Button
