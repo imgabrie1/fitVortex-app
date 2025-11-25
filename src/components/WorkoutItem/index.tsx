@@ -136,7 +136,10 @@ const WorkoutItem = memo(
 
                     {/* Séries e reps */}
                     <View style={styles.setsContainer}>
-                      {arr.map((s: any, index: number) => {
+                      {arr
+                        .slice()
+                        .sort((a, b) => a.id.localeCompare(b.id))
+                        .map((s: any, index: number) => {
                         const weight = toNumber(s.weight).toFixed(1);
                         return (
                           <View key={s.id} style={styles.setItem}>
@@ -171,7 +174,7 @@ const WorkoutItem = memo(
             ) : (
               <Button
                 text="Registrar Treino"
-                onPress={() => onRegisterWorkout(item.workout)}
+                onPress={() => onRegisterWorkout(item)}
               />
             )}
           </View>

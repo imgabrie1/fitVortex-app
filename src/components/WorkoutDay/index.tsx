@@ -15,7 +15,11 @@ interface WorkoutDayProps {
   ListHeaderComponent?: React.ReactElement | null;
 }
 
-const WorkoutDay: React.FC<WorkoutDayProps> = ({ hasScrollView = true, contentContainerStyle, ListHeaderComponent = null }) => {
+const WorkoutDay: React.FC<WorkoutDayProps> = ({
+  hasScrollView = true,
+  contentContainerStyle,
+  ListHeaderComponent = null,
+}) => {
   const { user, getAllWorkouts } = useContext(UserContext);
   const [workouts, setWorkouts] = useState<WorkoutWithSets[]>([]);
   const [page, setPage] = useState(1);
@@ -29,14 +33,21 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({ hasScrollView = true, contentCo
     try {
       if (user) {
         const data = await getAllWorkouts(page, 10);
-        setWorkouts((prevWorkouts) => [...prevWorkouts, ...data.data]);
-        setPage((prevPage) => prevPage + 1);
-        if (data.page >= data.lastPage) {
+        if (data && data.data && data.data.length > 0) {
+          setWorkouts((prevWorkouts) => [...prevWorkouts, ...data.data]);
+          setPage((prevPage) => prevPage + 1);
+          if (data.page >= data.lastPage) {
+            setHasMore(false);
+          }
+        } else {
           setHasMore(false);
         }
+      } else {
+        setHasMore(false);
       }
     } catch (error) {
       console.error("Erro ao buscar treinos:", error);
+      setHasMore(false);
     } finally {
       setLoading(false);
     }
@@ -136,7 +147,8 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({ hasScrollView = true, contentCo
                   </AppText>
                   <View style={styles.infoSetsWrap}>
                     <AppText style={styles.infoSets}>
-                      {exercise.sets.length} de {exercise.targetSets} séries{" • "}
+                      {exercise.sets.length} de {exercise.targetSets} séries
+                      {" • "}
                     </AppText>
                     <AppText style={styles.infoSets}>{repsText}</AppText>
                   </View>
@@ -154,16 +166,36 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({ hasScrollView = true, contentCo
 
   return (
     <FlatList
-      data={workouts.filter(workout => workout.workoutExercises.reduce((total, exercise) => total + (exercise.sets?.length || 0), 0) > 0)}
+      data={workouts.filter(
+        (workout) =>
+          workout.workoutExercises.reduce(
+            (total, exercise) => total + (exercise.sets?.length || 0),
+            0
+          ) > 0
+      )}
       renderItem={renderItem}
       keyExtractor={(item, index) => `${item.id}-${index}`}
       style={styles.container}
-      contentContainerStyle={[{ paddingBottom: 20 }, contentContainerStyle]}
+      contentContainerStyle={[
+        { paddingBottom: 20, paddingTop: 20 },
+        contentContainerStyle,
+      ]}
       onEndReached={loadWorkouts}
       onEndReachedThreshold={0.5}
       ListFooterComponent={renderFooter}
       ListHeaderComponent={ListHeaderComponent}
-      ListEmptyComponent={<AppText style={{}}>Nenhum treino executado encontrado.</AppText>}
+      ListEmptyComponent={
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            marginTop: 20,
+          }}
+        >
+          <AppText>Nenhum treino executado encontrado.</AppText>
+        </View>
+      }
     />
   );
 };

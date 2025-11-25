@@ -1,32 +1,50 @@
-import React from "react";
-import Login from "@/pages/Login";
+import React, { useContext } from "react";
 import { createStackNavigator } from "@react-navigation/stack";
+import { View, ActivityIndicator } from "react-native";
+import { UserContext } from "@/contexts/User/UserContext";
+
+import Login from "@/pages/Login";
 import BottomRoutes from "./BottomRoutes/bottom.routes";
 import Register from "@/pages/Register";
 import StartApp from "@/pages/StartApp";
 
+const Stack = createStackNavigator();
+
+const AuthRoutes = () => (
+  <Stack.Navigator
+    initialRouteName="StartApp"
+    screenOptions={{
+      headerShown: false,
+      cardStyle: { backgroundColor: "#fff" },
+      animation: "fade",
+    }}
+  >
+    <Stack.Screen name="StartApp" component={StartApp} />
+    <Stack.Screen name="Login" component={Login} />
+    <Stack.Screen name="Register" component={Register} />
+  </Stack.Navigator>
+);
+
+const AppRoutes = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="BottomRoutes" component={BottomRoutes} />
+  </Stack.Navigator>
+);
+
+const LoadingScreen = () => (
+  <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+    <ActivityIndicator size="large" color="#0000ff" />
+  </View>
+);
+
 export const Routes = () => {
-  const Stack = createStackNavigator();
-  return (
-    <Stack.Navigator
-      initialRouteName="StartApp"
-      screenOptions={{
-        headerShown: false,
-        cardStyle: {
-          backgroundColor: "#fff",
-        },
-        animation: "fade",
-      }}
-    >
-      <Stack.Screen name="StartApp" component={StartApp}></Stack.Screen>
+  const { user, loading } = useContext(UserContext);
 
-      <Stack.Screen name="Login" component={Login}></Stack.Screen>
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
-      <Stack.Screen name="Register" component={Register}></Stack.Screen>
-
-      <Stack.Screen name="BottomRoutes" component={BottomRoutes}></Stack.Screen>
-    </Stack.Navigator>
-  );
+  return user ? <AppRoutes /> : <AuthRoutes />;
 };
 
 export default Routes;

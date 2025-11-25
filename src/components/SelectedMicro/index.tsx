@@ -57,7 +57,7 @@ const SelectedMicro = ({
   const [micro, setMicro] = useState<MicroCycle | null>(null);
   const [workouts, setWorkouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [registeringWorkout, setRegisteringWorkout] = useState<Workout | null>(
+  const [registeringWorkout, setRegisteringWorkout] = useState<any | null>(
     null
   );
   const [selectedWorkoutName, setSelectedWorkoutName] = useState<string | null>(
@@ -153,7 +153,7 @@ const SelectedMicro = ({
     if (registeringWorkout) {
       const currentValues = formValues[registeringWorkout.id] || {};
       reset({
-        exercises: registeringWorkout.workoutExercises
+        exercises: registeringWorkout.workout?.workoutExercises
           ?.slice()
           .sort((a: any, b: any) => a.position - b.position)
           .map((we: any) => {
@@ -210,7 +210,7 @@ const SelectedMicro = ({
     const finalPayload = { exercises: exercisesPayload };
 
     try {
-      await toWorkOut(microId, registeringWorkout.id, finalPayload);
+      await toWorkOut(microId, registeringWorkout.workout.id, finalPayload);
       handleFormSubmit();
     } catch (err: any) {
       const currentError = err as AxiosError;
@@ -345,7 +345,7 @@ const SelectedMicro = ({
     loadExercises(1);
   }, []);
 
-  const handleSubmitAddExercise = async (data: any) => {
+  const handleSubmitAddExercise = async (newExercise: any) => {
     if (!targetWorkoutName) {
       console.error("Nenhum nome de treino alvo definido.");
       return;
@@ -363,8 +363,6 @@ const SelectedMicro = ({
         setLoading(false);
         return;
       }
-
-      const newExercise = data.exercises[0];
 
       const exerciseAlreadyExists = workoutsToUpdate.some((workoutItem) =>
         workoutItem.workout.workoutExercises.some(
@@ -393,6 +391,7 @@ const SelectedMicro = ({
           (we: any) => ({
             exerciseId: we.exercise.id,
             targetSets: we.targetSets,
+            is_unilateral: we.is_unilateral,
           })
         );
 
@@ -413,6 +412,7 @@ const SelectedMicro = ({
                       {
                         exercise: { id: newExercise.exerciseId },
                         targetSets: newExercise.targetSets,
+                        is_unilateral: newExercise.is_unilateral,
                       },
                     ],
                   },
@@ -481,8 +481,8 @@ const SelectedMicro = ({
 
   const handleRegisterWorkout = useCallback((workout: any) => {
     setRegisteringWorkout(workout);
-    setSelectedWorkoutName(workout.name);
-    setSelectedWorkoutImage(workout.imageUrl || null);
+    setSelectedWorkoutName(workout.workout.name);
+    setSelectedWorkoutImage(workout.workout.imageUrl || null);
   }, []);
 
   const handleAddExercisePress = useCallback((exercise: Exercise) => {
@@ -515,6 +515,14 @@ const SelectedMicro = ({
       handleRegisterWorkout,
     ]
   );
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color={themas.Colors.secondary} />
+      </View>
+    );
+  }
 
   if (stage === 1) {
     if (!micro) return null;
@@ -590,13 +598,12 @@ const SelectedMicro = ({
                     )}
 
                     <RegisterWorkoutForm
-                      workout={registeringWorkout}
+                      workout={registeringWorkout.workout}
                       control={control}
                       errors={errors}
                       fields={fields}
                       handleSubmit={handleSubmit}
                       onSubmit={onSubmit}
-                      loadingForm={loadingForm}
                     />
                   </ScrollView>
                 </View>
@@ -715,7 +722,7 @@ const SelectedMicro = ({
             title="Exercício Adicionado!"
             message="Quer adicionar mais exercícios nesse treino?"
             buttonTextOne="Adicionar"
-            buttonTextTwo="OK"
+            buttonTextTwo="Fechar"
             visible={alertVisible}
             onPress={() => setAlertVisible(false)}
             onClose={() => {

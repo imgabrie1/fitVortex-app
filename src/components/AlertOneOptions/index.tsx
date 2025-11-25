@@ -19,7 +19,7 @@ export default function CustomAlertOneOption({
 
           <View style={styles.buttonWrapper}>
             <TouchableOpacity style={styles.button} onPress={onClose}>
-              <Text style={styles.buttonText}>Ok!</Text>
+              <Text style={styles.buttonText}>Ok</Text>
             </TouchableOpacity>
           </View>
         </View>

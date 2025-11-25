@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import { View, Modal, Pressable, TouchableOpacity } from "react-native";
 import { useForm, Controller, FieldValues } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -12,6 +12,7 @@ import { schema } from "./schema";
 import { styles } from "./styles";
 import { Exercise } from "@/contexts/User/interface";
 import BackAndTitle from "../BackAndTitle";
+import { UserContext } from "@/contexts/User/UserContext";
 
 interface AddExercisesProps {
   onClose: () => void;
@@ -35,14 +36,16 @@ const AddExerciseForm = ({
     resolver: yupResolver(schema as yup.AnyObjectSchema),
     defaultValues: {
       targetSets: undefined,
-      default_unilateral: selectedExercise?.default_unilateral || false,
+      is_unilateral: selectedExercise?.default_unilateral || false,
     },
   });
 
-  const createUnilateralValue = watch("default_unilateral");
+  const { loadingForm } = useContext(UserContext);
+
+  const createUnilateralValue = watch("is_unilateral");
 
   const toggleUnilateral = () => {
-    setValue("default_unilateral", !createUnilateralValue);
+    setValue("is_unilateral", !createUnilateralValue);
   };
 
   return (
@@ -63,6 +66,7 @@ const AddExerciseForm = ({
               onChangeText={onChange}
               value={value}
               error={errors.root?.message}
+              keyboardType="numeric"
             />
           )}
         />
@@ -92,18 +96,15 @@ const AddExerciseForm = ({
         <Button
           text="Adicionar ao Treino"
           onPress={handleSubmit((formData) => {
-            const payload = {
-              exercises: [
-                {
-                  exerciseId: selectedExercise?.id,
-                  targetSets: Number(formData.targetSets),
-                  default_unilateral: formData.default_unilateral,
-                },
-              ],
+            const newExercise = {
+              exerciseId: selectedExercise?.id,
+              targetSets: Number(formData.targetSets),
+              is_unilateral: formData.is_unilateral,
             };
-            onSubmit(payload);
+            onSubmit(newExercise);
           })}
           styleButton={styles.styledButton}
+          loading={loadingForm}
         />
       </View>
     </View>
