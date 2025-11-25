@@ -11,12 +11,12 @@ export const styles = StyleSheet.create({
   blocks: {
     flex: 1,
     backgroundColor: themas.Colors.blocks,
-    borderRadius: 10,
-    paddingHorizontal: 14,
+    borderRadius: 5,
+    paddingHorizontal: 10,
     paddingVertical: 20,
     gap: 10,
     marginTop: 10,
-    marginBottom: 5,
+    width: "100%"
   },
 
   blockSelected: {
@@ -46,7 +46,7 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "flex-start",
     paddingLeft: 8,
-    paddingTop: 10
+    paddingTop: 20
   },
 
   infoSelected: {
