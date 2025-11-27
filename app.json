@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "fitVortex-app",
+    "name": "Fit Vortex",
     "slug": "fitVortex-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -19,15 +19,15 @@
       "expo-font"
     ],
     "android": {
-      "package": "com.imgabrie1.fitVortexapp",
+      "package": "com.imgabrie12.fitVortexapp",
       "edgeToEdgeEnabled": true
     },
     "ios": {
-      "bundleIdentifier": "com.imgabrie1.fitVortexapp"
+      "bundleIdentifier": "com.imgabrie12.fitVortexapp"
     },
     "extra": {
       "eas": {
-        "projectId": "d35b9fa8-7878-458e-af60-819e51dbbd35"
+        "projectId": "b73bdb61-18ca-4892-a9d9-18b18d8d9d7c"
       }
     }
   }
