@@ -15,6 +15,7 @@ interface RegisterWorkoutFormProps {
   fields: any[];
   handleSubmit: any;
   onSubmit: any;
+  isEditMode?: boolean;
 }
 
 export const RegisterWorkoutForm = ({
@@ -24,6 +25,7 @@ export const RegisterWorkoutForm = ({
   fields,
   handleSubmit,
   onSubmit,
+  isEditMode = false
 }: RegisterWorkoutFormProps) => {
   const { loadingForm } = useContext(UserContext);
 
@@ -172,7 +174,7 @@ export const RegisterWorkoutForm = ({
                           cursorColor={themas.Colors.secondary}
                           onBlur={onBlur}
                           onChangeText={onChange}
-                          value={value}
+                          value={String(value ?? "")}
                           keyboardType="numeric"
                           style={[styles.inputRepsWeight, styles.teste]}
                           selectTextOnFocus={true}
@@ -189,7 +191,7 @@ export const RegisterWorkoutForm = ({
                           cursorColor={themas.Colors.secondary}
                           onBlur={onBlur}
                           onChangeText={onChange}
-                          value={value}
+                          value={String(value ?? "")}
                           keyboardType="numeric"
                           style={styles.inputRepsWeight}
                           selectTextOnFocus={true}
@@ -214,7 +216,7 @@ export const RegisterWorkoutForm = ({
         );
       })}
       <Button
-        text="Salvar Treino"
+        text={isEditMode ? "Atualizar Treino" : "Salvar Treino"}
         onPress={handleSubmit(onSubmit)}
         styleButton={styles.button}
         loading={loadingForm}

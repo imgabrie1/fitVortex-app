@@ -47,7 +47,7 @@ const SelectedMicro = ({
 }: SelectedMicroProps) => {
   const {
     getMicroCycleByID,
-    toWorkOut,
+    saveWorkout,
     loadingForm,
     addExerciseInWorkout,
     getAllExercise,
@@ -89,11 +89,49 @@ const SelectedMicro = ({
     null
   );
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  // ==================== FUNÇÕES DE CALLBACK ====================
+
+  const handleRegisterWorkout = useCallback((workout: any) => {
+    console.log("Registrando treino (novo)");
+    setRegisteringWorkout(workout);
+    setSelectedWorkoutName(workout.workout.name);
+    setSelectedWorkoutImage(workout.workout.imageUrl || null);
+    setIsEditMode(false);
+  }, []);
+
+  const handleEditWorkout = useCallback(
+    (ci: any) => {
+      try {
+        console.log("Editando treino existente");
+
+        const hasRecordedWorkout = ci.sets && ci.sets.length > 0;
+
+        if (hasRecordedWorkout) {
+          console.log("Treino tem sets, entrando em modo edição");
+          setRegisteringWorkout(ci);
+          setSelectedWorkoutName(ci.workout.name);
+          setSelectedWorkoutImage(ci.workout.imageUrl || null);
+          setIsEditMode(true);
+        } else {
+          console.log("Treino NÃO tem sets, registrando como novo");
+          handleRegisterWorkout(ci);
+        }
+      } catch (err) {
+        console.error("Erro ao editar treino:", err);
+      } finally {
+        setMenuVisible(null);
+      }
+    },
+    [handleRegisterWorkout]
+  );
 
   const onBackModal = () => {
     setRegisteringWorkout(null);
     setSelectedWorkoutName(null);
     setSelectedWorkoutImage(null);
+    setIsEditMode(false);
   };
 
   const {
@@ -133,6 +171,8 @@ const SelectedMicro = ({
     []
   );
 
+  // ==================== USE EFFECTS ====================
+
   useEffect(() => {
     const loadFormValues = async () => {
       try {
@@ -152,31 +192,79 @@ const SelectedMicro = ({
   useEffect(() => {
     if (registeringWorkout) {
       const currentValues = formValues[registeringWorkout.id] || {};
-      reset({
-        exercises: registeringWorkout.workout?.workoutExercises
-          ?.slice()
-          .sort((a: any, b: any) => a.position - b.position)
-          .map((we: any) => {
-            const existingExercise = currentValues.exercises?.find(
-              (ex: any) => ex.exerciseId === we.exercise.id
-            );
-            if (existingExercise) return existingExercise;
 
-            const targetSets = we.targetSets || 1;
-            const sets = Array.from({ length: targetSets }, () => ({
-              reps: undefined,
-              weight: undefined,
-            }));
+      console.log("isEditMode no useEffect:", isEditMode);
+      console.log(
+        "Sets no registeringWorkout:",
+        registeringWorkout.sets?.length || 0
+      );
 
+      const hasExistingSets =
+        registeringWorkout.sets && registeringWorkout.sets.length > 0;
+
+      if (hasExistingSets && isEditMode) {
+        console.log("Carregando dados para edição...");
+        const groupedByExercise: Record<string, any[]> = {};
+
+        registeringWorkout.sets.forEach((set: any) => {
+          const exerciseId = set.exercise.id;
+          if (!groupedByExercise[exerciseId]) {
+            groupedByExercise[exerciseId] = [];
+          }
+          groupedByExercise[exerciseId].push({
+            reps: set.reps,
+            weight: set.weight,
+            notes: set.notes || "",
+          });
+        });
+
+        const exercisesForm = Object.keys(groupedByExercise).map(
+          (exerciseId) => {
+            const sets = groupedByExercise[exerciseId];
             return {
-              exerciseId: we.exercise.id,
-              notes: "",
-              sets,
+              exerciseId,
+              notes: sets[0]?.notes || "",
+              sets: sets.map((set) => ({
+                reps: set.reps,
+                weight: set.weight,
+                notes: set.notes || "",
+              })),
             };
-          }),
-      });
+          }
+        );
+
+        reset({
+          exercises: exercisesForm,
+        });
+      } else {
+        console.log("Carregando formulário para novo registro");
+        reset({
+          exercises: registeringWorkout.workout?.workoutExercises
+            ?.slice()
+            .sort((a: any, b: any) => a.position - b.position)
+            .map((we: any) => {
+              const existingExercise = currentValues.exercises?.find(
+                (ex: any) => ex.exerciseId === we.exercise.id
+              );
+              if (existingExercise) return existingExercise;
+
+              const targetSets = we.targetSets || 1;
+              const sets = Array.from({ length: targetSets }, () => ({
+                reps: undefined,
+                weight: undefined,
+                notes: "",
+              }));
+
+              return {
+                exerciseId: we.exercise.id,
+                notes: "",
+                sets,
+              };
+            }),
+        });
+      }
     }
-  }, [registeringWorkout, reset]);
+  }, [registeringWorkout, reset, isEditMode]);
 
   useEffect(() => {
     if (registeringWorkout) {
@@ -195,38 +283,45 @@ const SelectedMicro = ({
     }
   }, [JSON.stringify(watchedValues), registeringWorkout]);
 
+  // ==================== FUNÇÕES PRINCIPAIS ====================
+
   const onSubmit = async (data: any) => {
     if (!registeringWorkout) return;
+
+    console.log("isEditMode no onSubmit:", isEditMode);
+    console.log("Dados a serem enviados:", data);
 
     const exercisesPayload = data.exercises.map((exercise: any) => ({
       exerciseID: exercise.exerciseId,
       sets: exercise.sets.map((set: any) => ({
         reps: set.reps,
         weight: set.weight,
+        notes: set.notes || "",
       })),
-      notes: exercise.notes,
+      notes: exercise.notes || "",
     }));
 
     const finalPayload = { exercises: exercisesPayload };
 
     try {
-      await toWorkOut(microId, registeringWorkout.workout.id, finalPayload);
+      console.log("Enviando para endpoint:", isEditMode ? "EDIT" : "RECORD");
+      await saveWorkout(
+        microId,
+        registeringWorkout.workout.id,
+        finalPayload,
+        isEditMode
+      );
       handleFormSubmit();
     } catch (err: any) {
+      console.error("Erro no onSubmit:", err);
       const currentError = err as AxiosError;
       const msg =
         currentError?.response?.data ||
         err?.message ||
-        "Erro ao registrar treino";
+        (isEditMode ? "Erro ao atualizar treino" : "Erro ao registrar treino");
       throw new Error(String(msg));
     }
   };
-
-  const toNumber = useCallback((v?: string | number | null) => {
-    if (v == null) return 0;
-    const n = typeof v === "number" ? v : Number.parseFloat(String(v));
-    return Number.isFinite(n) ? n : 0;
-  }, []);
 
   const normalizeCycleItems = useCallback((micro: any) => {
     if (!micro?.cycleItems || !Array.isArray(micro.cycleItems)) return [];
@@ -267,7 +362,6 @@ const SelectedMicro = ({
     } finally {
       setLoading(false);
     }
-
   }, [microId]);
 
   useEffect(() => {
@@ -292,6 +386,8 @@ const SelectedMicro = ({
     }
     setRegisteringWorkout(null);
     setSelectedWorkoutName(null);
+    setSelectedWorkoutImage(null);
+    setIsEditMode(false);
     loadMicro();
   }, [registeringWorkout, microId]);
 
@@ -440,17 +536,6 @@ const SelectedMicro = ({
     return acc;
   }, 0);
 
-  const handleEditWorkout = useCallback((ci: any) => {
-    try {
-      console.log("Editar treino:", ci.workout.name);
-      // editar nome apenas (provavelmente)
-    } catch (err) {
-      console.error("Erro ao deletar treino:", err);
-    } finally {
-      setMenuVisible(null);
-    }
-  }, []);
-
   const handleDeleteWorkout = useCallback(async (ci: any) => {
     try {
       console.log("Excluir treino:", ci.workout.name);
@@ -478,12 +563,6 @@ const SelectedMicro = ({
     setTargetWorkoutName(workoutName);
     setStage(2);
     setMenuVisible(null);
-  }, []);
-
-  const handleRegisterWorkout = useCallback((workout: any) => {
-    setRegisteringWorkout(workout);
-    setSelectedWorkoutName(workout.workout.name);
-    setSelectedWorkoutImage(workout.workout.imageUrl || null);
   }, []);
 
   const handleAddExercisePress = useCallback((exercise: Exercise) => {
@@ -517,6 +596,8 @@ const SelectedMicro = ({
     ]
   );
 
+  // ==================== RENDERIZAÇÃO ====================
+
   if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -525,6 +606,7 @@ const SelectedMicro = ({
     );
   }
 
+  // ----------------- STAGE 1: TELA DE MICROCICLO -----------------
   if (stage === 1) {
     if (!micro) return null;
 
@@ -573,13 +655,17 @@ const SelectedMicro = ({
                   setRegisteringWorkout(null);
                   setSelectedWorkoutName(null);
                   setSelectedWorkoutImage(null);
+                  setIsEditMode(false);
                 }}
               >
                 <View style={styles.containerModal}>
                   <ScrollView>
                     <View style={styles.teste}>
+                      {/* Mostra "(Editando)" quando estiver no modo edição */}
                       <BackAndTitle
-                        title={`${selectedWorkoutName ?? "Treino"}`}
+                        title={`${selectedWorkoutName ?? "Treino"} ${
+                          isEditMode ? "(Editando)" : ""
+                        }`}
                         onBack={onBackModal}
                       />
                     </View>
@@ -605,6 +691,7 @@ const SelectedMicro = ({
                       fields={fields}
                       handleSubmit={handleSubmit}
                       onSubmit={onSubmit}
+                      isEditMode={isEditMode}
                     />
                   </ScrollView>
                 </View>
@@ -618,7 +705,7 @@ const SelectedMicro = ({
     );
   }
 
-  //----------------- TELA DE ADICIONAR EXERCICIO (STAGE 2) -----------------
+  // ----------------- STAGE 2: TELA DE ADICIONAR EXERCICIO  -----------------
   if (stage === 2) {
     const handleBackFromStage2 = () => {
       setFilteredExercises(null);
@@ -738,6 +825,7 @@ const SelectedMicro = ({
     );
   }
 
+  // ----------------- STAGE 4: FILTROS POR MÚSCULO -----------------
   if (stage === 4) {
     const handleSelectPrimaryMuscle = async (muscleLabel: string) => {
       try {
