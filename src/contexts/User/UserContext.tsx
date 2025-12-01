@@ -469,18 +469,20 @@ export const AuthProvider = ({ children }: Props) => {
     }
   };
 
-  const toWorkOut = async (
+  const saveWorkout = async (
     microID: string,
     workoutID: string,
-    workoutData: any
+    workoutData: any,
+    isEdit: boolean = false
   ): Promise<any> => {
     assertUser();
     setLoadingForm(true);
     try {
-      const { data } = await api.patch(
-        `microcycle/${microID}/workouts/${workoutID}/record`,
-        workoutData
-      );
+      const endpoint = isEdit
+        ? `microcycle/${microID}/workouts/${workoutID}/edit`
+        : `microcycle/${microID}/workouts/${workoutID}/record`;
+
+      const { data } = await api.patch(endpoint, workoutData);
 
       await refreshWorkoutsData();
 
@@ -494,7 +496,7 @@ export const AuthProvider = ({ children }: Props) => {
       }
 
       const msg =
-        errorData || err?.message || "Erro ao registrar o treino. Desculpa :(";
+        errorData || err?.message || "Erro ao salvar o treino. Desculpa :(";
       throw new Error(String(msg));
     } finally {
       setLoadingForm(false);
@@ -575,7 +577,7 @@ export const AuthProvider = ({ children }: Props) => {
         getAllMicroCycles,
         getMacroCycleByID,
         getMicroCycleByID,
-        toWorkOut,
+        saveWorkout,
         createMacroCycle,
         createMicroCycle,
         addMicroInMacro,

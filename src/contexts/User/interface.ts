@@ -218,10 +218,11 @@ export type UserContextData = {
   getAllMicroCycles: () => Promise<any>;
   getMacroCycleByID: (macroID: string) => Promise<any>;
   getMicroCycleByID: (microID: string) => Promise<any>;
-  toWorkOut: (
+  saveWorkout: (
     microID: string,
     workoutID: string,
-    workoutData: any
+    workoutData: any,
+    isEdit: boolean
   ) => Promise<any>;
   createMacroCycle: (payload: any) => Promise<iCreateMacroCycle>;
   createMicroCycle: (payload: any) => Promise<iCreateMicroCycle>;
