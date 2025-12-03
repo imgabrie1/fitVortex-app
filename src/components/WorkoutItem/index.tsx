@@ -147,7 +147,10 @@ const WorkoutItem = memo(
                           .slice()
                           .sort((a, b) => a.id.localeCompare(b.id))
                           .map((s: any, index: number) => {
-                            const weight = toNumber(s.weight).toFixed(1);
+                            const weight = toNumber(s.weight);
+                            weight % 1 === 0
+                              ? weight.toString()
+                              : weight.toFixed(2).replace(/\.?0+$/, "");
                             return (
                               <View key={s.id} style={styles.setItem}>
                                 <AppText style={[styles.setInfo, styles.set]}>

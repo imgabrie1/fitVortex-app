@@ -14,7 +14,7 @@ export const styles = StyleSheet.create({
     backgroundColor: themas.Colors.blocks,
     borderRadius: 10,
     paddingHorizontal: 14,
-    paddingTop: 20,
+    paddingVertical: 20,
     marginTop: 10,
     marginBottom: 5,
     overflow: "visible",
