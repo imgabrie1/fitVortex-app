@@ -84,8 +84,8 @@ const WorkoutItem = memo(
           styles.blocks,
           {
             marginTop: 12,
-            backgroundColor: isActive
-              ? themas.Colors.secondary
+            backgroundColor: hasSets
+              ? themas.Colors.primary
               : themas.Colors.blocks,
           },
         ]}
@@ -112,14 +112,14 @@ const WorkoutItem = memo(
         </TouchableOpacity>
 
         {isExpanded && hasSets && (
-          <View style={{ marginTop: 8 }}>
-            <View>
+          <View style={styles.setsWrapp}>
+            <View style={styles.setsBorder}>
               <AppText style={[styles.info, { fontWeight: "600" }]}>
                 Séries registradas:
               </AppText>
             </View>
 
-            {/* Container principal dos exercícios em linha */}
+            {/* container principal dos exercícios em linha */}
             <View style={styles.exercisesContainer}>
               {sortedSetsByExercise.map(([exId, arr]) => {
                 const exName = arr[0]?.exercise?.name ?? "Exercício";
@@ -127,7 +127,7 @@ const WorkoutItem = memo(
 
                 return (
                   <View key={exId} style={styles.exerciseItem}>
-                    {/* Imagem do exercício */}
+                    {/* imagem do exercício */}
                     {exImage && (
                       <Image
                         source={{ uri: exImage }}
@@ -137,35 +137,40 @@ const WorkoutItem = memo(
                       />
                     )}
 
-                    {/* Nome do exercício */}
-                    <AppText style={styles.exerciseName}>{exName}</AppText>
+                    <View style={styles.teste}>
+                      {/* nome do exercício */}
+                      <AppText style={styles.exerciseName}>{exName}</AppText>
 
-                    {/* Séries e reps */}
-                    <View style={styles.setsContainer}>
-                      {arr
-                        .slice()
-                        .sort((a, b) => a.id.localeCompare(b.id))
-                        .map((s: any, index: number) => {
-                          const weight = toNumber(s.weight).toFixed(1);
-                          return (
-                            <View key={s.id} style={styles.setItem}>
-                              <AppText style={[styles.setInfo, styles.set]}>
-                                Série {index + 1}
-                              </AppText>
-                              <AppText style={styles.setInfo}>
-                                {s.reps ?? "—"} reps
-                              </AppText>
-                              <AppText style={styles.setInfo}>
-                                {weight} kg
-                              </AppText>
-                              {s.notes ? (
-                                <AppText style={styles.notes}>
-                                  {s.notes}
+                      {/* séries e reps */}
+                      <View style={styles.setsContainer}>
+                        {arr
+                          .slice()
+                          .sort((a, b) => a.id.localeCompare(b.id))
+                          .map((s: any, index: number) => {
+                            const weight = toNumber(s.weight);
+                            weight % 1 === 0
+                              ? weight.toString()
+                              : weight.toFixed(2).replace(/\.?0+$/, "");
+                            return (
+                              <View key={s.id} style={styles.setItem}>
+                                <AppText style={[styles.setInfo, styles.set]}>
+                                  Série {index + 1}
                                 </AppText>
-                              ) : null}
-                            </View>
-                          );
-                        })}
+                                <AppText style={styles.setInfo}>
+                                  {s.reps ?? "—"} reps
+                                </AppText>
+                                <AppText style={styles.setInfo}>
+                                  {weight} kg
+                                </AppText>
+                                {s.notes ? (
+                                  <AppText style={styles.notes}>
+                                    {s.notes}
+                                  </AppText>
+                                ) : null}
+                              </View>
+                            );
+                          })}
+                      </View>
                     </View>
                   </View>
                 );
