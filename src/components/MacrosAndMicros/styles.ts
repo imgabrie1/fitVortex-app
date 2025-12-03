@@ -22,6 +22,11 @@ export const styles = StyleSheet.create({
   blockSelected: {
     backgroundColor: themas.Colors.primary,
   },
+
+  textSelected: {
+    color: themas.Colors.text
+  },
+
   name: {
     fontSize: 20,
     fontWeight: 700

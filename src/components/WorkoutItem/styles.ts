@@ -1,7 +1,9 @@
 import { themas } from "@/global/themes";
 import { StyleSheet, Dimensions } from "react-native";
 
-const { width, height } = Dimensions.get("window")
+const { width, height } = Dimensions.get("window");
+
+const padding_left = 10
 
 export const styles = StyleSheet.create({
   repsWeightInfo: {
@@ -13,9 +15,9 @@ export const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 20,
-    gap: 10,
     marginTop: 10,
     marginBottom: 5,
+    overflow: "visible",
   },
 
   name: {
@@ -24,7 +26,7 @@ export const styles = StyleSheet.create({
   },
 
   info: {
-    fontSize: 15,
+    fontSize: 12,
     fontFamily: "GeologicaBold",
     color: themas.Colors.lightGray,
   },
@@ -32,7 +34,6 @@ export const styles = StyleSheet.create({
   infoWorkoutWrap: {
     paddingBottom: 15,
     borderBottomColor: themas.Colors.gray,
-    borderBottomWidth: 0.5,
     gap: 5,
   },
 
@@ -43,9 +44,9 @@ export const styles = StyleSheet.create({
   },
 
   exerciseImage: {
-    width: "100%",
-    height: 150,
-    borderRadius: 10,
+    width: 80,
+    height: 80,
+    borderRadius: 6,
     backgroundColor: themas.Colors.text,
   },
 
@@ -66,37 +67,33 @@ export const styles = StyleSheet.create({
   },
 
   exercisesContainer: {
-    flexDirection: "row",
+    flexDirection: "column",
     flexWrap: "wrap",
-    justifyContent: "space-between", // Alterado para space-between
-    marginTop: 8, // Reduzido de 12 para 8
+    justifyContent: "space-between",
+    marginTop: 12,
   },
 
   exerciseItem: {
-    width: width / 2.8,
-    alignItems: "center",
-    marginBottom: 12, // Adicionado espaçamento na parte inferior
+    flexDirection: "row",
+    width: "100%",
+    marginBottom: 20,
   },
 
   exerciseName: {
     fontSize: 14,
     fontFamily: "GeologicaBold",
-    textAlign: "center",
-    marginTop: 8,
-    marginBottom: 8,
-    height: height / 18,
+    paddingLeft: padding_left
   },
 
   setsContainer: {
     flexDirection: "row",
     justifyContent: "flex-start",
     flexWrap: "wrap",
-    width: width / 2.5
+    width: width / 2.5,
   },
 
   setItem: {
-    padding: 6,
-    alignItems: "center",
+  paddingLeft: padding_left
   },
 
   setInfo: {
@@ -118,4 +115,24 @@ export const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 2,
   },
+
+  setsWrapp: {
+    marginTop: 8,
+    backgroundColor: themas.Colors.blocks,
+    width: width,
+    marginLeft: -14,
+    position: "relative",
+    paddingHorizontal: 14
+  },
+  setsBorder: {
+    paddingTop: 10,
+    borderTopWidth: 0.5,
+    borderTopColor: themas.Colors.gray
+  },
+  teste: {
+    // backgroundColor: "red",
+    width: "75%",
+    flexDirection: "column",
+    justifyContent: "space-between"
+  }
 });

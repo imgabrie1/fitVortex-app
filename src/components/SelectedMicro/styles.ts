@@ -20,14 +20,16 @@ export const styles = StyleSheet.create({
     paddingTop: 15,
   },
 
-  teste: {
+  backAndTitleWrapp: {
     paddingLeft: 10,
   },
 
   infoHeader: {
-    fontFamily: "GeologicaBold",
     fontSize: 16,
+    fontWeight: 700,
+    fontFamily: "GeologicaBold",
     color: themas.Colors.text,
+    paddingBottom: 5
   },
   blocks: {
     backgroundColor: themas.Colors.blocks,
@@ -43,13 +45,7 @@ export const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: themas.Colors.secondary,
     borderRadius: 8,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 14,
-    paddingVertical: 20,
-    gap: 1,
-    marginTop: 10,
-    marginBottom: 5,
+    padding: 10,
   },
   name: {
     fontSize: 20,
@@ -58,7 +54,6 @@ export const styles = StyleSheet.create({
 
   nameAndFilter: {
     flexDirection: "row",
-    // backgroundColor: "red",
     alignItems: "flex-end",
     justifyContent: "space-between",
   },
@@ -153,5 +148,13 @@ export const styles = StyleSheet.create({
     shadowColor: "#888888ff",
     shadowOpacity: 0.3,
     shadowRadius: 4,
+  },
+
+  teste: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    paddingHorizontal: 10,
+    // marginBottom: 10,
   },
 });

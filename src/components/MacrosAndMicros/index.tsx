@@ -76,15 +76,14 @@ const MacrosAndMicros = () => {
 
   const loadMacros = async () => {
     if (user) {
-      setLoading(true)
+      setLoading(true);
       try {
         const data: MacroCycle[] = await getAllMacroCycles();
         setMacros(data);
       } catch (error) {
         console.error("Erro ao buscar Macro Ciclos:", error);
-      } finally{
-      setLoading(false)
-
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -95,7 +94,7 @@ const MacrosAndMicros = () => {
 
   const loadMicros = async () => {
     if (selectedMacro) {
-      setLoading(true)
+      setLoading(true);
       try {
         const data = await getMacroCycleByID(selectedMacro.id);
         const extractedMicros = (data.items ?? []).map(
@@ -105,7 +104,7 @@ const MacrosAndMicros = () => {
       } catch (error) {
         console.error("Erro ao buscar Micro Ciclos:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
   };
@@ -450,74 +449,90 @@ const MacrosAndMicros = () => {
             />
 
             {micros.length > 0 ? (
-              micros.map((micro) => (
-                <View key={micro.id} style={{ position: "relative" }}>
-                  <TouchableOpacity
-                    style={styles.blocks}
-                    onPress={() => {
-                      setSelectedMicroId(micro.id);
-                      setStage(3);
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    <View style={styles.nameAndMenuWrap}>
-                      <AppText style={styles.name}>
-                        {micro.microCycleName.toUpperCase()}
-                      </AppText>
+              micros.map((micro) => {
+                const isCompleted =
+                  micro.cycleItems.length === micro.trainingDays &&
+                  micro.cycleItems.every(
+                    (item) => item.sets && item.sets.length > 0
+                  );
 
-                      <TouchableOpacity
-                        onPress={(e) => {
-                          e.stopPropagation();
-                          const { pageX, pageY } = e.nativeEvent;
-                          setMenuOrigin({ x: pageX, y: pageY });
-                          setMenuVisible((prev) =>
-                            prev === micro.id ? null : micro.id
-                          );
-                        }}
+                return (
+                  <View key={micro.id} style={{ position: "relative" }}>
+                    <TouchableOpacity
+                      style={[
+                        styles.blocks,
+                        isCompleted && styles.blockSelected,
+                      ]}
+                      onPress={() => {
+                        setSelectedMicroId(micro.id);
+                        setStage(3);
+                      }}
+                      activeOpacity={0.8}
+                    >
+                      <View style={styles.nameAndMenuWrap}>
+                        <AppText style={styles.name}>
+                          {micro.microCycleName.toUpperCase()}
+                        </AppText>
+
+                        <TouchableOpacity
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            const { pageX, pageY } = e.nativeEvent;
+                            setMenuOrigin({ x: pageX, y: pageY });
+                            setMenuVisible((prev) =>
+                              prev === micro.id ? null : micro.id
+                            );
+                          }}
+                        >
+                          <MaterialIcons
+                            name="menu"
+                            size={18}
+                            color={themas.Colors.text}
+                          />
+                        </TouchableOpacity>
+                      </View>
+
+                      {micro.trainingDays > micro.cycleItems.length ? (
+                        <AppText style={styles.info}>
+                          Crie mais{" "}
+                          {micro.trainingDays - micro.cycleItems.length} Treinos
+                        </AppText>
+                      ) : null}
+
+                      <AppText
+                        style={[
+                          styles.info,
+                          isCompleted && styles.textSelected,
+                        ]}
                       >
-                        <MaterialIcons
-                          name="menu"
-                          size={18}
-                          color={themas.Colors.text}
-                        />
-                      </TouchableOpacity>
-                    </View>
-
-                    {micro.trainingDays > micro.cycleItems.length ? (
-                      <AppText style={styles.info}>
-                        Crie mais {micro.trainingDays - micro.cycleItems.length}{" "}
-                        Treinos
+                        TREINOS: {micro.cycleItems?.length || 0}
                       </AppText>
-                    ) : null}
+                    </TouchableOpacity>
 
-                    <AppText style={styles.info}>
-                      TREINOS: {micro.cycleItems?.length || 0}
-                    </AppText>
-                  </TouchableOpacity>
-
-                  <AnimatedMenu
-                    visible={menuVisible === micro.id}
-                    origin={menuOrigin}
-                    style={styles.editAndDeleteWrap}
-                    onEdit={() => {
-                      setEditingCycle({
-                        id: micro.id,
-                        type: "micro",
-                        data: {
-                          microCycleName: micro.microCycleName,
-                          trainingDays: micro.trainingDays,
-                        },
-                      });
-                      setCycleModalVisible(true);
-                      setMenuVisible(null);
-                    }}
-                    onDelete={() => {
-                      setItemToDelete({ id: micro.id, type: "micro" });
-                      setDeleteCycleAlertVisible(true);
-                    }}
-                  />
-                </View>
-              ))
+                    <AnimatedMenu
+                      visible={menuVisible === micro.id}
+                      origin={menuOrigin}
+                      style={styles.editAndDeleteWrap}
+                      onEdit={() => {
+                        setEditingCycle({
+                          id: micro.id,
+                          type: "micro",
+                          data: {
+                            microCycleName: micro.microCycleName,
+                            trainingDays: micro.trainingDays,
+                          },
+                        });
+                        setCycleModalVisible(true);
+                        setMenuVisible(null);
+                      }}
+                      onDelete={() => {
+                        setItemToDelete({ id: micro.id, type: "micro" });
+                        setDeleteCycleAlertVisible(true);
+                      }}
+                    />
+                  </View>
+                );
+              })
             ) : (
               <View
                 style={{
