@@ -531,11 +531,6 @@ const SelectedMicro = ({
     }
   };
 
-  const totalSets = workouts.reduce((acc, ci) => {
-    if (Array.isArray(ci.sets)) return acc + ci.sets.length;
-    return acc;
-  }, 0);
-
   const handleDeleteWorkout = useCallback(async (ci: any) => {
     try {
       console.log("Excluir treino:", ci.workout.name);
@@ -596,6 +591,10 @@ const SelectedMicro = ({
     ]
   );
 
+  const workoutsDoneCount = workouts.filter(
+    (workout) => workout.sets && workout.sets.length > 0
+  ).length;
+
   // ==================== RENDERIZAÇÃO ====================
 
   if (loading) {
@@ -628,21 +627,16 @@ const SelectedMicro = ({
               initialNumToRender={3}
               removeClippedSubviews={true}
               ListHeaderComponent={
-                <>
+                <View style={styles.teste}>
                   <BackAndTitle onBack={onBack} title={micro.microCycleName} />
 
                   {/* info treino */}
                   <View style={styles.blockHeader}>
                     <AppText style={styles.infoHeader}>
-                      Dias de treino: {micro.trainingDays ?? "—"}
+                      Treinos Realizados: {`${workoutsDoneCount}/${micro.trainingDays}`}
                     </AppText>
-                    {micro.volumes ? (
-                      <AppText style={styles.infoHeader}>
-                        Séries por Micro: {totalSets}
-                      </AppText>
-                    ) : null}
                   </View>
-                </>
+                </View>
               }
             />
 
@@ -660,7 +654,7 @@ const SelectedMicro = ({
               >
                 <View style={styles.containerModal}>
                   <ScrollView>
-                    <View style={styles.teste}>
+                    <View style={styles.backAndTitleWrapp}>
                       {/* Mostra "(Editando)" quando estiver no modo edição */}
                       <BackAndTitle
                         title={`${selectedWorkoutName ?? "Treino"} ${

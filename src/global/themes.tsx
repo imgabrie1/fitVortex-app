@@ -14,6 +14,7 @@ export const themas = {
     noSelectColor: "#49454f",
     blocks: "#191A1C",
     alternativeBlocks: "#202020ff",
+    green: "#00a81c"
 
   },
 };
