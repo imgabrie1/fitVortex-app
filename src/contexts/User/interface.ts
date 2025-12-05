@@ -245,4 +245,9 @@ export type UserContextData = {
   ) => Promise<any>;
   ajdustVolume: (macroID: string, payload: newMacroWithAI) => Promise<any>;
   editCycles: (cycle: string, cycleID: string, payload: any) => Promise<any>;
+  skipWorkout: (
+    microID: string,
+    workoutID: string,
+    workoutData: any
+  ) => Promise<any>;
 };

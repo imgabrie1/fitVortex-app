@@ -129,10 +129,13 @@ export const styles = StyleSheet.create({
     borderTopWidth: 0.5,
     borderTopColor: themas.Colors.gray
   },
-  teste: {
+  infoWorkoutWrapp: {
     // backgroundColor: "red",
     width: "75%",
     flexDirection: "column",
     justifyContent: "space-between"
+  },
+  teste: {
+    gap: 10
   }
 });

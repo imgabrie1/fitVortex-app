@@ -560,6 +560,38 @@ export const AuthProvider = ({ children }: Props) => {
     }
   };
 
+  const skipWorkout = async (
+    microID: string,
+    workoutID: string,
+    workoutData: any,
+  ): Promise<any> => {
+    assertUser();
+    setLoadingForm(true);
+    try {
+      const { data } = await api.patch(
+        `microcycle/${microID}/workouts/${workoutID}/skip`,
+        workoutData
+      );
+
+      await refreshWorkoutsData();
+
+      return data;
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      let errorData = currentError?.response?.data;
+
+      if (typeof errorData === "object" && errorData !== null) {
+        errorData = JSON.stringify(errorData);
+      }
+
+      const msg =
+        errorData || err?.message || "Erro ao salvar o treino. Desculpa :(";
+      throw new Error(String(msg));
+    } finally {
+      setLoadingForm(false);
+    }
+  };
+
   return (
     <UserContext.Provider
       value={{
@@ -589,6 +621,7 @@ export const AuthProvider = ({ children }: Props) => {
         updateWorkoutOrder,
         ajdustVolume,
         editCycles,
+        skipWorkout
       }}
     >
       {children}

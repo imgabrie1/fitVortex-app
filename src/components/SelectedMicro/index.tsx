@@ -52,6 +52,7 @@ const SelectedMicro = ({
     addExerciseInWorkout,
     getAllExercise,
     updateWorkoutOrder,
+    skipWorkout,
   } = useContext(UserContext);
 
   const [micro, setMicro] = useState<MicroCycle | null>(null);
@@ -565,6 +566,16 @@ const SelectedMicro = ({
     setAddExerciseModalVisible(true);
   }, []);
 
+  const handleSkipWorkout = useCallback(async (workout: any) => {
+    try {
+      await skipWorkout(microId, workout.workout.id, {});
+      loadMicro();
+    } catch (error) {
+      console.error("Erro ao pular treino:", error);
+      Alert.alert("Erro", "Não foi possível pular o treino.");
+    }
+  }, [microId, skipWorkout, loadMicro]);
+
   const renderWorkoutItem = useCallback(
     ({ item, drag, isActive }: RenderItemParams<any>) => (
       <WorkoutItem
@@ -578,6 +589,7 @@ const SelectedMicro = ({
         onEditWorkout={handleEditWorkout}
         onDeleteWorkout={handleDeleteWorkout}
         onRegisterWorkout={handleRegisterWorkout}
+        onSkipWorkout={handleSkipWorkout}
       />
     ),
     [
@@ -588,6 +600,7 @@ const SelectedMicro = ({
       handleEditWorkout,
       handleDeleteWorkout,
       handleRegisterWorkout,
+      handleSkipWorkout,
     ]
   );
 

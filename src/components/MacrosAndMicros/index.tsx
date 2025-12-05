@@ -65,6 +65,9 @@ const MacrosAndMicros = () => {
     id: string;
     type: "macro" | "micro";
   } | null>(null);
+  const [cycleNameToDelete, setCycleNameToDelete] = useState<{
+    cycleName: string;
+  } | null>(null);
   const [alertCreateWorkout, setAlertCreateWorkout] = useState(false);
   const [isCycleModalVisible, setCycleModalVisible] = useState(false);
   const [editingCycle, setEditingCycle] = useState<{
@@ -179,20 +182,32 @@ const MacrosAndMicros = () => {
 
   const handleDelete = async () => {
     if (!itemToDelete) return;
+    if (!cycleNameToDelete) return;
+
     try {
-      await deleteCycles(
-        itemToDelete.type === "macro" ? "macrocycle" : "microcycle",
-        itemToDelete.id
-      );
       if (itemToDelete.type === "macro") {
+        try {
+          await deleteCycles("macrocycle", itemToDelete.id);
+        } catch (error) {
+          await deleteCycles("macrocycle", itemToDelete.id);
+        }
         await loadMacros();
       } else {
+        await deleteCycles("microcycle", itemToDelete.id);
         await loadMicros();
       }
     } catch (error) {
-      console.error("Erro ao deletar ciclo:", JSON.stringify(error, null, 2));
+      console.error(
+        "Falha ao deletar o ciclo após duas tentativas:",
+        JSON.stringify(error, null, 2)
+      );
+      Alert.alert(
+        "Erro ao Deletar",
+        "Não foi possível deletar o ciclo. Verifique o console para mais detalhes."
+      );
     } finally {
       setItemToDelete(null);
+      setCycleNameToDelete(null);
       setDeleteCycleAlertVisible(false);
       setMenuVisible(null);
     }
@@ -413,6 +428,9 @@ const MacrosAndMicros = () => {
                       }}
                       onDelete={() => {
                         setItemToDelete({ id: macro.id, type: "macro" });
+                        setCycleNameToDelete({
+                          cycleName: macro.macroCycleName,
+                        });
                         setDeleteCycleAlertVisible(true);
                       }}
                     />
@@ -527,6 +545,9 @@ const MacrosAndMicros = () => {
                       }}
                       onDelete={() => {
                         setItemToDelete({ id: micro.id, type: "micro" });
+                        setCycleNameToDelete({
+                          cycleName: micro.microCycleName,
+                        });
                         setDeleteCycleAlertVisible(true);
                       }}
                     />
@@ -674,11 +695,12 @@ const MacrosAndMicros = () => {
             onClose={() => {
               setDeleteCycleAlertVisible(false);
               setItemToDelete(null);
+              setCycleNameToDelete(null);
               setMenuVisible(null);
             }}
             title={`Excluir ${
-              itemToDelete?.type === "macro" ? "Macro" : "Micro"
-            } Ciclo?`}
+              itemToDelete?.type === "macro" ? "Macro:" : "Micro:"
+            } ${cycleNameToDelete?.cycleName}?`}
             message={`Você tem certeza que deseja excluir este ${
               itemToDelete?.type === "macro" ? "macro" : "micro"
             } ciclo?`}

@@ -1,11 +1,12 @@
 import { themas } from "@/global/themes";
 import { MaterialIcons } from "@expo/vector-icons";
-import { memo, useState } from "react";
+import { memo, useContext, useState } from "react";
 import { Image, TouchableOpacity, View } from "react-native";
 import AnimatedMenu from "../AnimatedMenu";
 import AppText from "../AppText";
 import { styles } from "./styles";
 import { Button } from "../Button";
+import { UserContext } from "@/contexts/User/UserContext";
 
 interface WorkoutItemProps {
   item: any;
@@ -18,6 +19,7 @@ interface WorkoutItemProps {
   onEditWorkout: (item: any) => void;
   onDeleteWorkout: (item: any) => void;
   onRegisterWorkout: (workout: any) => void;
+  onSkipWorkout: (workout: any) => void;
 }
 
 const WorkoutItem = memo(
@@ -32,7 +34,9 @@ const WorkoutItem = memo(
     onEditWorkout,
     onDeleteWorkout,
     onRegisterWorkout,
+    onSkipWorkout,
   }: WorkoutItemProps) => {
+    const { loadingForm } = useContext(UserContext);
     const [isExpanded, setIsExpanded] = useState(false);
 
     const workoutName = item.workout.name;
@@ -137,7 +141,7 @@ const WorkoutItem = memo(
                       />
                     )}
 
-                    <View style={styles.teste}>
+                    <View style={styles.infoWorkoutWrapp}>
                       {/* nome do exercício */}
                       <AppText style={styles.exerciseName}>{exName}</AppText>
 
@@ -187,10 +191,17 @@ const WorkoutItem = memo(
                 onPress={() => onAddExercise(workoutName)}
               />
             ) : (
-              <Button
-                text="Registrar Treino"
-                onPress={() => onRegisterWorkout(item)}
-              />
+              <View style={styles.teste}>
+                <Button
+                  text="Registrar Treino"
+                  onPress={() => onRegisterWorkout(item)}
+                />
+                <Button
+                  text="Pular Treino"
+                  onPress={() => onSkipWorkout(item)}
+                  loading={loadingForm}
+                />
+              </View>
             )}
           </View>
         )}
