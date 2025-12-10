@@ -563,7 +563,7 @@ export const AuthProvider = ({ children }: Props) => {
   const skipWorkout = async (
     microID: string,
     workoutID: string,
-    workoutData: any,
+    workoutData: any
   ): Promise<any> => {
     assertUser();
     setLoadingForm(true);
@@ -574,7 +574,6 @@ export const AuthProvider = ({ children }: Props) => {
       );
 
       await refreshWorkoutsData();
-
       return data;
     } catch (err: any) {
       const currentError = err as AxiosError;
@@ -621,7 +620,7 @@ export const AuthProvider = ({ children }: Props) => {
         updateWorkoutOrder,
         ajdustVolume,
         editCycles,
-        skipWorkout
+        skipWorkout,
       }}
     >
       {children}

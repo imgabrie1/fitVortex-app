@@ -34,7 +34,17 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
       if (user) {
         const data = await getAllWorkouts(page, 10);
         if (data && data.data && data.data.length > 0) {
-          setWorkouts((prevWorkouts) => [...prevWorkouts, ...data.data]);
+          setWorkouts((prevWorkouts) => {
+            const newWorkouts = data.data.filter(
+              (newWorkout) =>
+                !prevWorkouts.some(
+                  (prevWorkout) =>
+                    prevWorkout.id === newWorkout.id &&
+                    prevWorkout.createdAt === newWorkout.createdAt
+                )
+            );
+            return [...prevWorkouts, ...newWorkouts];
+          });
           setPage((prevPage) => prevPage + 1);
           if (data.page >= data.lastPage) {
             setHasMore(false);
@@ -174,7 +184,7 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
           ) > 0
       )}
       renderItem={renderItem}
-      keyExtractor={(item, index) => `${item.id}-${index}`}
+      keyExtractor={(item) => `${item.id}-${item.createdAt}`}
       style={styles.container}
       contentContainerStyle={[
         { paddingBottom: 20, paddingTop: 20 },
