@@ -52,6 +52,7 @@ const SelectedMicro = ({
     addExerciseInWorkout,
     getAllExercise,
     updateWorkoutOrder,
+    skipWorkout,
   } = useContext(UserContext);
 
   const [micro, setMicro] = useState<MicroCycle | null>(null);
@@ -323,28 +324,10 @@ const SelectedMicro = ({
     }
   };
 
-  const normalizeCycleItems = useCallback((micro: any) => {
+  const normalizeCycleItems = useCallback((micro: MicroCycle) => {
     if (!micro?.cycleItems || !Array.isArray(micro.cycleItems)) return [];
-    const map = new Map<string, any>();
 
-    micro.cycleItems.forEach((ci: any) => {
-      if (Array.isArray(ci.sets) && ci.sets.length > 0) {
-        if (!map.has(ci.id)) map.set(ci.id, ci);
-      }
-
-      const inner = ci.microCycle?.cycleItems;
-      if (Array.isArray(inner)) {
-        inner.forEach((innerCi: any) => {
-          if (!map.has(innerCi.id)) map.set(innerCi.id, innerCi);
-        });
-      } else {
-        if (!map.has(ci.id) && (Array.isArray(ci.sets) || ci.workout)) {
-          map.set(ci.id, ci);
-        }
-      }
-    });
-
-    return map.size > 0 ? Array.from(map.values()) : micro.cycleItems;
+    return micro.cycleItems;
   }, []);
 
   const loadMicro = useCallback(async () => {
@@ -362,11 +345,11 @@ const SelectedMicro = ({
     } finally {
       setLoading(false);
     }
-  }, [microId]);
+  }, [microId, normalizeCycleItems]);
 
   useEffect(() => {
     loadMicro();
-  }, [microId]);
+  }, [microId, loadMicro]);
 
   const handleFormSubmit = useCallback(() => {
     if (registeringWorkout) {
@@ -389,7 +372,7 @@ const SelectedMicro = ({
     setSelectedWorkoutImage(null);
     setIsEditMode(false);
     loadMicro();
-  }, [registeringWorkout, microId]);
+  }, [registeringWorkout, microId, getFormStorageKey, loadMicro]);
 
   const handleDragEnd = async ({ data }: { data: any[] }) => {
     setWorkouts(data);
@@ -411,7 +394,13 @@ const SelectedMicro = ({
         const data: any = await getAllExercise(pageNumber, limit);
 
         if (data?.data?.length) {
-          setExercises((prev) => [...prev, ...data.data]);
+          setExercises((prev) => {
+            const newExercises = data.data.filter(
+              (newEx: Exercise) =>
+                !prev.some((existingEx) => existingEx.id === newEx.id)
+            );
+            return [...prev, ...newExercises];
+          });
           setPage(pageNumber + 1);
         } else {
           setHasMore(false);
@@ -429,7 +418,7 @@ const SelectedMicro = ({
         setLoadingMore(false);
       }
     },
-    [loadingMore, hasMore]
+    [loadingMore, hasMore, getAllExercise]
   );
 
   const handleLoadMore = useCallback(() => {
@@ -440,7 +429,7 @@ const SelectedMicro = ({
 
   useEffect(() => {
     loadExercises(1);
-  }, []);
+  }, [loadExercises]);
 
   const handleSubmitAddExercise = async (newExercise: any) => {
     if (!targetWorkoutName) {
@@ -565,9 +554,23 @@ const SelectedMicro = ({
     setAddExerciseModalVisible(true);
   }, []);
 
+  const handleSkipWorkout = useCallback(
+    async (workout: any) => {
+      try {
+        await skipWorkout(microId, workout.workout.id, {});
+        loadMicro();
+      } catch (error) {
+        console.error("Erro ao pular treino:", error);
+        Alert.alert("Erro", "Não foi possível pular o treino.");
+      }
+    },
+    [microId, skipWorkout, loadMicro]
+  );
+
   const renderWorkoutItem = useCallback(
     ({ item, drag, isActive }: RenderItemParams<any>) => (
       <WorkoutItem
+        microName={micro?.microCycleName}
         item={item}
         drag={drag}
         isActive={isActive}
@@ -578,6 +581,7 @@ const SelectedMicro = ({
         onEditWorkout={handleEditWorkout}
         onDeleteWorkout={handleDeleteWorkout}
         onRegisterWorkout={handleRegisterWorkout}
+        onSkipWorkout={handleSkipWorkout}
       />
     ),
     [
@@ -588,6 +592,7 @@ const SelectedMicro = ({
       handleEditWorkout,
       handleDeleteWorkout,
       handleRegisterWorkout,
+      handleSkipWorkout,
     ]
   );
 
@@ -633,7 +638,8 @@ const SelectedMicro = ({
                   {/* info treino */}
                   <View style={styles.blockHeader}>
                     <AppText style={styles.infoHeader}>
-                      Treinos Realizados: {`${workoutsDoneCount}/${micro.trainingDays}`}
+                      Treinos Realizados:{" "}
+                      {`${workoutsDoneCount}/${micro.trainingDays}`}
                     </AppText>
                   </View>
                 </View>

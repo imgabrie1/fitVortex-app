@@ -3,7 +3,7 @@ import { StyleSheet, Dimensions } from "react-native";
 
 const { width, height } = Dimensions.get("window");
 
-const padding_left = 10
+const padding_left = 10;
 
 export const styles = StyleSheet.create({
   repsWeightInfo: {
@@ -19,7 +19,6 @@ export const styles = StyleSheet.create({
     marginBottom: 5,
     overflow: "visible",
   },
-
   name: {
     fontSize: 20,
     fontFamily: "GeologicaBold",
@@ -82,7 +81,7 @@ export const styles = StyleSheet.create({
   exerciseName: {
     fontSize: 14,
     fontFamily: "GeologicaBold",
-    paddingLeft: padding_left
+    paddingLeft: padding_left,
   },
 
   setsContainer: {
@@ -93,7 +92,7 @@ export const styles = StyleSheet.create({
   },
 
   setItem: {
-  paddingLeft: padding_left
+    paddingLeft: padding_left,
   },
 
   setInfo: {
@@ -122,17 +121,20 @@ export const styles = StyleSheet.create({
     width: width,
     marginLeft: -14,
     position: "relative",
-    paddingHorizontal: 14
+    paddingHorizontal: 14,
   },
   setsBorder: {
     paddingTop: 10,
     borderTopWidth: 0.5,
-    borderTopColor: themas.Colors.gray
+    borderTopColor: themas.Colors.gray,
   },
-  teste: {
+  infoWorkoutWrapp: {
     // backgroundColor: "red",
     width: "75%",
     flexDirection: "column",
-    justifyContent: "space-between"
-  }
+    justifyContent: "space-between",
+  },
+  teste: {
+    gap: 10,
+  },
 });

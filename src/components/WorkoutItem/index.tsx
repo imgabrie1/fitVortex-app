@@ -1,13 +1,15 @@
 import { themas } from "@/global/themes";
 import { MaterialIcons } from "@expo/vector-icons";
-import { memo, useState } from "react";
+import { memo, useContext, useState } from "react";
 import { Image, TouchableOpacity, View } from "react-native";
 import AnimatedMenu from "../AnimatedMenu";
 import AppText from "../AppText";
 import { styles } from "./styles";
 import { Button } from "../Button";
+import { UserContext } from "@/contexts/User/UserContext";
 
 interface WorkoutItemProps {
+  microName: string | undefined
   item: any;
   drag: () => void;
   isActive: boolean;
@@ -18,10 +20,12 @@ interface WorkoutItemProps {
   onEditWorkout: (item: any) => void;
   onDeleteWorkout: (item: any) => void;
   onRegisterWorkout: (workout: any) => void;
+  onSkipWorkout: (workout: any) => void;
 }
 
 const WorkoutItem = memo(
   ({
+    microName,
     item,
     drag,
     isActive,
@@ -32,12 +36,15 @@ const WorkoutItem = memo(
     onEditWorkout,
     onDeleteWorkout,
     onRegisterWorkout,
+    onSkipWorkout,
   }: WorkoutItemProps) => {
+    const { loadingForm } = useContext(UserContext);
     const [isExpanded, setIsExpanded] = useState(false);
 
     const workoutName = item.workout.name;
     const workoutExercises = item.workout?.workoutExercises ?? [];
     const sets = Array.isArray(item.sets) ? item.sets : [];
+    const isSkipped = item.isSkipped;
     const hasSets = sets.length > 0;
 
     const openOptions = () => {
@@ -76,6 +83,16 @@ const WorkoutItem = memo(
       }
     );
 
+    const getBlockBackgroundColor = () => {
+      if (hasSets && !isSkipped) {
+        return themas.Colors.primary;
+      }
+      if (isSkipped) {
+        return themas.Colors.red;
+      }
+      return themas.Colors.blocks;
+    };
+
     return (
       <TouchableOpacity
         onLongPress={drag}
@@ -84,9 +101,7 @@ const WorkoutItem = memo(
           styles.blocks,
           {
             marginTop: 12,
-            backgroundColor: hasSets
-              ? themas.Colors.primary
-              : themas.Colors.blocks,
+            backgroundColor: getBlockBackgroundColor(),
           },
         ]}
       >
@@ -111,7 +126,7 @@ const WorkoutItem = memo(
           </AppText>
         </TouchableOpacity>
 
-        {isExpanded && hasSets && (
+        {isExpanded && hasSets && !isSkipped && (
           <View style={styles.setsWrapp}>
             <View style={styles.setsBorder}>
               <AppText style={[styles.info, { fontWeight: "600" }]}>
@@ -119,7 +134,7 @@ const WorkoutItem = memo(
               </AppText>
             </View>
 
-            {/* container principal dos exercícios em linha */}
+            {/* container principal dos exercícios */}
             <View style={styles.exercisesContainer}>
               {sortedSetsByExercise.map(([exId, arr]) => {
                 const exName = arr[0]?.exercise?.name ?? "Exercício";
@@ -137,7 +152,7 @@ const WorkoutItem = memo(
                       />
                     )}
 
-                    <View style={styles.teste}>
+                    <View style={styles.infoWorkoutWrapp}>
                       {/* nome do exercício */}
                       <AppText style={styles.exerciseName}>{exName}</AppText>
 
@@ -187,10 +202,17 @@ const WorkoutItem = memo(
                 onPress={() => onAddExercise(workoutName)}
               />
             ) : (
-              <Button
-                text="Registrar Treino"
-                onPress={() => onRegisterWorkout(item)}
-              />
+              <View style={styles.teste}>
+                <Button
+                  text="Registrar Treino"
+                  onPress={() => onRegisterWorkout(item)}
+                />
+                <Button
+                  text="Pular Treino"
+                  onPress={() => onSkipWorkout(item)}
+                  loading={loadingForm}
+                />
+              </View>
             )}
           </View>
         )}

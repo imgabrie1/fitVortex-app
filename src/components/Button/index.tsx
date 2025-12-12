@@ -16,7 +16,7 @@ type Props = {
   disabled?: boolean;
   styleButton?: StyleProp<ViewStyle>;
   fontSize?: number;
-  textColor?: string
+  textColor?: string;
 };
 
 export const Button = ({
@@ -26,7 +26,7 @@ export const Button = ({
   disabled,
   styleButton,
   fontSize,
-  textColor
+  textColor,
 }: Props) => {
   return (
     <TouchableOpacity
@@ -36,13 +36,15 @@ export const Button = ({
       disabled={disabled || loading}
     >
       {loading ? (
-        <ActivityIndicator color={themas.Colors.text} />
+        <ActivityIndicator size="large" color={themas.Colors.text} />
       ) : (
-        <Text style={[
-          style.textButton,
-          fontSize ? { fontSize } : {},
-          textColor ? { color: textColor } : {}
-          ]}>
+        <Text
+          style={[
+            style.textButton,
+            fontSize ? { fontSize } : {},
+            textColor ? { color: textColor } : {},
+          ]}
+        >
           {text}
         </Text>
       )}

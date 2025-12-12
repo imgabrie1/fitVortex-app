@@ -9,7 +9,7 @@ export const styles = StyleSheet.create({
     alignItems: "flex-start",
     gap: 15,
     justifyContent: "space-between",
-    paddingTop: 20,
+    paddingTop: 10,
     paddingLeft: 8,
   },
   name: {
