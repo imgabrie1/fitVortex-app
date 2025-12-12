@@ -65,6 +65,9 @@ const MacrosAndMicros = () => {
     id: string;
     type: "macro" | "micro";
   } | null>(null);
+  const [cycleNameToDelete, setCycleNameToDelete] = useState<{
+    cycleName: string;
+  } | null>(null);
   const [alertCreateWorkout, setAlertCreateWorkout] = useState(false);
   const [isCycleModalVisible, setCycleModalVisible] = useState(false);
   const [editingCycle, setEditingCycle] = useState<{
@@ -97,12 +100,23 @@ const MacrosAndMicros = () => {
       setLoading(true);
       try {
         const data = await getMacroCycleByID(selectedMacro.id);
-        const extractedMicros = (data.items ?? []).map(
-          (item: any) => item.microCycle
+        const extractedMicros = data.microCycles || [];
+
+        const getNumber = (name: string) => {
+          const match = name.match(/(\d+)$/);
+          return match ? parseInt(match[1], 10) : 0;
+        };
+
+        const sortedMicros = [...extractedMicros].sort(
+          (a, b) => getNumber(a.microCycleName) - getNumber(b.microCycleName)
         );
-        setMicros(extractedMicros);
+
+        setMicros(sortedMicros);
       } catch (error) {
-        console.error("Erro ao buscar Micro Ciclos:", error);
+        console.error(
+          "Erro ao buscar Micro Ciclos:",
+          JSON.stringify(error, null, 2)
+        );
       } finally {
         setLoading(false);
       }
@@ -179,20 +193,32 @@ const MacrosAndMicros = () => {
 
   const handleDelete = async () => {
     if (!itemToDelete) return;
+    if (!cycleNameToDelete) return;
+
     try {
-      await deleteCycles(
-        itemToDelete.type === "macro" ? "macrocycle" : "microcycle",
-        itemToDelete.id
-      );
       if (itemToDelete.type === "macro") {
+        try {
+          await deleteCycles("macrocycle", itemToDelete.id);
+        } catch (error) {
+          await deleteCycles("macrocycle", itemToDelete.id);
+        }
         await loadMacros();
       } else {
+        await deleteCycles("microcycle", itemToDelete.id);
         await loadMicros();
       }
     } catch (error) {
-      console.error("Erro ao deletar ciclo:", JSON.stringify(error, null, 2));
+      console.error(
+        "Falha ao deletar o ciclo após duas tentativas:",
+        JSON.stringify(error, null, 2)
+      );
+      Alert.alert(
+        "Erro ao Deletar",
+        "Não foi possível deletar o ciclo. Verifique o console para mais detalhes."
+      );
     } finally {
       setItemToDelete(null);
+      setCycleNameToDelete(null);
       setDeleteCycleAlertVisible(false);
       setMenuVisible(null);
     }
@@ -245,7 +271,7 @@ const MacrosAndMicros = () => {
   };
 
   const allMicroCycleIds = macros.flatMap((macro) =>
-    macro.items.map((item) => item.microCycle.id)
+    (macro.microCycles || []).map((micro) => micro.id)
   );
 
   const handleAdjustVolume = async (macroID: string, payload: any) => {
@@ -413,6 +439,9 @@ const MacrosAndMicros = () => {
                       }}
                       onDelete={() => {
                         setItemToDelete({ id: macro.id, type: "macro" });
+                        setCycleNameToDelete({
+                          cycleName: macro.macroCycleName,
+                        });
                         setDeleteCycleAlertVisible(true);
                       }}
                     />
@@ -451,8 +480,8 @@ const MacrosAndMicros = () => {
             {micros.length > 0 ? (
               micros.map((micro) => {
                 const isCompleted =
-                  micro.cycleItems.length === micro.trainingDays &&
-                  micro.cycleItems.every(
+                  (micro.cycleItems?.length || 0) === micro.trainingDays &&
+                  micro.cycleItems?.every(
                     (item) => item.sets && item.sets.length > 0
                   );
 
@@ -492,10 +521,11 @@ const MacrosAndMicros = () => {
                         </TouchableOpacity>
                       </View>
 
-                      {micro.trainingDays > micro.cycleItems.length ? (
+                      {micro.trainingDays > (micro.cycleItems?.length || 0) ? (
                         <AppText style={styles.info}>
                           Crie mais{" "}
-                          {micro.trainingDays - micro.cycleItems.length} Treinos
+                          {micro.trainingDays - (micro.cycleItems?.length || 0)}{" "}
+                          Treinos
                         </AppText>
                       ) : null}
 
@@ -527,6 +557,9 @@ const MacrosAndMicros = () => {
                       }}
                       onDelete={() => {
                         setItemToDelete({ id: micro.id, type: "micro" });
+                        setCycleNameToDelete({
+                          cycleName: micro.microCycleName,
+                        });
                         setDeleteCycleAlertVisible(true);
                       }}
                     />
@@ -674,11 +707,12 @@ const MacrosAndMicros = () => {
             onClose={() => {
               setDeleteCycleAlertVisible(false);
               setItemToDelete(null);
+              setCycleNameToDelete(null);
               setMenuVisible(null);
             }}
             title={`Excluir ${
-              itemToDelete?.type === "macro" ? "Macro" : "Micro"
-            } Ciclo?`}
+              itemToDelete?.type === "macro" ? "Macro:" : "Micro:"
+            } ${cycleNameToDelete?.cycleName}?`}
             message={`Você tem certeza que deseja excluir este ${
               itemToDelete?.type === "macro" ? "macro" : "micro"
             } ciclo?`}

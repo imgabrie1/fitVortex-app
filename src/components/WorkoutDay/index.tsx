@@ -16,7 +16,6 @@ interface WorkoutDayProps {
 }
 
 const WorkoutDay: React.FC<WorkoutDayProps> = ({
-  hasScrollView = true,
   contentContainerStyle,
   ListHeaderComponent = null,
 }) => {
@@ -34,7 +33,17 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
       if (user) {
         const data = await getAllWorkouts(page, 10);
         if (data && data.data && data.data.length > 0) {
-          setWorkouts((prevWorkouts) => [...prevWorkouts, ...data.data]);
+          setWorkouts((prevWorkouts) => {
+            const newWorkouts = data.data.filter(
+              (newWorkout) =>
+                !prevWorkouts.some(
+                  (prevWorkout) =>
+                    prevWorkout.id === newWorkout.id &&
+                    prevWorkout.createdAt === newWorkout.createdAt
+                )
+            );
+            return [...prevWorkouts, ...newWorkouts];
+          });
           setPage((prevPage) => prevPage + 1);
           if (data.page >= data.lastPage) {
             setHasMore(false);
@@ -91,6 +100,7 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
       <View style={styles.card}>
         <View style={styles.headerInfo}>
           <View style={styles.nameWhenWrap}>
+            {/* <AppText style={styles.nameWorkout}>{microName}</AppText> */}
             <AppText style={styles.nameWorkout}>{workout.name}</AppText>
             <AppText style={styles.dayText}>
               {formattedDate} às {formattedTime}
@@ -171,10 +181,10 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
           workout.workoutExercises.reduce(
             (total, exercise) => total + (exercise.sets?.length || 0),
             0
-          ) > 0
+          ) > 0 && !workout.isSkipped
       )}
       renderItem={renderItem}
-      keyExtractor={(item, index) => `${item.id}-${index}`}
+      keyExtractor={(item) => `${item.id}-${item.createdAt}`}
       style={styles.container}
       contentContainerStyle={[
         { paddingBottom: 20, paddingTop: 20 },
