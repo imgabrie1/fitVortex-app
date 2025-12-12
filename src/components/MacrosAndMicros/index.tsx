@@ -100,12 +100,23 @@ const MacrosAndMicros = () => {
       setLoading(true);
       try {
         const data = await getMacroCycleByID(selectedMacro.id);
-        const extractedMicros = (data.items ?? []).map(
-          (item: any) => item.microCycle
+        const extractedMicros = data.microCycles || [];
+
+        const getNumber = (name: string) => {
+          const match = name.match(/(\d+)$/);
+          return match ? parseInt(match[1], 10) : 0;
+        };
+
+        const sortedMicros = [...extractedMicros].sort(
+          (a, b) => getNumber(a.microCycleName) - getNumber(b.microCycleName)
         );
-        setMicros(extractedMicros);
+
+        setMicros(sortedMicros);
       } catch (error) {
-        console.error("Erro ao buscar Micro Ciclos:", error);
+        console.error(
+          "Erro ao buscar Micro Ciclos:",
+          JSON.stringify(error, null, 2)
+        );
       } finally {
         setLoading(false);
       }
@@ -260,7 +271,7 @@ const MacrosAndMicros = () => {
   };
 
   const allMicroCycleIds = macros.flatMap((macro) =>
-    macro.items.map((item) => item.microCycle.id)
+    (macro.microCycles || []).map((micro) => micro.id)
   );
 
   const handleAdjustVolume = async (macroID: string, payload: any) => {
@@ -469,8 +480,8 @@ const MacrosAndMicros = () => {
             {micros.length > 0 ? (
               micros.map((micro) => {
                 const isCompleted =
-                  micro.cycleItems.length === micro.trainingDays &&
-                  micro.cycleItems.every(
+                  (micro.cycleItems?.length || 0) === micro.trainingDays &&
+                  micro.cycleItems?.every(
                     (item) => item.sets && item.sets.length > 0
                   );
 
@@ -510,10 +521,11 @@ const MacrosAndMicros = () => {
                         </TouchableOpacity>
                       </View>
 
-                      {micro.trainingDays > micro.cycleItems.length ? (
+                      {micro.trainingDays > (micro.cycleItems?.length || 0) ? (
                         <AppText style={styles.info}>
                           Crie mais{" "}
-                          {micro.trainingDays - micro.cycleItems.length} Treinos
+                          {micro.trainingDays - (micro.cycleItems?.length || 0)}{" "}
+                          Treinos
                         </AppText>
                       ) : null}
 

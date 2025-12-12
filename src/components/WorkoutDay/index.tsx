@@ -16,7 +16,6 @@ interface WorkoutDayProps {
 }
 
 const WorkoutDay: React.FC<WorkoutDayProps> = ({
-  hasScrollView = true,
   contentContainerStyle,
   ListHeaderComponent = null,
 }) => {
@@ -101,6 +100,7 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
       <View style={styles.card}>
         <View style={styles.headerInfo}>
           <View style={styles.nameWhenWrap}>
+            {/* <AppText style={styles.nameWorkout}>{microName}</AppText> */}
             <AppText style={styles.nameWorkout}>{workout.name}</AppText>
             <AppText style={styles.dayText}>
               {formattedDate} às {formattedTime}
@@ -181,7 +181,7 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
           workout.workoutExercises.reduce(
             (total, exercise) => total + (exercise.sets?.length || 0),
             0
-          ) > 0
+          ) > 0 && !workout.isSkipped
       )}
       renderItem={renderItem}
       keyExtractor={(item) => `${item.id}-${item.createdAt}`}

@@ -71,8 +71,8 @@ export const AuthProvider = ({ children }: Props) => {
     try {
       const { data } = await api.get(`/workout/${userId}`);
       let totalExecutedSeries = 0;
-      data.data.forEach((microCycle: MicroCycle) => {
-        microCycle.cycleItems.forEach((cycleItem: CycleItems) => {
+      (data.data ?? []).forEach((microCycle: MicroCycle) => {
+        (microCycle.cycleItems ?? []).forEach((cycleItem: CycleItems) => {
           totalExecutedSeries += cycleItem.sets.length;
         });
       });
@@ -161,7 +161,7 @@ export const AuthProvider = ({ children }: Props) => {
     try {
       const { data } = await api.get("/macrocycle");
 
-      return data;
+      return data || [];
     } catch (err: any) {
       const currentError = err as AxiosError;
       if (currentError.response?.status === 404) {
@@ -180,14 +180,23 @@ export const AuthProvider = ({ children }: Props) => {
 
     try {
       const { data } = await api.get(`/macrocycle/${macroID}`);
-
       return data;
     } catch (err: any) {
       const currentError = err as AxiosError;
+      let errorData = currentError?.response?.data;
+      console.error(
+        "Erro completo ao carregar Macro Ciclo:",
+        JSON.stringify(currentError, null, 2)
+      );
+
+      if (typeof errorData === "object" && errorData !== null) {
+        errorData = JSON.stringify(errorData, null, 2);
+      }
       const msg =
-        currentError?.response?.data ||
-        err?.message ||
-        "Erro ao carregar Macro Ciclo";
+        errorData ||
+        currentError?.message ||
+        currentError?.name ||
+        "Erro desconhecido ao carregar Macro Ciclo";
       throw new Error(String(msg));
     }
   };
@@ -254,8 +263,12 @@ export const AuthProvider = ({ children }: Props) => {
       return data;
     } catch (err: any) {
       const currentError = err as AxiosError;
-      const msg =
-        currentError?.response?.data || err?.message || "Erro ao Editar Ciclo";
+      let errorData = currentError?.response?.data;
+
+      if (typeof errorData === "object" && errorData !== null) {
+        errorData = JSON.stringify(errorData, null, 2);
+      }
+      const msg = errorData || currentError?.message || "Erro ao Editar Ciclo";
       throw new Error(String(msg));
     } finally {
       setLoadingForm(false);
@@ -270,10 +283,13 @@ export const AuthProvider = ({ children }: Props) => {
       return data;
     } catch (err: any) {
       const currentError = err as AxiosError;
+      let errorData = currentError?.response?.data;
+
+      if (typeof errorData === "object" && errorData !== null) {
+        errorData = JSON.stringify(errorData, null, 2);
+      }
       const msg =
-        currentError?.response?.data ||
-        err?.message ||
-        "Erro ao carregar Micro Ciclo";
+        errorData || currentError?.message || "Erro ao carregar Micro Ciclo";
       throw new Error(String(msg));
     }
   };
@@ -298,7 +314,7 @@ export const AuthProvider = ({ children }: Props) => {
     }
   };
 
-  const createMicroCycle = async (payload: any): Promise<iCreateMicroCycle> => {
+  const createMicroCycle = async (payload: any): Promise<MicroCycle> => {
     assertUser();
     setLoadingForm(true);
     try {
@@ -323,7 +339,10 @@ export const AuthProvider = ({ children }: Props) => {
     assertUser();
     setLoadingForm(true);
     try {
-      await api.patch(`/macrocycle/${macroID}/micro/${microID}`);
+      const { data } = await api.patch(
+        `/macrocycle/${macroID}/micro/${microID}`
+      );
+      return data;
     } catch (err: any) {
       const currentError = err as AxiosError;
       const msg =
@@ -415,9 +434,9 @@ export const AuthProvider = ({ children }: Props) => {
 
       const { data } = await api.get(url);
 
-      const workouts: WorkoutWithSets[] = data.data.flatMap(
+      const workouts: WorkoutWithSets[] = (data.data ?? []).flatMap(
         (microCycle: MicroCycle) =>
-          microCycle.cycleItems.map((cycleItem: CycleItems) => {
+          (microCycle.cycleItems ?? []).map((cycleItem: CycleItems) => {
             const workout = cycleItem.workout;
 
             const normalizedSets = cycleItem.sets.map((set: Set) => ({
@@ -440,6 +459,7 @@ export const AuthProvider = ({ children }: Props) => {
             return {
               ...workout,
               createdAt: cycleItem.createdAt,
+              isSkipped: cycleItem.isSkipped,
               workoutExercises: workoutExercisesWithSets,
             };
           })

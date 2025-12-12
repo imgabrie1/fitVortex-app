@@ -9,6 +9,7 @@ import { Button } from "../Button";
 import { UserContext } from "@/contexts/User/UserContext";
 
 interface WorkoutItemProps {
+  microName: string | undefined
   item: any;
   drag: () => void;
   isActive: boolean;
@@ -24,6 +25,7 @@ interface WorkoutItemProps {
 
 const WorkoutItem = memo(
   ({
+    microName,
     item,
     drag,
     isActive,
@@ -42,6 +44,7 @@ const WorkoutItem = memo(
     const workoutName = item.workout.name;
     const workoutExercises = item.workout?.workoutExercises ?? [];
     const sets = Array.isArray(item.sets) ? item.sets : [];
+    const isSkipped = item.isSkipped;
     const hasSets = sets.length > 0;
 
     const openOptions = () => {
@@ -80,6 +83,16 @@ const WorkoutItem = memo(
       }
     );
 
+    const getBlockBackgroundColor = () => {
+      if (hasSets && !isSkipped) {
+        return themas.Colors.primary;
+      }
+      if (isSkipped) {
+        return themas.Colors.red;
+      }
+      return themas.Colors.blocks;
+    };
+
     return (
       <TouchableOpacity
         onLongPress={drag}
@@ -88,9 +101,7 @@ const WorkoutItem = memo(
           styles.blocks,
           {
             marginTop: 12,
-            backgroundColor: hasSets
-              ? themas.Colors.primary
-              : themas.Colors.blocks,
+            backgroundColor: getBlockBackgroundColor(),
           },
         ]}
       >
@@ -115,7 +126,7 @@ const WorkoutItem = memo(
           </AppText>
         </TouchableOpacity>
 
-        {isExpanded && hasSets && (
+        {isExpanded && hasSets && !isSkipped && (
           <View style={styles.setsWrapp}>
             <View style={styles.setsBorder}>
               <AppText style={[styles.info, { fontWeight: "600" }]}>
@@ -123,7 +134,7 @@ const WorkoutItem = memo(
               </AppText>
             </View>
 
-            {/* container principal dos exercícios em linha */}
+            {/* container principal dos exercícios */}
             <View style={styles.exercisesContainer}>
               {sortedSetsByExercise.map(([exId, arr]) => {
                 const exName = arr[0]?.exercise?.name ?? "Exercício";

@@ -44,22 +44,24 @@ export interface iUserContext {
 }
 
 export interface MicroCycle {
-  volumes: any;
-  notes: string;
   id: string;
   microCycleName: string;
   createdAt: string | Date;
   trainingDays: number;
-  cycleItems: CycleItems[];
+  user: iUser;
+  volumes?: any;
+  notes?: string;
+  cycleItems?: CycleItems[];
 }
 
 export interface CycleItems {
-  microCycle: any;
+  microCycle?: MicroCycle;
   id: string;
   position: number;
   createdAt: string | Date;
   workout: Workout;
   sets: Set[];
+  isSkipped: boolean
 }
 
 export interface Workout {
@@ -119,8 +121,10 @@ export interface VolumeEntry {
 
 export type WorkoutExerciseWithSets = WorkoutExercise & { sets?: Set[] };
 
-export type WorkoutWithSets = Omit<Workout, "workoutExercises"> & {
+export type WorkoutWithSets = Omit<Workout, "workoutExercises" | "createdAt"> & {
   workoutExercises: WorkoutExerciseWithSets[];
+  isSkipped: boolean;
+  createdAt: string | Date;
 };
 
 export interface MacroCycle {
@@ -129,20 +133,7 @@ export interface MacroCycle {
   startDate: string;
   endDate: string;
   microQuantity: number;
-  items: [
-    {
-      id: string;
-      createdAt: string | Date;
-      microCycle: MicroCycle;
-    }
-  ];
-}
-export interface MicroCycle {
-  id: string;
-  microCycleName: string;
-  createdAt: string | Date;
-  trainingDays: number;
-  user: iUser;
+  microCycles: MicroCycle[]; // Correctly defined as an array of MicroCycle
 }
 
 export interface SetInput {
@@ -168,7 +159,6 @@ export interface iCreateMacroCycle {
 }
 
 export interface iCreateMicroCycle {
-  id: string;
   microCycleName: string;
   trainingDays: number;
 }
@@ -215,8 +205,8 @@ export type UserContextData = {
   registerUser: (data: iDataRegister) => Promise<void>;
   getAllWorkouts: (page?: number, limit?: number) => Promise<WorkoutResponse>;
   getAllMacroCycles: () => Promise<MacroCycle[]>;
-  getAllMicroCycles: () => Promise<any>;
-  getMacroCycleByID: (macroID: string) => Promise<any>;
+  getAllMicroCycles: () => Promise<MicroCycle[]>;
+  getMacroCycleByID: (macroID: string) => Promise<MacroCycle>;
   getMicroCycleByID: (microID: string) => Promise<any>;
   saveWorkout: (
     microID: string,
@@ -225,7 +215,7 @@ export type UserContextData = {
     isEdit: boolean
   ) => Promise<any>;
   createMacroCycle: (payload: any) => Promise<iCreateMacroCycle>;
-  createMicroCycle: (payload: any) => Promise<iCreateMicroCycle>;
+  createMicroCycle: (payload: any) => Promise<MicroCycle>;
   addMicroInMacro: (macroID: string, microID: string) => Promise<any>;
   deleteCycles: (cycle: string, cycleID: string) => Promise<void>;
   getAllExercise: (

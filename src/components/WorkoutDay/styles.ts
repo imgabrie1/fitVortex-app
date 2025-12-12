@@ -26,7 +26,12 @@ export const styles = StyleSheet.create({
     width: "100%",
     marginBottom: 35,
   },
-
+  microName: {
+    fontFamily: "GeologicaRegular",
+    fontSize: 14,
+    color: themas.Colors.lightGray,
+    marginBottom: 2,
+  },
   nameWorkout: {
     fontFamily: "GeologicaBold",
     fontSize: 20,
