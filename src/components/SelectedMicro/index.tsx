@@ -570,7 +570,6 @@ const SelectedMicro = ({
   const renderWorkoutItem = useCallback(
     ({ item, drag, isActive }: RenderItemParams<any>) => (
       <WorkoutItem
-        microName={micro?.microCycleName}
         item={item}
         drag={drag}
         isActive={isActive}
