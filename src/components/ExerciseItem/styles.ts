@@ -2,7 +2,7 @@ import { themas } from "@/global/themes";
 import { StyleSheet, Dimensions } from "react-native";
 
 const { width } = Dimensions.get("window");
-const itemWidth = (width - 40) / 2;
+const itemWidth = (width - 10) / 2;
 
 export const styles = StyleSheet.create({
   addExerciseUl: {
@@ -13,6 +13,7 @@ export const styles = StyleSheet.create({
     paddingTop: 10,
     gap: 8,
     marginLeft: 5,
+    backgroundColor: "red"
   },
   imagemURl: {
     width: itemWidth - 20,
