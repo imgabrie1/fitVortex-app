@@ -9,7 +9,6 @@ import { Button } from "../Button";
 import { UserContext } from "@/contexts/User/UserContext";
 
 interface WorkoutItemProps {
-  microName: string | undefined
   item: any;
   drag: () => void;
   isActive: boolean;
@@ -25,7 +24,6 @@ interface WorkoutItemProps {
 
 const WorkoutItem = memo(
   ({
-    microName,
     item,
     drag,
     isActive,
