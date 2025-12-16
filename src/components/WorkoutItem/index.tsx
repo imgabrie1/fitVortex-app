@@ -137,6 +137,9 @@ const WorkoutItem = memo(
               {sortedSetsByExercise.map(([exId, arr]) => {
                 const exName = arr[0]?.exercise?.name ?? "Exercício";
                 const exImage = arr[0]?.exercise?.imageURL;
+                const workoutExerciseNotes = workoutExercises.find(
+                  (we: any) => we.exercise.id === exId
+                )?.notes;
 
                 return (
                   <View key={exId} style={styles.exerciseItem}>
@@ -153,6 +156,11 @@ const WorkoutItem = memo(
                     <View style={styles.infoWorkoutWrapp}>
                       {/* nome do exercício */}
                       <AppText style={styles.exerciseName}>{exName}</AppText>
+                      {workoutExerciseNotes ? (
+                        <AppText style={styles.notes}>
+                          Nota: {workoutExerciseNotes}
+                        </AppText>
+                      ) : null}
 
                       {/* séries e reps */}
                       <View style={styles.setsContainer}>
@@ -175,11 +183,6 @@ const WorkoutItem = memo(
                                 <AppText style={styles.setInfo}>
                                   {weight} kg
                                 </AppText>
-                                {s.notes ? (
-                                  <AppText style={styles.notes}>
-                                    {s.notes}
-                                  </AppText>
-                                ) : null}
                               </View>
                             );
                           })}

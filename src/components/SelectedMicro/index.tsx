@@ -95,7 +95,6 @@ const SelectedMicro = ({
   // ==================== FUNÇÕES DE CALLBACK ====================
 
   const handleRegisterWorkout = useCallback((workout: any) => {
-    console.log("Registrando treino (novo)");
     setRegisteringWorkout(workout);
     setSelectedWorkoutName(workout.workout.name);
     setSelectedWorkoutImage(workout.workout.imageUrl || null);
@@ -105,18 +104,15 @@ const SelectedMicro = ({
   const handleEditWorkout = useCallback(
     (ci: any) => {
       try {
-        console.log("Editando treino existente");
 
         const hasRecordedWorkout = ci.sets && ci.sets.length > 0;
 
         if (hasRecordedWorkout) {
-          console.log("Treino tem sets, entrando em modo edição");
           setRegisteringWorkout(ci);
           setSelectedWorkoutName(ci.workout.name);
           setSelectedWorkoutImage(ci.workout.imageUrl || null);
           setIsEditMode(true);
         } else {
-          console.log("Treino NÃO tem sets, registrando como novo");
           handleRegisterWorkout(ci);
         }
       } catch (err) {
@@ -194,17 +190,12 @@ const SelectedMicro = ({
     if (registeringWorkout) {
       const currentValues = formValues[registeringWorkout.id] || {};
 
-      console.log("isEditMode no useEffect:", isEditMode);
-      console.log(
-        "Sets no registeringWorkout:",
-        registeringWorkout.sets?.length || 0
-      );
+ 
 
       const hasExistingSets =
         registeringWorkout.sets && registeringWorkout.sets.length > 0;
 
       if (hasExistingSets && isEditMode) {
-        console.log("Carregando dados para edição...");
         const groupedByExercise: Record<string, any[]> = {};
 
         registeringWorkout.sets.forEach((set: any) => {
@@ -222,13 +213,16 @@ const SelectedMicro = ({
         const exercisesForm = Object.keys(groupedByExercise).map(
           (exerciseId) => {
             const sets = groupedByExercise[exerciseId];
+            const workoutExercise =
+              registeringWorkout.workout.workoutExercises?.find(
+                (we: any) => we.exercise.id === exerciseId
+              );
             return {
               exerciseId,
-              notes: sets[0]?.notes || "",
+              notes: workoutExercise?.notes || "",
               sets: sets.map((set) => ({
                 reps: set.reps,
                 weight: set.weight,
-                notes: set.notes || "",
               })),
             };
           }
@@ -238,7 +232,6 @@ const SelectedMicro = ({
           exercises: exercisesForm,
         });
       } else {
-        console.log("Carregando formulário para novo registro");
         reset({
           exercises: registeringWorkout.workout?.workoutExercises
             ?.slice()
@@ -253,12 +246,11 @@ const SelectedMicro = ({
               const sets = Array.from({ length: targetSets }, () => ({
                 reps: undefined,
                 weight: undefined,
-                notes: "",
               }));
 
               return {
                 exerciseId: we.exercise.id,
-                notes: "",
+                notes: we.notes || "",
                 sets,
               };
             }),
@@ -289,23 +281,22 @@ const SelectedMicro = ({
   const onSubmit = async (data: any) => {
     if (!registeringWorkout) return;
 
-    console.log("isEditMode no onSubmit:", isEditMode);
-    console.log("Dados a serem enviados:", data);
 
-    const exercisesPayload = data.exercises.map((exercise: any) => ({
-      exerciseID: exercise.exerciseId,
-      sets: exercise.sets.map((set: any) => ({
-        reps: set.reps,
-        weight: set.weight,
-        notes: set.notes || "",
-      })),
-      notes: exercise.notes || "",
-    }));
+    const exercisesPayload = data.exercises.map((exercise: any) => {
+      const exerciseIdentifierKey = isEditMode ? "exerciseId" : "exerciseID";
+      return {
+        [exerciseIdentifierKey]: exercise.exerciseId,
+        sets: exercise.sets.map((set: any) => ({
+          reps: set.reps,
+          weight: set.weight,
+        })),
+        notes: exercise.notes || "",
+      };
+    });
 
     const finalPayload = { exercises: exercisesPayload };
 
     try {
-      console.log("Enviando para endpoint:", isEditMode ? "EDIT" : "RECORD");
       await saveWorkout(
         microId,
         registeringWorkout.workout.id,
@@ -717,7 +708,7 @@ const SelectedMicro = ({
         <FlatList
           data={filteredExercises ?? exercises}
           keyExtractor={(item) => item.id}
-          numColumns={2}
+          numColumns={3}
           renderItem={({ item }) => (
             <ExerciseItem
               item={item}

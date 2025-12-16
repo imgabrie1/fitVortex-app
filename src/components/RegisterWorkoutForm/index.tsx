@@ -3,7 +3,6 @@ import { View, ScrollView, Image, TextInput } from "react-native";
 import { Controller } from "react-hook-form";
 import { Button } from "@/components/Button";
 import AppText from "@/components/AppText";
-import { Workout } from "@/contexts/User/interface";
 import { styles } from "./styles";
 import { themas } from "@/global/themes";
 import { UserContext } from "@/contexts/User/UserContext";
@@ -25,7 +24,7 @@ export const RegisterWorkoutForm = ({
   fields,
   handleSubmit,
   onSubmit,
-  isEditMode = false
+  isEditMode = false,
 }: RegisterWorkoutFormProps) => {
   const { loadingForm } = useContext(UserContext);
 
