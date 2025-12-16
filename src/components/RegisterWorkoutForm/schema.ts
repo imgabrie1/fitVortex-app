@@ -4,7 +4,7 @@ export const schema = yup.object().shape({
   exercises: yup.array().of(
     yup.object().shape({
       exerciseId: yup.string().required(),
-      notes: yup.string(),
+      notes: yup.string().optional(),
       sets: yup
         .array()
         .of(
