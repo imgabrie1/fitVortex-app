@@ -200,10 +200,19 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
             flex: 1,
             justifyContent: "center",
             alignItems: "center",
-            marginTop: 20,
+            minHeight: 300,
+            paddingVertical: 40,
           }}
         >
-          <AppText>Nenhum treino executado encontrado.</AppText>
+          {loading ? (
+            <ActivityIndicator size="large" />
+          ) : (
+            <AppText
+              style={{ fontSize: 20, color: "#666", textAlign: "center" }}
+            >
+              Nenhum treino executado encontrado.
+            </AppText>
+          )}
         </View>
       }
     />

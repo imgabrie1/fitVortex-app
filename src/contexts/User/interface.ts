@@ -77,6 +77,7 @@ export interface WorkoutExercise {
   targetSets: number;
   exercise: Exercise;
   is_unilateral?: boolean;
+  notes: string | null;
 }
 
 export interface Exercise {
@@ -102,7 +103,6 @@ export interface Set {
   id: string;
   reps: number;
   weight: string;
-  notes: string | null;
   side: "both" | "left" | "right";
   exercise: Exercise;
 }
@@ -139,12 +139,12 @@ export interface MacroCycle {
 export interface SetInput {
   reps: number;
   weight: number;
-  notes?: string;
 }
 
 export interface ExerciseInput {
-  exerciseID: string;
+  exerciseId: string;
   sets: SetInput[];
+  notes?: string;
 }
 
 export interface RecordWorkoutInput {

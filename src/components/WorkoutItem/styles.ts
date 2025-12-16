@@ -109,10 +109,8 @@ export const styles = StyleSheet.create({
   notes: {
     fontSize: 10,
     fontFamily: "GeologicaBold",
-    color: themas.Colors.noSelectColor,
-    fontStyle: "italic",
-    textAlign: "center",
-    marginTop: 2,
+    paddingLeft: padding_left,
+    color: themas.Colors.gray
   },
 
   setsWrapp: {
