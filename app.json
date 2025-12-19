@@ -19,11 +19,11 @@
       "expo-font"
     ],
     "android": {
-      "package": "com.imgabrie12.fitVortexapp",
+      "package": "com.imgabrie1.fitVortexapp",
       "edgeToEdgeEnabled": true
     },
     "ios": {
-      "bundleIdentifier": "com.imgabrie12.fitVortexapp"
+      "bundleIdentifier": "com.imgabrie1.fitVortexapp"
     },
     "extra": {
       "eas": {
