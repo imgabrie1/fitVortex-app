@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useCallback } from "react";
 import {
   View,
   ScrollView,
@@ -7,10 +7,12 @@ import {
   TouchableWithoutFeedback,
   Alert,
   ActivityIndicator,
+  BackHandler,
 } from "react-native";
 import AppText from "../AppText";
 import { styles } from "./styles";
 import { UserContext } from "@/contexts/User/UserContext";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   MacroCycle,
   MicroCycle,
@@ -76,6 +78,32 @@ const MacrosAndMicros = () => {
     data: any;
   } | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        if (stage === 3) {
+          setStage(2);
+          setSelectedMicro(null);
+          setSelectedMicroId(null);
+          return true;
+        }
+        if (stage === 2) {
+          setStage(1);
+          setSelectedMacro(null);
+          return true;
+        }
+        return false;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [stage])
+  );
 
   const loadMacros = async () => {
     if (user) {

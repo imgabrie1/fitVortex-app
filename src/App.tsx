@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect } from "react";
+import * as NavigationBar from "expo-navigation-bar";
 import {
   useFonts,
   Roboto_400Regular,
@@ -23,7 +24,7 @@ const MainTheme = {
     ...DefaultTheme.colors,
     background: themas.Colors.background,
     text: themas.Colors.text,
-    primary: themas.Colors.primary
+    primary: themas.Colors.primary,
   },
 };
 
@@ -35,6 +36,13 @@ export default function App() {
     GeologicaBold: Geologica_700Bold,
     GeologicaRegular: Geologica_400Regular,
   });
+
+  useEffect(() => {
+    async function configureNavigationBar() {
+      await NavigationBar.setVisibilityAsync("hidden");
+    }
+    configureNavigationBar();
+  }, []);
 
   if (!fontsLoaded) {
     return null;

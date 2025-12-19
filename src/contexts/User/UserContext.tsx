@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, ReactNode } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import api from "@/services/api";
+import api, { TOKEN_STORAGE, USER_STORAGE, REFRESH_TOKEN_STORAGE } from "@/services/api";
 import { navigate } from "@/navigation/RootNavigation";
 import {
   UserContextData,
@@ -34,9 +34,6 @@ export const UserContext = createContext<UserContextData>(
 
 type Props = { children: ReactNode };
 
-const TOKEN_KEY = "@TOKEN";
-const USER_KEY = "@USER";
-
 export const AuthProvider = ({ children }: Props) => {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<iUserResponse | null>(null);
@@ -47,8 +44,8 @@ export const AuthProvider = ({ children }: Props) => {
   useEffect(() => {
     (async () => {
       try {
-        const storedToken = await AsyncStorage.getItem(TOKEN_KEY);
-        const storedUser = await AsyncStorage.getItem(USER_KEY);
+        const storedToken = await AsyncStorage.getItem(TOKEN_STORAGE);
+        const storedUser = await AsyncStorage.getItem(USER_STORAGE);
 
         if (storedToken && storedUser) {
           setToken(storedToken);
@@ -116,12 +113,15 @@ export const AuthProvider = ({ children }: Props) => {
         password,
       });
 
-      const { token, user } = data;
+      const { token, refreshToken, user } = data;
 
       if (!token || !user) throw new Error("Resposta inválida do servidor");
 
-      await AsyncStorage.setItem(TOKEN_KEY, token);
-      await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
+      await AsyncStorage.setItem(TOKEN_STORAGE, token);
+      await AsyncStorage.setItem(USER_STORAGE, JSON.stringify(user));
+      if (refreshToken) {
+        await AsyncStorage.setItem(REFRESH_TOKEN_STORAGE, refreshToken);
+      }
 
       api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       setToken(token);
@@ -142,7 +142,7 @@ export const AuthProvider = ({ children }: Props) => {
   const logout = async () => {
     setLoadingForm(true);
     try {
-      await AsyncStorage.multiRemove([TOKEN_KEY, USER_KEY]);
+      await AsyncStorage.multiRemove([TOKEN_STORAGE, USER_STORAGE, REFRESH_TOKEN_STORAGE]);
       setToken(null);
       setUser(null);
       delete api.defaults.headers.common["Authorization"];
