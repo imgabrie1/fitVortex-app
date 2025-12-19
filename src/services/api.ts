@@ -1,10 +1,12 @@
 import axios, { AxiosError } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { navigate } from "@/navigation/RootNavigation";
 
 export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
-const TOKEN_STORAGE = "@fitvortex:token";
-const REFRESH_TOKEN_STORAGE = "@fitvortex:refresh-token";
+export const TOKEN_STORAGE = "@fitvortex:token";
+export const USER_STORAGE = "@fitvortex:user";
+export const REFRESH_TOKEN_STORAGE = "@fitvortex:refreshToken";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -16,6 +18,16 @@ let failedRequestsQueue: {
   onSuccess: (token: string) => void;
   onFailure: (err: AxiosError) => void;
 }[] = [];
+
+const handleUnauthorized = async () => {
+  await AsyncStorage.multiRemove([
+    TOKEN_STORAGE,
+    USER_STORAGE,
+    REFRESH_TOKEN_STORAGE,
+  ]);
+  delete api.defaults.headers.common["Authorization"];
+  navigate("Login");
+};
 
 api.interceptors.response.use(
   (response) => response,
@@ -32,13 +44,10 @@ api.interceptors.response.use(
           );
 
           if (!refreshToken) {
-            // TODO: Chamar função de logout do UserContext aqui
-            console.error("No refresh token found, logging out.");
-            // Ex: authContext.signOut();
+            await handleUnauthorized();
             return Promise.reject(error);
           }
 
-          // Assumindo que seu backend tem um endpoint para refresh de token
           const response = await axios.post(
             `${API_BASE_URL}/sessions/refresh-token`,
             {
@@ -49,7 +58,9 @@ api.interceptors.response.use(
           const { token, refresh_token } = response.data;
 
           await AsyncStorage.setItem(TOKEN_STORAGE, token);
-          await AsyncStorage.setItem(REFRESH_TOKEN_STORAGE, refresh_token);
+          if (refresh_token) {
+            await AsyncStorage.setItem(REFRESH_TOKEN_STORAGE, refresh_token);
+          }
 
           api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
@@ -62,6 +73,7 @@ api.interceptors.response.use(
           failedRequestsQueue = [];
 
           console.error("Refresh token failed, logging out.", refreshError);
+          await handleUnauthorized();
         } finally {
           isRefreshing = false;
         }

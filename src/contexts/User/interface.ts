@@ -21,6 +21,7 @@ export interface iDataLogin {
 
 export interface iResponse {
   token: string;
+  refreshToken?: string;
   user: iUserResponse;
 }
 
