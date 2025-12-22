@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, ReactNode } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import api, { TOKEN_STORAGE, USER_STORAGE, REFRESH_TOKEN_STORAGE } from "@/services/api";
+import api, { TOKEN_STORAGE, USER_STORAGE, REFRESH_TOKEN_STORAGE, registerLogoutCallback } from "@/services/api";
 import { navigate } from "@/navigation/RootNavigation";
 import {
   UserContextData,
@@ -40,6 +40,10 @@ export const AuthProvider = ({ children }: Props) => {
   const [loading, setLoading] = useState(true);
   const [loadingForm, setLoadingForm] = useState(false);
   const [volumes, setVolumes] = useState<number>(0);
+
+  useEffect(() => {
+    registerLogoutCallback(logout);
+  }, []);
 
   useEffect(() => {
     (async () => {
