@@ -19,7 +19,18 @@ let failedRequestsQueue: {
   onFailure: (err: AxiosError) => void;
 }[] = [];
 
+let logoutCallback: (() => void) | null = null;
+
+export const registerLogoutCallback = (callback: () => void) => {
+  logoutCallback = callback;
+};
+
 const handleUnauthorized = async () => {
+  if (logoutCallback) {
+    logoutCallback();
+    return;
+  }
+
   await AsyncStorage.multiRemove([
     TOKEN_STORAGE,
     USER_STORAGE,
@@ -27,6 +38,43 @@ const handleUnauthorized = async () => {
   ]);
   delete api.defaults.headers.common["Authorization"];
   navigate("Login");
+};
+
+const processTokenRefresh = async () => {
+  try {
+    const refreshToken = await AsyncStorage.getItem(REFRESH_TOKEN_STORAGE);
+
+    if (!refreshToken) {
+      throw new Error("No refresh token available");
+    }
+
+    const response = await axios.post(
+      `${API_BASE_URL}/login/refresh-token`,
+      {
+        refresh_token: refreshToken,
+      }
+    );
+
+    const { token, refresh_token } = response.data;
+
+    await AsyncStorage.setItem(TOKEN_STORAGE, token);
+    if (refresh_token) {
+      await AsyncStorage.setItem(REFRESH_TOKEN_STORAGE, refresh_token);
+    }
+
+    api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+    failedRequestsQueue.forEach((request) => request.onSuccess(token));
+    failedRequestsQueue = [];
+  } catch (refreshError: any) {
+    failedRequestsQueue.forEach((request) => request.onFailure(refreshError));
+    failedRequestsQueue = [];
+
+    console.error("Refresh token failed, logging out.", refreshError);
+    await handleUnauthorized();
+  } finally {
+    isRefreshing = false;
+  }
 };
 
 api.interceptors.response.use(
@@ -37,46 +85,7 @@ api.interceptors.response.use(
 
       if (!isRefreshing) {
         isRefreshing = true;
-
-        try {
-          const refreshToken = await AsyncStorage.getItem(
-            REFRESH_TOKEN_STORAGE
-          );
-
-          if (!refreshToken) {
-            await handleUnauthorized();
-            return Promise.reject(error);
-          }
-
-          const response = await axios.post(
-            `${API_BASE_URL}/sessions/refresh-token`,
-            {
-              refresh_token: refreshToken,
-            }
-          );
-
-          const { token, refresh_token } = response.data;
-
-          await AsyncStorage.setItem(TOKEN_STORAGE, token);
-          if (refresh_token) {
-            await AsyncStorage.setItem(REFRESH_TOKEN_STORAGE, refresh_token);
-          }
-
-          api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-          failedRequestsQueue.forEach((request) => request.onSuccess(token));
-          failedRequestsQueue = [];
-        } catch (refreshError: any) {
-          failedRequestsQueue.forEach((request) =>
-            request.onFailure(refreshError)
-          );
-          failedRequestsQueue = [];
-
-          console.error("Refresh token failed, logging out.", refreshError);
-          await handleUnauthorized();
-        } finally {
-          isRefreshing = false;
-        }
+        processTokenRefresh();
       }
 
       return new Promise((resolve, reject) => {
