@@ -19,7 +19,7 @@
       "expo-font"
     ],
     "android": {
-      "package": "com.imgabrie1.fitVortexapp",
+      "package": "com.imgabrie1.fitVortexapp.dev",
       "edgeToEdgeEnabled": true
     },
     "ios": {
