@@ -13,6 +13,7 @@ import { styles } from "./styles";
 import { themas } from "@/global/themes";
 import { UserContext } from "@/contexts/User/UserContext";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface RegisterWorkoutFormProps {
   workout: any;
@@ -22,6 +23,7 @@ interface RegisterWorkoutFormProps {
   handleSubmit: any;
   onSubmit: any;
   isEditMode?: boolean;
+  cycleItemId: string;
 }
 
 export const RegisterWorkoutForm = ({
@@ -32,13 +34,46 @@ export const RegisterWorkoutForm = ({
   handleSubmit,
   onSubmit,
   isEditMode = false,
+  cycleItemId,
 }: RegisterWorkoutFormProps) => {
   const { loadingForm } = useContext(UserContext);
   const [expandedExercises, setExpandedExercises] = useState<Set<string>>(
     new Set()
   );
   const [completedSets, setCompletedSets] = useState<Set<string>>(new Set());
+  const [isLoaded, setIsLoaded] = useState(false);
   const prevCompletedSetsRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    const loadCompletedSets = async () => {
+      try {
+        const savedSets = await AsyncStorage.getItem(
+          `completedSets_${cycleItemId}`
+        );
+        if (savedSets) {
+          setCompletedSets(new Set(JSON.parse(savedSets)));
+        }
+      } catch (error) {
+        console.error("Failed to load completed sets", error);
+      } finally {
+        setIsLoaded(true);
+      }
+    };
+    loadCompletedSets();
+  }, [cycleItemId]);
+
+  useEffect(() => {
+    if (isLoaded) {
+      try {
+        AsyncStorage.setItem(
+          `completedSets_${cycleItemId}`,
+          JSON.stringify(Array.from(completedSets))
+        );
+      } catch (error) {
+        console.error("Failed to save completed sets", error);
+      }
+    }
+  }, [completedSets, isLoaded, cycleItemId]);
 
   const findNextExerciseToExpand = () => {
     for (let i = 0; i < fields.length; i++) {
@@ -238,7 +273,7 @@ export const RegisterWorkoutForm = ({
             </TouchableOpacity>
             <View style={styles.infoHeaderExerciseNotes}>
               {isExpanded && (
-                <View>
+                <View style={styles.teste}>
                   <Controller
                     control={control}
                     name={`exercises.${index}.notes`}
@@ -279,17 +314,20 @@ export const RegisterWorkoutForm = ({
 
                       const isDone = isSetDone(exerciseId, setIndex);
 
+                      const setsColor = (index: number) => {
+                        return index % 2 === 0
+                          ? themas.Colors.background
+                          : themas.Colors.alternativeBlocks;
+                      };
+
                       return (
                         <View key={setIndex}>
                           <View
                             style={[
                               styles.setRow,
-                              {
-                                backgroundColor:
-                                  setIndex % 2 === 0
-                                    ? themas.Colors.background
-                                    : themas.Colors.alternativeBlocks,
-                              },
+                              isDone
+                                ? styles.isDoneLine
+                                : { backgroundColor: setsColor(setIndex) },
                             ]}
                           >
                             <View style={styles.columnSeries}>

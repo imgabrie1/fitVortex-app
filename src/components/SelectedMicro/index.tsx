@@ -352,6 +352,7 @@ const SelectedMicro = ({
             getFormStorageKey(microId),
             JSON.stringify(newValues)
           );
+          AsyncStorage.removeItem(`completedSets_${registeringWorkout.id}`);
         } catch (e) {
           console.error("Falha ao limpar valores", e);
         }
@@ -682,6 +683,7 @@ const SelectedMicro = ({
                       handleSubmit={handleSubmit}
                       onSubmit={onSubmit}
                       isEditMode={isEditMode}
+                      cycleItemId={registeringWorkout.id}
                     />
                   </ScrollView>
                 </View>

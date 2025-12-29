@@ -9,7 +9,6 @@ export const styles = StyleSheet.create({
   container: {
     display: "flex",
     backgroundColor: themas.Colors.background,
-    padding: padding_H,
     flexDirection: "column",
   },
 
@@ -22,7 +21,6 @@ export const styles = StyleSheet.create({
   },
 
   infoHeaderExerciseNotes: {
-    paddingBottom: 15,
     flexDirection: "column",
     gap: 10,
     paddingTop: 15,
@@ -33,10 +31,13 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     height: height * 0.1,
     gap: 15,
+    paddingLeft: 10
   },
 
   notes: {
     color: themas.Colors.text,
+    paddingLeft: padding_H
+
   },
   img: {
     borderColor: themas.Colors.gray,
@@ -49,7 +50,6 @@ export const styles = StyleSheet.create({
   setRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 5,
     width: "100%",
     paddingVertical: 5,
   },
@@ -79,13 +79,14 @@ export const styles = StyleSheet.create({
     backgroundColor: themas.Colors.gray,
     borderRadius: "50%",
     height: 30,
+    marginLeft: 10
   },
 
   alternativeDoneButton: {
     width: 30,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: themas.Colors.secondary,
+    backgroundColor: themas.Colors.alternativeGreen,
     borderRadius: "50%",
     height: 30,
   },
@@ -103,7 +104,7 @@ export const styles = StyleSheet.create({
   },
 
   setUniLeft: {
-    color: "#04ef6eff",
+    color: themas.Colors.alternativeGreen,
   },
 
   inputRepsWeight: {
@@ -135,6 +136,14 @@ export const styles = StyleSheet.create({
     color: themas.Colors.text,
     fontFamily: "GeologicaBold",
     fontSize: 12,
+  },
+
+  isDoneLine: {
+    backgroundColor: themas.Colors.green,
+  },
+
+  teste: {
+    marginBottom: 50
   },
 
   button: {
