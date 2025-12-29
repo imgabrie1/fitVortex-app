@@ -11,25 +11,21 @@ export const styles = StyleSheet.create({
     backgroundColor: themas.Colors.background,
     padding: padding_H,
     flexDirection: "column",
-    // paddingBottom: 100,
-  },
-
-  ulContainer: {
-    paddingBottom: 50,
   },
 
   headerSets: {
-    display: "flex",
     flexDirection: "row",
     backgroundColor: themas.Colors.background,
-    justifyContent: "space-evenly",
-    gap: "38%",
+    alignItems: "center",
+    width: "100%",
+    paddingVertical: 5,
   },
 
   infoHeaderExerciseNotes: {
     paddingBottom: 15,
     flexDirection: "column",
     gap: 10,
+    paddingTop: 15,
   },
 
   infoHeaderExercise: {
@@ -52,10 +48,46 @@ export const styles = StyleSheet.create({
 
   setRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
     marginVertical: 5,
     width: "100%",
+    paddingVertical: 5,
+  },
+
+  columnSeries: {
+    width: "15%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  columnWeightAndReps: {
+    width: "35%",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 5,
+  },
+
+  columnAction: {
+    width: "15%",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  doneButton: {
+    width: 30,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: themas.Colors.gray,
+    borderRadius: "50%",
+    height: 30,
+  },
+
+  alternativeDoneButton: {
+    width: 30,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: themas.Colors.secondary,
+    borderRadius: "50%",
+    height: 30,
   },
 
   setLabel: {
@@ -75,18 +107,16 @@ export const styles = StyleSheet.create({
   },
 
   inputRepsWeight: {
-    width: "12%",
-    minWidth: 48,
     textAlign: "center",
     textAlignVertical: "center",
     paddingVertical: 6,
     borderRadius: 6,
     color: themas.Colors.text,
-    paddingLeft: 20
+    width: "100%",
   },
 
-  teste: {
-    // paddingLeft: 20
+  nameAndSetsWrapp: {
+    gap: 8,
   },
 
   exerciseName: {
@@ -96,7 +126,9 @@ export const styles = StyleSheet.create({
 
   targetSets: {
     fontSize: 14,
+    fontWeight: 400,
     color: themas.Colors.lightGray,
+    paddingLeft: 2,
   },
 
   setRepsWeight: {
@@ -106,6 +138,6 @@ export const styles = StyleSheet.create({
   },
 
   button: {
-    marginBottom: 10
+    marginBottom: 10,
   },
 });
