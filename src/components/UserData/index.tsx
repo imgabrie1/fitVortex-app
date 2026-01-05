@@ -10,8 +10,6 @@ const UserData = () => {
   return (
     <View style={style.container}>
       <AppText style={[style.text, style.name]}>{user!.name}</AppText>
-      <AppText style={style.text}>Peso(kg): tamo fazendo...</AppText>
-      <AppText style={style.text}>Altura: tamo fazendo...</AppText>
       <AppText style={style.text}>Total de Séries: {volumes}</AppText>
     </View>
   );
