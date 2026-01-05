@@ -91,6 +91,8 @@ const SelectedMicro = ({
   );
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [skipAlertVisible, setSkipAlertVisible] = useState(false);
+  const [workoutToSkip, setWorkoutToSkip] = useState<any | null>(null);
 
   // ==================== FUNÇÕES DE CALLBACK ====================
 
@@ -104,7 +106,6 @@ const SelectedMicro = ({
   const handleEditWorkout = useCallback(
     (ci: any) => {
       try {
-
         const hasRecordedWorkout = ci.sets && ci.sets.length > 0;
 
         if (hasRecordedWorkout) {
@@ -189,8 +190,6 @@ const SelectedMicro = ({
   useEffect(() => {
     if (registeringWorkout) {
       const currentValues = formValues[registeringWorkout.id] || {};
-
- 
 
       const hasExistingSets =
         registeringWorkout.sets && registeringWorkout.sets.length > 0;
@@ -280,7 +279,6 @@ const SelectedMicro = ({
 
   const onSubmit = async (data: any) => {
     if (!registeringWorkout) return;
-
 
     const exercisesPayload = data.exercises.map((exercise: any) => {
       const exerciseIdentifierKey = isEditMode ? "exerciseId" : "exerciseID";
@@ -512,6 +510,22 @@ const SelectedMicro = ({
     }
   };
 
+  const handleConfirmSkip = async () => {
+    if (!workoutToSkip) return;
+
+    const workoutId = workoutToSkip.workout.id;
+    setSkipAlertVisible(false);
+    setWorkoutToSkip(null);
+
+    try {
+      await skipWorkout(microId, workoutId, {});
+      loadMicro();
+    } catch (error) {
+      console.log("Erro ao pular treino:", error);
+      Alert.alert("Erro", "Não foi possível pular o treino");
+    }
+  };
+
   const handleDeleteWorkout = useCallback(async (ci: any) => {
     try {
       console.log("Excluir treino:", ci.workout.name);
@@ -546,18 +560,10 @@ const SelectedMicro = ({
     setAddExerciseModalVisible(true);
   }, []);
 
-  const handleSkipWorkout = useCallback(
-    async (workout: any) => {
-      try {
-        await skipWorkout(microId, workout.workout.id, {});
-        loadMicro();
-      } catch (error) {
-        console.error("Erro ao pular treino:", error);
-        Alert.alert("Erro", "Não foi possível pular o treino.");
-      }
-    },
-    [microId, skipWorkout, loadMicro]
-  );
+  const handleSkipWorkout = useCallback((workout: any) => {
+    setWorkoutToSkip(workout);
+    setSkipAlertVisible(true);
+  }, []);
 
   const renderWorkoutItem = useCallback(
     ({ item, drag, isActive }: RenderItemParams<any>) => (
@@ -692,7 +698,20 @@ const SelectedMicro = ({
           </View>
         </TouchableWithoutFeedback>
 
-        <View style={{ marginBottom: 20 }} />
+        {skipAlertVisible && (
+          <CustomAlertTwoOptions
+            visible={skipAlertVisible}
+            title="Pular Treino?"
+            message={`Deseja realmente pular o treino "${workoutToSkip?.workout?.name}"?`}
+            buttonTextOne="Sim, pular"
+            buttonTextTwo="Cancelar"
+            onPress={handleConfirmSkip}
+            onClose={() => {
+              setSkipAlertVisible(false);
+              setWorkoutToSkip(null);
+            }}
+          />
+        )}
       </GestureHandlerRootView>
     );
   }

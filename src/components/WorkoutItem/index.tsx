@@ -203,15 +203,17 @@ const WorkoutItem = memo(
                 onPress={() => onAddExercise(workoutName)}
               />
             ) : (
-              <View style={styles.teste}>
+              <View style={styles.buttonsWorkoutWrapp}>
                 <Button
-                  text="Registrar Treino"
+                  text="Treinar"
                   onPress={() => onRegisterWorkout(item)}
+                  styleButton={styles.buttonWorkout}
                 />
                 <Button
-                  text="Pular Treino"
+                  text="Faltei..."
                   onPress={() => onSkipWorkout(item)}
                   loading={loadingForm}
+                  styleButton={styles.buttonSkipWorkout}
                 />
               </View>
             )}
