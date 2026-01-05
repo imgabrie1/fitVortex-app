@@ -13,7 +13,6 @@ export const styles = StyleSheet.create({
   blocks: {
     backgroundColor: themas.Colors.blocks,
     borderRadius: 10,
-    paddingHorizontal: 14,
     paddingVertical: 20,
     marginTop: 10,
     marginBottom: 5,
@@ -31,6 +30,7 @@ export const styles = StyleSheet.create({
   },
 
   infoWorkoutWrap: {
+    paddingHorizontal: 14,
     paddingBottom: 15,
     borderBottomColor: themas.Colors.gray,
     gap: 5,
@@ -110,7 +110,7 @@ export const styles = StyleSheet.create({
     fontSize: 10,
     fontFamily: "GeologicaBold",
     paddingLeft: padding_left,
-    color: themas.Colors.gray
+    color: themas.Colors.gray,
   },
 
   setsWrapp: {
@@ -127,12 +127,23 @@ export const styles = StyleSheet.create({
     borderTopColor: themas.Colors.gray,
   },
   infoWorkoutWrapp: {
-    // backgroundColor: "red",
     width: "75%",
     flexDirection: "column",
     justifyContent: "space-between",
   },
-  teste: {
-    gap: 10,
+
+  buttonWorkout: {
+    width: "80%",
+  },
+  buttonSkipWorkout: {
+    width: "20%"
+  },
+
+  buttonsWorkoutWrapp: {
+    gap: "1%",
+    flexDirection: "row",
+    width: "99%",
+    paddingHorizontal: 5
+    // backgroundColor: "red",
   },
 });
