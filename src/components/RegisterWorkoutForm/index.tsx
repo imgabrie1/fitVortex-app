@@ -24,6 +24,9 @@ interface RegisterWorkoutFormProps {
   onSubmit: any;
   isEditMode?: boolean;
   cycleItemId: string;
+  previousWorkoutValues?: any;
+  setValue: any;
+  getValues: any;
 }
 
 export const RegisterWorkoutForm = ({
@@ -35,6 +38,9 @@ export const RegisterWorkoutForm = ({
   onSubmit,
   isEditMode = false,
   cycleItemId,
+  previousWorkoutValues,
+  setValue,
+  getValues,
 }: RegisterWorkoutFormProps) => {
   const { loadingForm } = useContext(UserContext);
   const [expandedExercises, setExpandedExercises] = useState<Set<string>>(
@@ -42,6 +48,7 @@ export const RegisterWorkoutForm = ({
   );
   const [completedSets, setCompletedSets] = useState<Set<string>>(new Set());
   const [isLoaded, setIsLoaded] = useState(false);
+  const [workingOut, setWorkingOut] = useState(false);
   const prevCompletedSetsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
@@ -73,6 +80,7 @@ export const RegisterWorkoutForm = ({
         console.error("Failed to save completed sets", error);
       }
     }
+    setWorkingOut(completedSets.size > 0);
   }, [completedSets, isLoaded, cycleItemId]);
 
   const findNextExerciseToExpand = () => {
@@ -137,16 +145,14 @@ export const RegisterWorkoutForm = ({
 
   const toggleSetDone = (exerciseId: string, setIndex: number) => {
     const setKey = `${exerciseId}-${setIndex}`;
-
     setCompletedSets((prev) => {
       const newSet = new Set(prev);
-
+      
       if (newSet.has(setKey)) {
         newSet.delete(setKey);
       } else {
         newSet.add(setKey);
       }
-
       return newSet;
     });
   };
@@ -218,6 +224,17 @@ export const RegisterWorkoutForm = ({
       return (workoutExercise as any).is_unilateral as boolean;
     }
     return workoutExercise.exercise?.default_unilateral || false;
+  };
+
+  const getPreviousSet = (exerciseId: string, setIndex: number) => {
+    if (!previousWorkoutValues || !previousWorkoutValues.sets) return null;
+
+    const previousSetsForExercise = previousWorkoutValues.sets.filter(
+      (s: any) => s.exercise.id === exerciseId
+    );
+
+    const result = previousSetsForExercise[setIndex];
+    return result;
   };
 
   useEffect(() => {
@@ -320,6 +337,17 @@ export const RegisterWorkoutForm = ({
                           : themas.Colors.alternativeBlocks;
                       };
 
+                      const prevSet = getPreviousSet(exerciseId, setIndex);
+                      const formatValue = (val: any) => {
+                        if (val === undefined || val === null || val === "")
+                          return "—";
+                        const num = Number(val);
+                        return isNaN(num) ? String(val) : String(num);
+                      };
+
+                      const placeholderWeight = formatValue(prevSet?.weight);
+                      const placeholderReps = formatValue(prevSet?.reps);
+
                       return (
                         <View key={setIndex}>
                           <View
@@ -361,7 +389,7 @@ export const RegisterWorkoutForm = ({
                                   field: { onChange, onBlur, value },
                                 }) => (
                                   <TextInput
-                                    placeholder="—"
+                                    placeholder={placeholderWeight}
                                     placeholderTextColor={themas.Colors.gray}
                                     cursorColor={themas.Colors.secondary}
                                     onBlur={onBlur}
@@ -383,7 +411,7 @@ export const RegisterWorkoutForm = ({
                                   field: { onChange, onBlur, value },
                                 }) => (
                                   <TextInput
-                                    placeholder="—"
+                                    placeholder={placeholderReps}
                                     placeholderTextColor={themas.Colors.gray}
                                     cursorColor={themas.Colors.secondary}
                                     onBlur={onBlur}
@@ -402,9 +430,40 @@ export const RegisterWorkoutForm = ({
                                 styles.doneButton,
                                 isDone && styles.alternativeDoneButton,
                               ]}
-                              onPress={() =>
-                                toggleSetDone(exerciseId, setIndex)
-                              }
+                              onPress={() => {
+                                if (workingOut) {
+                                  console.log(workingOut);
+                                } else {
+                                  console.log(workingOut);
+                                }
+                                const weightPath = `exercises.${index}.sets.${setIndex}.weight`;
+                                const repsPath = `exercises.${index}.sets.${setIndex}.reps`;
+
+                                const currentWeight = getValues(weightPath);
+                                const currentReps = getValues(repsPath);
+
+                                if (
+                                  (!currentWeight || currentWeight === "") &&
+                                  prevSet?.weight !== undefined
+                                ) {
+                                  setValue(
+                                    weightPath,
+                                    String(Number(prevSet.weight))
+                                  );
+                                }
+
+                                if (
+                                  (!currentReps || currentReps === "") &&
+                                  prevSet?.reps !== undefined
+                                ) {
+                                  setValue(
+                                    repsPath,
+                                    String(Number(prevSet.reps))
+                                  );
+                                }
+
+                                toggleSetDone(exerciseId, setIndex);
+                              }}
                             >
                               <MaterialIcons
                                 name="done"
@@ -442,7 +501,7 @@ export const RegisterWorkoutForm = ({
         );
       })}
       <Button
-        text={isEditMode ? "Atualizar Treino" : "Salvar Treino"}
+        text={isEditMode ? "Atualizar!" : "Pronto!"}
         onPress={handleSubmit(onSubmit)}
         styleButton={styles.button}
         loading={loadingForm}

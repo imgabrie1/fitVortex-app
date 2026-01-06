@@ -93,6 +93,9 @@ const SelectedMicro = ({
   const [isEditMode, setIsEditMode] = useState(false);
   const [skipAlertVisible, setSkipAlertVisible] = useState(false);
   const [workoutToSkip, setWorkoutToSkip] = useState<any | null>(null);
+  const [previousWorkoutData, setPreviousWorkoutData] = useState<any | null>(
+    null
+  );
 
   // ==================== FUNÇÕES DE CALLBACK ====================
 
@@ -138,6 +141,8 @@ const SelectedMicro = ({
     formState: { errors },
     watch,
     reset,
+    setValue,
+    getValues,
   } = useForm({
     resolver: yupResolver(schema),
   });
@@ -170,6 +175,38 @@ const SelectedMicro = ({
   );
 
   // ==================== USE EFFECTS ====================
+
+  useEffect(() => {
+    const fetchPreviousData = async () => {
+      if (registeringWorkout && !isEditMode && allMicrosId) {
+        setPreviousWorkoutData(null);
+
+        const currentIndex = allMicrosId.indexOf(microId);
+        if (currentIndex > 0) {
+          const prevMicroId = allMicrosId[currentIndex - 1];
+          try {
+            const prevMicro = await getMicroCycleByID(prevMicroId);
+
+            if (prevMicro && prevMicro.cycleItems) {
+              const currentWorkoutName = registeringWorkout.workout.name;
+              const match = prevMicro.cycleItems.find(
+                (ci: any) => ci.workout?.name === currentWorkoutName
+              );
+
+              if (match && match.sets && match.sets.length > 0) {
+                setPreviousWorkoutData(match);
+              }
+            }
+          } catch (err) {
+            console.log("Error fetching previous micro for placeholder", err);
+          }
+        }
+      } else {
+        setPreviousWorkoutData(null);
+      }
+    };
+    fetchPreviousData();
+  }, [registeringWorkout, isEditMode, microId, allMicrosId]);
 
   useEffect(() => {
     const loadFormValues = async () => {
@@ -682,6 +719,7 @@ const SelectedMicro = ({
                     )}
 
                     <RegisterWorkoutForm
+                      key={previousWorkoutData ? "loaded" : "loading"}
                       workout={registeringWorkout.workout}
                       control={control}
                       errors={errors}
@@ -690,6 +728,9 @@ const SelectedMicro = ({
                       onSubmit={onSubmit}
                       isEditMode={isEditMode}
                       cycleItemId={registeringWorkout.id}
+                      previousWorkoutValues={previousWorkoutData}
+                      setValue={setValue}
+                      getValues={getValues}
                     />
                   </ScrollView>
                 </View>
