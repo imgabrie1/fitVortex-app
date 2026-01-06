@@ -298,9 +298,7 @@ const MacrosAndMicros = () => {
     }
   };
 
-  const allMicroCycleIds = macros.flatMap((macro) =>
-    (macro.microCycles || []).map((micro) => micro.id)
-  );
+  const allMicroCycleIds = micros.map((micro) => micro.id);
 
   const handleAdjustVolume = async (macroID: string, payload: any) => {
     try {
