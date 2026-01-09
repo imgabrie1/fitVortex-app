@@ -29,7 +29,6 @@ export const styles = StyleSheet.create({
     fontWeight: 700,
     fontFamily: "GeologicaBold",
     color: themas.Colors.text,
-    paddingBottom: 5
   },
   blocks: {
     backgroundColor: themas.Colors.blocks,
@@ -44,8 +43,10 @@ export const styles = StyleSheet.create({
     backgroundColor: themas.Colors.blackTransparent,
     borderWidth: 2,
     borderColor: themas.Colors.secondary,
-    borderRadius: 8,
-    padding: 10,
+    borderRadius: 50,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    marginBottom: 8
   },
   name: {
     fontSize: 20,
