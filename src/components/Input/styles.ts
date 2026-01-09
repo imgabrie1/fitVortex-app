@@ -6,7 +6,7 @@ export const style = StyleSheet.create({
     width: "100%",
     height: 40,
     borderWidth: 1,
-    borderRadius: 4,
+    borderRadius: 50,
     borderColor: themas.Colors.lightGray,
     marginTop: 10,
     flexDirection: "row",

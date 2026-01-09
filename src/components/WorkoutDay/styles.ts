@@ -3,10 +3,9 @@ import { Dimensions, StyleSheet } from "react-native";
 
 const { width, height } = Dimensions.get("window");
 
-const padding_H = 10
+const padding_H = 10;
 
 export const styles = StyleSheet.create({
-
   container: {
     flex: 1,
     backgroundColor: themas.Colors.background,
@@ -17,7 +16,7 @@ export const styles = StyleSheet.create({
     backgroundColor: themas.Colors.background,
     display: "flex",
     flexDirection: "column",
-    marginBottom: 15,
+    marginBottom: 8,
   },
 
   card: {
@@ -34,7 +33,7 @@ export const styles = StyleSheet.create({
   },
   nameWorkout: {
     fontFamily: "GeologicaBold",
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "400",
   },
 
@@ -79,17 +78,22 @@ export const styles = StyleSheet.create({
   exercisesContainer: {
     backgroundColor: themas.Colors.background,
     width: "100%",
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
+    flexDirection: "column",
+    // flexWrap: "wrap",
+    // justifyContent: "space-between",
   },
 
   exerciseCard: {
     backgroundColor: themas.Colors.background,
-    width: "48%",
+    width: "100%",
     borderRadius: 8,
     paddingVertical: 10,
-    alignItems: "center",
+    alignItems: "flex-start",
+    flexDirection: "row",
+  },
+
+  teste: {
+    flexDirection: "column",
   },
 
   exerciseImage: {
@@ -107,7 +111,7 @@ export const styles = StyleSheet.create({
 
   infoSetsWrap: {
     display: "flex",
-    flexDirection: "row",
+    flexDirection: "column",
     marginTop: 8,
   },
 
@@ -123,9 +127,9 @@ export const styles = StyleSheet.create({
   separator: {
     position: "absolute",
     left: -padding_H,
-    right:-padding_H,
+    right: -padding_H,
     height: 5,
     backgroundColor: themas.Colors.primary,
-    marginTop: 10
+    marginTop: 10,
   },
 });
