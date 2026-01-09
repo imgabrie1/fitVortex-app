@@ -8,6 +8,7 @@ import {
   WorkoutExerciseWithSets,
   Set,
 } from "@/contexts/User/interface";
+import { themas } from "@/global/themes";
 
 interface WorkoutDayProps {
   hasScrollView?: boolean;
@@ -68,7 +69,13 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
 
   const renderFooter = () => {
     if (!loading) return null;
-    return <ActivityIndicator style={{ marginVertical: 20 }} />;
+    return (
+      <ActivityIndicator
+        size="large"
+        style={{ marginVertical: 20 }}
+        color={themas.Colors.secondary}
+      />
+    );
   };
 
   const renderItem = ({ item: workout }: { item: WorkoutWithSets }) => {
@@ -84,33 +91,33 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
       0
     );
 
-    const date = new Date(workout.createdAt);
-    const formattedDate = date.toLocaleDateString("pt-BR", {
-      weekday: "long",
-      day: "2-digit",
-      month: "long",
-      timeZone: "UTC",
-    });
-    const formattedTime = date.toLocaleTimeString("pt-BR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    // const date = new Date(workout.createdAt);
+    // const formattedDate = date.toLocaleDateString("pt-BR", {
+    //   weekday: "long",
+    //   day: "2-digit",
+    //   month: "long",
+    //   timeZone: "UTC",
+    // });
+    // const formattedTime = date.toLocaleTimeString("pt-BR", {
+    //   hour: "2-digit",
+    //   minute: "2-digit",
+    // });
 
     return (
       <View style={styles.card}>
         <View style={styles.headerInfo}>
           <View style={styles.nameWhenWrap}>
             {/* <AppText style={styles.nameWorkout}>{microName}</AppText> */}
-            <AppText style={styles.nameWorkout}>{workout.name}</AppText>
-            <AppText style={styles.dayText}>
+            <AppText style={styles.nameWorkout}>{workout.name.toLocaleUpperCase()}</AppText>
+            {/* <AppText style={styles.dayText}>
               {formattedDate} às {formattedTime}
-            </AppText>
+            </AppText> */}
           </View>
 
           <View style={styles.setsDurationWrap}>
             <View style={styles.bottomInfoWrap}>
               <AppText style={styles.bottomInfo}>Duração: </AppText>
-              <AppText style={styles.bottomInfoValue}>em produção...</AppText>
+              <AppText style={styles.bottomInfoValue}>vou fazer...</AppText>
             </View>
 
             <View style={styles.bottomInfoWrap}>
@@ -152,15 +159,16 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
                     style={styles.exerciseImage}
                     resizeMode="cover"
                   />
-                  <AppText style={styles.nameExercise}>
-                    {exercise.exercise.name}
-                  </AppText>
-                  <View style={styles.infoSetsWrap}>
-                    <AppText style={styles.infoSets}>
-                      {exercise.sets.length} de {exercise.targetSets} séries
-                      {" • "}
+                  <View style={styles.teste}>
+                    <AppText style={styles.nameExercise}>
+                      {exercise.exercise.name}
                     </AppText>
-                    <AppText style={styles.infoSets}>{repsText}</AppText>
+                    <View style={styles.infoSetsWrap}>
+                      <AppText style={styles.infoSets}>
+                        {exercise.sets.length}/{exercise.targetSets} séries
+                      </AppText>
+                      <AppText style={styles.infoSets}>{repsText}</AppText>
+                    </View>
                   </View>
                 </View>
               );
@@ -204,9 +212,7 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
             paddingVertical: 40,
           }}
         >
-          {loading ? (
-            <ActivityIndicator size="large" />
-          ) : (
+          {loading ? null : (
             <AppText
               style={{ fontSize: 20, color: "#666", textAlign: "center" }}
             >

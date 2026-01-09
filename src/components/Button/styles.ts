@@ -16,6 +16,6 @@ export const style = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: themas.Colors.primary,
-    borderRadius: 10,
+    borderRadius: 50,
   },
 });
