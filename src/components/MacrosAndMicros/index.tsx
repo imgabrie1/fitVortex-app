@@ -41,7 +41,7 @@ const MacrosAndMicros = () => {
     deleteCycles,
     createWorkout,
     addWorkoutInMicro,
-    ajdustVolume,
+    adjustVolume,
     editCycles,
     loadingForm,
   } = useContext(UserContext);
@@ -305,11 +305,13 @@ const MacrosAndMicros = () => {
       setAjustVolumeModalVisible(false);
 
       const adjustPayload: newMacroWithAI = {
-        prompt: payload.prompt,
         createNewWorkout: payload.createNewWorkout || false,
+        modifications: payload.modifications || undefined,
+        maxSetsPerMicroCycle: payload.maxSetsPerMicroCycle || 24,
+        legPriority: payload.legPriority || undefined
       };
 
-      const newMacroCycle = await ajdustVolume(macroID, adjustPayload);
+      const newMacroCycle = await adjustVolume(macroID, adjustPayload);
 
       await loadMacros();
 
