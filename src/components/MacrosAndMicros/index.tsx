@@ -14,6 +14,7 @@ import { styles } from "./styles";
 import { UserContext } from "@/contexts/User/UserContext";
 import { useFocusEffect } from "@react-navigation/native";
 import {
+  Exercise,
   MacroCycle,
   MicroCycle,
   newMacroWithAI,
@@ -98,11 +99,11 @@ const MacrosAndMicros = () => {
 
       const subscription = BackHandler.addEventListener(
         "hardwareBackPress",
-        onBackPress
+        onBackPress,
       );
 
       return () => subscription.remove();
-    }, [stage])
+    }, [stage]),
   );
 
   const loadMacros = async () => {
@@ -136,14 +137,14 @@ const MacrosAndMicros = () => {
         };
 
         const sortedMicros = [...extractedMicros].sort(
-          (a, b) => getNumber(a.microCycleName) - getNumber(b.microCycleName)
+          (a, b) => getNumber(a.microCycleName) - getNumber(b.microCycleName),
         );
 
         setMicros(sortedMicros);
       } catch (error) {
         console.error(
           "Erro ao buscar Micro Ciclos:",
-          JSON.stringify(error, null, 2)
+          JSON.stringify(error, null, 2),
         );
       } finally {
         setLoading(false);
@@ -238,11 +239,11 @@ const MacrosAndMicros = () => {
     } catch (error) {
       console.error(
         "Falha ao deletar o ciclo após duas tentativas:",
-        JSON.stringify(error, null, 2)
+        JSON.stringify(error, null, 2),
       );
       Alert.alert(
         "Erro ao Deletar",
-        "Não foi possível deletar o ciclo. Verifique o console para mais detalhes."
+        "Não foi possível deletar o ciclo. Verifique o console para mais detalhes.",
       );
     } finally {
       setItemToDelete(null);
@@ -254,13 +255,13 @@ const MacrosAndMicros = () => {
 
   const handleEdit = async (
     data: any,
-    editing: { id: string; type: "macro" | "micro" }
+    editing: { id: string; type: "macro" | "micro" },
   ) => {
     try {
       await editCycles(
         editing.type === "macro" ? "macrocycle" : "microcycle",
         editing.id,
-        data
+        data,
       );
 
       if (editing.type === "macro") {
@@ -286,7 +287,7 @@ const MacrosAndMicros = () => {
 
       if (newWorkout?.id) {
         await Promise.all(
-          micros.map((micro) => addWorkoutInMicro(micro.id, newWorkout.id))
+          micros.map((micro) => addWorkoutInMicro(micro.id, newWorkout.id)),
         );
 
         await loadMicros();
@@ -302,27 +303,48 @@ const MacrosAndMicros = () => {
 
   const handleAdjustVolume = async (macroID: string, payload: any) => {
     try {
+      setLoading(true);
       setAjustVolumeModalVisible(false);
 
       const adjustPayload: newMacroWithAI = {
         createNewWorkout: payload.createNewWorkout || false,
-        modifications: payload.modifications || undefined,
+        modifications:
+          payload.modifications && payload.modifications.length > 0
+            ? payload.modifications
+            : undefined,
         maxSetsPerMicroCycle: payload.maxSetsPerMicroCycle || 24,
-        legPriority: payload.legPriority || undefined
+        legPriority: payload.legPriority || undefined,
       };
 
       const newMacroCycle = await adjustVolume(macroID, adjustPayload);
 
       await loadMacros();
 
-      setAjustVolumeModalVisible(false);
-
       setAdjustVolumeAlertVisible(true);
 
       return newMacroCycle;
     } catch (error) {
       console.error("Erro ao ajustar volume:", error);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const getWorkoutDataMap = () => {
+    const workoutDataMap: Record<string, Exercise[]> = {};
+    if (micros.length > 0) {
+      const lastMicro = micros[micros.length - 1];
+      if (lastMicro.cycleItems) {
+        lastMicro.cycleItems.forEach((ci) => {
+          if (ci.workout && ci.workout.name && ci.workout.workoutExercises) {
+            workoutDataMap[ci.workout.name] = ci.workout.workoutExercises.map(
+              (we) => we.exercise,
+            );
+          }
+        });
+      }
+    }
+    return workoutDataMap;
   };
 
   if (loading) {
@@ -407,7 +429,7 @@ const MacrosAndMicros = () => {
                             const { pageX, pageY } = e.nativeEvent;
                             setMenuOrigin({ x: pageX, y: pageY });
                             setMenuVisible((prev) =>
-                              prev === macro.id ? null : macro.id
+                              prev === macro.id ? null : macro.id,
                             );
                           }}
                         >
@@ -510,7 +532,7 @@ const MacrosAndMicros = () => {
                 const isCompleted =
                   (micro.cycleItems?.length || 0) === micro.trainingDays &&
                   micro.cycleItems?.every(
-                    (item) => item.sets && item.sets.length > 0
+                    (item) => item.sets && item.sets.length > 0,
                   );
 
                 return (
@@ -537,7 +559,7 @@ const MacrosAndMicros = () => {
                             const { pageX, pageY } = e.nativeEvent;
                             setMenuOrigin({ x: pageX, y: pageY });
                             setMenuVisible((prev) =>
-                              prev === micro.id ? null : micro.id
+                              prev === micro.id ? null : micro.id,
                             );
                           }}
                         >
@@ -705,6 +727,8 @@ const MacrosAndMicros = () => {
                 handleAdjustVolume(selectedMacro.id, data);
               }
             }}
+            availableWorkoutNames={Object.keys(getWorkoutDataMap())}
+            availableWorkouts={getWorkoutDataMap()}
           />
         </Modal>
         {AdjustVolumeAlertVisible && (
