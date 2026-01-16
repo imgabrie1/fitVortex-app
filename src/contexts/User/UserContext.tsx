@@ -223,7 +223,7 @@ export const AuthProvider = ({ children }: Props) => {
     }
   };
 
-  const ajdustVolume = async (macroID: string, payload: newMacroWithAI) => {
+  const adjustVolume = async (macroID: string, payload: newMacroWithAI) => {
     assertUser();
     setLoadingForm(true);
     try {
@@ -642,7 +642,7 @@ export const AuthProvider = ({ children }: Props) => {
         addWorkoutInMicro,
         addExerciseInWorkout,
         updateWorkoutOrder,
-        ajdustVolume,
+        adjustVolume,
         editCycles,
         skipWorkout,
       }}

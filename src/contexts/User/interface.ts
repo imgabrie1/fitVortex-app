@@ -62,7 +62,7 @@ export interface CycleItems {
   createdAt: string | Date;
   workout: Workout;
   sets: Set[];
-  isSkipped: boolean
+  isSkipped: boolean;
 }
 
 export interface Workout {
@@ -122,7 +122,10 @@ export interface VolumeEntry {
 
 export type WorkoutExerciseWithSets = WorkoutExercise & { sets?: Set[] };
 
-export type WorkoutWithSets = Omit<Workout, "workoutExercises" | "createdAt"> & {
+export type WorkoutWithSets = Omit<
+  Workout,
+  "workoutExercises" | "createdAt"
+> & {
   workoutExercises: WorkoutExerciseWithSets[];
   isSkipped: boolean;
   createdAt: string | Date;
@@ -181,9 +184,20 @@ export interface iCreateWorkout {
 
 export type iPatchWorkout = Partial<iCreateWorkout>;
 
+export type LegPriority = "Quadríceps (Total)" | "Posterior de Coxa (Total)";
+
+export interface ExerciseModification {
+  workoutName: string;
+  action: "replace" | "remove" | "add";
+  fromExercise?: string;
+  toExercise?: string;
+}
+
 export interface newMacroWithAI {
-  prompt: string | null;
   createNewWorkout: boolean;
+  modifications?: ExerciseModification[];
+  maxSetsPerMicroCycle?: number;
+  legPriority?: LegPriority;
 }
 
 export interface WorkoutResponse {
@@ -234,7 +248,7 @@ export type UserContextData = {
     payload: ExerciseInCreateAndPatch,
     workoutID: string
   ) => Promise<any>;
-  ajdustVolume: (macroID: string, payload: newMacroWithAI) => Promise<any>;
+  adjustVolume: (macroID: string, payload: newMacroWithAI) => Promise<any>;
   editCycles: (cycle: string, cycleID: string, payload: any) => Promise<any>;
   skipWorkout: (
     microID: string,
