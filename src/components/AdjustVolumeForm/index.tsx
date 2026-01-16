@@ -11,11 +11,13 @@ import { Input } from "../Input";
 import { Button } from "../Button";
 import BackAndTitle from "../BackAndTitle";
 import { schema } from "./schema";
-import { View, TouchableOpacity, ScrollView } from "react-native";
+import { View, TouchableOpacity, ScrollView, Modal } from "react-native";
 import { styles } from "./styles";
 import AppText from "../AppText";
 import { MaterialIcons } from "@expo/vector-icons";
 import { themas } from "@/global/themes";
+import ExerciseSelector from "../ExerciseSelector";
+import { Exercise } from "@/contexts/User/interface";
 
 interface AdjustVolumeProps {
   onClose: () => void;
@@ -24,13 +26,17 @@ interface AdjustVolumeProps {
 
 const AdjustVolumeForm = ({ onClose, onSubmit }: AdjustVolumeProps) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [selectingExerciseFor, setSelectingExerciseFor] = useState<{
+    index: number;
+    field: "fromExercise" | "toExercise";
+  } | null>(null);
+
   const {
     control,
     handleSubmit,
     formState: { errors },
     setValue,
     watch,
-    reset,
   } = useForm<FieldValues>({
     resolver: yupResolver(schema as yup.AnyObjectSchema),
     defaultValues: { createNewWorkout: false, modifications: [] },
@@ -51,6 +57,16 @@ const AdjustVolumeForm = ({ onClose, onSubmit }: AdjustVolumeProps) => {
 
   const toggleCreateNewWorkout = () => {
     setValue("createNewWorkout", !createNewWorkoutValue);
+  };
+
+  const handleSelectExercise = (exercise: Exercise) => {
+    if (selectingExerciseFor) {
+      setValue(
+        `modifications.${selectingExerciseFor.index}.${selectingExerciseFor.field}`,
+        exercise.name
+      );
+      setSelectingExerciseFor(null);
+    }
   };
 
   return (
@@ -100,7 +116,7 @@ const AdjustVolumeForm = ({ onClose, onSubmit }: AdjustVolumeProps) => {
                       <MaterialIcons
                         name="delete-outline"
                         size={24}
-                        color="#FF6B6B"
+                        color={themas.Colors.red}
                       />
                     </TouchableOpacity>
                   </View>
@@ -175,18 +191,29 @@ const AdjustVolumeForm = ({ onClose, onSubmit }: AdjustVolumeProps) => {
                     <Controller
                       control={control}
                       name={`modifications.${index}.fromExercise`}
-                      render={({ field: { onChange, onBlur, value } }) => (
-                        <Input
-                          title="Exercício Atual (Remover)"
-                          placeholder="Nome do exercício atual"
-                          onBlur={onBlur}
-                          onChangeText={onChange}
-                          value={value}
-                          error={
-                            (errors.modifications as any)?.[index]?.fromExercise
-                              ?.message as string
+                      render={({ field: { onBlur, value } }) => (
+                        <TouchableOpacity
+                          onPress={() =>
+                            setSelectingExerciseFor({
+                              index,
+                              field: "fromExercise",
+                            })
                           }
-                        />
+                        >
+                          <View pointerEvents="none">
+                            <Input
+                              title="Exercício Atual (Remover)"
+                              placeholder="Toque para selecionar"
+                              onBlur={onBlur}
+                              value={value}
+                              editable={false}
+                              error={
+                                (errors.modifications as any)?.[index]
+                                  ?.fromExercise?.message as string
+                              }
+                            />
+                          </View>
+                        </TouchableOpacity>
                       )}
                     />
                   )}
@@ -195,18 +222,29 @@ const AdjustVolumeForm = ({ onClose, onSubmit }: AdjustVolumeProps) => {
                     <Controller
                       control={control}
                       name={`modifications.${index}.toExercise`}
-                      render={({ field: { onChange, onBlur, value } }) => (
-                        <Input
-                          title="Novo Exercício (Adicionar)"
-                          placeholder="Nome do novo exercício"
-                          onBlur={onBlur}
-                          onChangeText={onChange}
-                          value={value}
-                          error={
-                            (errors.modifications as any)?.[index]?.toExercise
-                              ?.message as string
+                      render={({ field: { onBlur, value } }) => (
+                        <TouchableOpacity
+                          onPress={() =>
+                            setSelectingExerciseFor({
+                              index,
+                              field: "toExercise",
+                            })
                           }
-                        />
+                        >
+                          <View pointerEvents="none">
+                            <Input
+                              title="Novo Exercício (Adicionar)"
+                              placeholder="Toque para selecionar"
+                              onBlur={onBlur}
+                              value={value}
+                              editable={false}
+                              error={
+                                (errors.modifications as any)?.[index]
+                                  ?.toExercise?.message as string
+                              }
+                            />
+                          </View>
+                        </TouchableOpacity>
                       )}
                     />
                   )}
@@ -311,6 +349,18 @@ const AdjustVolumeForm = ({ onClose, onSubmit }: AdjustVolumeProps) => {
         <Button text="Ajustar Volume" onPress={handleSubmit(onSubmit)} />
         <View style={{ height: 20 }} />
       </ScrollView>
+
+      <Modal
+        visible={!!selectingExerciseFor}
+        animationType="slide"
+        onRequestClose={() => setSelectingExerciseFor(null)}
+      >
+        <ExerciseSelector
+          onSelect={handleSelectExercise}
+          onBack={() => setSelectingExerciseFor(null)}
+          title="SELECIONAR EXERCÍCIO"
+        />
+      </Modal>
     </View>
   );
 };
