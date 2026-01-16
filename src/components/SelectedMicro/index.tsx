@@ -2,9 +2,7 @@ import React, { useContext, useEffect, useState, useCallback } from "react";
 import {
   View,
   Modal,
-  Pressable,
   Image,
-  FlatList,
   ActivityIndicator,
   TouchableWithoutFeedback,
   Alert,
@@ -12,8 +10,7 @@ import {
 } from "react-native";
 import AppText from "../AppText";
 import { UserContext } from "@/contexts/User/UserContext";
-import { Exercise, MicroCycle, Workout } from "@/contexts/User/interface";
-import { FontAwesome6, MaterialIcons } from "@expo/vector-icons";
+import { Exercise, MicroCycle } from "@/contexts/User/interface";
 import { styles } from "./styles";
 import { RegisterWorkoutForm } from "../RegisterWorkoutForm";
 import { useForm, useFieldArray } from "react-hook-form";
@@ -27,12 +24,10 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AddExerciseForm from "../AddExerciseForm";
 import CustomAlertTwoOptions from "../AlertTwoOptions";
-import FiltersByMuscle from "../FiltersByMuscle";
-import { formatMuscleLabel } from "@/utils/formatMuscleLabel";
 import { themas } from "@/global/themes";
-import ExerciseItem from "../ExerciseItem";
 import WorkoutItem from "../WorkoutItem";
 import BackAndTitle from "../BackAndTitle";
+import ExerciseSelector from "../ExerciseSelector";
 
 interface SelectedMicroProps {
   microId: string;
@@ -48,9 +43,7 @@ const SelectedMicro = ({
   const {
     getMicroCycleByID,
     saveWorkout,
-    loadingForm,
     addExerciseInWorkout,
-    getAllExercise,
     updateWorkoutOrder,
     skipWorkout,
   } = useContext(UserContext);
@@ -68,11 +61,7 @@ const SelectedMicro = ({
     string | null
   >(null);
   const [formValues, setFormValues] = useState<Record<string, any>>({});
-  const [stage, setStage] = useState<1 | 2 | 3 | 4>(1);
-  const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [page, setPage] = useState(1);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
+  const [stage, setStage] = useState<1 | 2>(1);
   const [isAddExerciseModalVisible, setAddExerciseModalVisible] =
     useState(false);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
@@ -86,10 +75,6 @@ const SelectedMicro = ({
   >(undefined);
   const [menuVisible, setMenuVisible] = useState<string | null>(null);
   const [alertVisible, setAlertVisible] = useState(false);
-  const [filteredExercises, setFilteredExercises] = useState<Exercise[] | null>(
-    null
-  );
-  const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [skipAlertVisible, setSkipAlertVisible] = useState(false);
   const [workoutToSkip, setWorkoutToSkip] = useState<any | null>(null);
@@ -412,52 +397,6 @@ const SelectedMicro = ({
     }
   };
 
-  const loadExercises = useCallback(
-    async (pageNumber: number, limit: number = 10) => {
-      if (loadingMore || !hasMore) return;
-      setLoadingMore(true);
-
-      try {
-        const data: any = await getAllExercise(pageNumber, limit);
-
-        if (data?.data?.length) {
-          setExercises((prev) => {
-            const newExercises = data.data.filter(
-              (newEx: Exercise) =>
-                !prev.some((existingEx) => existingEx.id === newEx.id)
-            );
-            return [...prev, ...newExercises];
-          });
-          setPage(pageNumber + 1);
-        } else {
-          setHasMore(false);
-        }
-      } catch (err: any) {
-        if (
-          err?.response?.status === 404 ||
-          err?.response?.data === "No exercises"
-        ) {
-          setHasMore(false);
-        } else {
-          console.error("Erro ao carregar os exercícios:", err);
-        }
-      } finally {
-        setLoadingMore(false);
-      }
-    },
-    [loadingMore, hasMore, getAllExercise]
-  );
-
-  const handleLoadMore = useCallback(() => {
-    if (!loadingMore && hasMore) {
-      loadExercises(page);
-    }
-  }, [loadingMore, hasMore, page, loadExercises]);
-
-  useEffect(() => {
-    loadExercises(1);
-  }, [loadExercises]);
-
   const handleSubmitAddExercise = async (newExercise: any) => {
     if (!targetWorkoutName) {
       console.error("Nenhum nome de treino alvo definido.");
@@ -572,12 +511,6 @@ const SelectedMicro = ({
     } finally {
       setMenuVisible(null);
     }
-  }, []);
-
-  const handleClearFilter = useCallback(() => {
-    setFilteredExercises(null);
-    setActiveFilter(null);
-    setStage(2);
   }, []);
 
   const handleMenuPress = useCallback((e: any, itemId: string) => {
@@ -760,86 +693,15 @@ const SelectedMicro = ({
   // ----------------- STAGE 2: TELA DE ADICIONAR EXERCICIO  -----------------
   if (stage === 2) {
     const handleBackFromStage2 = () => {
-      setFilteredExercises(null);
-      setActiveFilter(null);
       setStage(1);
     };
 
     return (
       <View style={{ flex: 1 }}>
-        <FlatList
-          data={filteredExercises ?? exercises}
-          keyExtractor={(item) => item.id}
-          numColumns={3}
-          renderItem={({ item }) => (
-            <ExerciseItem
-              item={item}
-              onAddExercise={handleAddExercisePress}
-              exerciseExists={checkIfExerciseExistsInWorkout(item.id)}
-            />
-          )}
-          onEndReached={handleLoadMore}
-          onEndReachedThreshold={0.5}
-          maxToRenderPerBatch={8}
-          updateCellsBatchingPeriod={50}
-          windowSize={7}
-          initialNumToRender={6}
-          removeClippedSubviews={true}
-          ListHeaderComponent={
-            <>
-              <View>
-                <View style={styles.nameAndFilter}>
-                  <BackAndTitle
-                    onBack={handleBackFromStage2}
-                    title={"ADICIONAR EXERCÍCIO"}
-                  />
-                  <Pressable
-                    onPress={() => setStage(4)}
-                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    delayLongPress={0}
-                    style={({ pressed }) => ({
-                      opacity: pressed ? 0.7 : 1,
-                      backgroundColor: pressed
-                        ? "rgba(255,255,255,0.1)"
-                        : "transparent",
-                      padding: 8,
-                      borderRadius: 8,
-                      transform: [{ scale: pressed ? 0.95 : 1 }],
-                    })}
-                  >
-                    <FontAwesome6
-                      style={styles.filter}
-                      name="filter"
-                      size={20}
-                      color={themas.Colors.secondary}
-                    />
-                  </Pressable>
-                </View>
-              </View>
-              {activeFilter && (
-                <View style={styles.activeFilterDeleteWrapper}>
-                  <View style={styles.activeFilter}>
-                    <AppText>{formatMuscleLabel(activeFilter)}</AppText>
-                  </View>
-                  <View style={styles.activeFilter}>
-                    <Pressable
-                      onPress={handleClearFilter}
-                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                      delayLongPress={0}
-                    >
-                      <FontAwesome6 name="xmark" size={15} color="white" />
-                    </Pressable>
-                  </View>
-                </View>
-              )}
-            </>
-          }
-          ListFooterComponent={() =>
-            loadingMore ? <ActivityIndicator size="large" /> : null
-          }
-          ListEmptyComponent={() => (
-            <AppText>Nenhum Exercício Encontrado</AppText>
-          )}
+        <ExerciseSelector
+          onSelect={handleAddExercisePress}
+          onBack={handleBackFromStage2}
+          checkExerciseExists={checkIfExerciseExistsInWorkout}
         />
 
         <Modal
@@ -873,46 +735,6 @@ const SelectedMicro = ({
             }}
           />
         )}
-      </View>
-    );
-  }
-
-  // ----------------- STAGE 4: FILTROS POR MÚSCULO -----------------
-  if (stage === 4) {
-    const handleSelectPrimaryMuscle = async (muscleLabel: string) => {
-      try {
-        setLoading(true);
-        setActiveFilter(muscleLabel);
-        const filtersPrimaryMuscle = `primaryMuscle=${encodeURIComponent(
-          muscleLabel
-        )}`;
-        const { data } = await getAllExercise(1, 10, filtersPrimaryMuscle);
-
-        setFilteredExercises(data);
-        setPage(2);
-        setHasMore(true);
-        setStage(2);
-      } catch (err) {
-        console.error("Erro ao filtrar exercícios:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    return (
-      <View style={{ flex: 1 }}>
-        <Pressable
-          onPress={() => setStage(2)}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          delayLongPress={0}
-          style={{ marginVertical: 10 }}
-        >
-          <MaterialIcons name="arrow-back" size={24} color="white" />
-        </Pressable>
-        <FiltersByMuscle
-          getAllExercise={getAllExercise}
-          onSelectMuscle={handleSelectPrimaryMuscle}
-        />
       </View>
     );
   }
