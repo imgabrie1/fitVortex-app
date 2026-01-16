@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import api from "@/services/api";
 
+let globalMusclesCache: any[] | null = null;
+
 export const useMuscleFilters = (getAllExercise: Function) => {
-  const [muscles, setMuscles] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [muscles, setMuscles] = useState<any[]>(globalMusclesCache || []);
+  const [loading, setLoading] = useState(!globalMusclesCache);
 
   const checkMuscleHasExercises = async (
-    muscleLabel: string
+    muscleLabel: string,
   ): Promise<boolean> => {
     try {
       const filters = `primaryMuscle=${encodeURIComponent(muscleLabel)}`;
@@ -18,11 +20,15 @@ export const useMuscleFilters = (getAllExercise: Function) => {
   };
 
   const loadMuscles = async () => {
+    if (globalMusclesCache) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       const { data } = await api.get<any[]>("muscles");
 
-      // ✅ Todas as verificações em paralelo - MUITO MAIS RÁPIDO
       const verificationPromises = data.map(async (muscle) => {
         try {
           const hasExercises = await checkMuscleHasExercises(muscle.label);
@@ -36,6 +42,7 @@ export const useMuscleFilters = (getAllExercise: Function) => {
       const results = await Promise.all(verificationPromises);
       const verifiedMuscles = results.filter(Boolean);
 
+      globalMusclesCache = verifiedMuscles;
       setMuscles(verifiedMuscles);
     } catch (error) {
       console.error("Erro ao carregar músculos:", error);
@@ -49,5 +56,12 @@ export const useMuscleFilters = (getAllExercise: Function) => {
     loadMuscles();
   }, []);
 
-  return { muscles, loading, refetch: loadMuscles };
+  return {
+    muscles,
+    loading,
+    refetch: () => {
+      globalMusclesCache = null;
+      loadMuscles();
+    },
+  };
 };
