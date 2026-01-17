@@ -17,6 +17,7 @@ import { AuthProvider } from "@/contexts/User/UserContext";
 import { themas } from "./global/themes";
 import { StatusBar } from "react-native";
 import { AnimationProvider } from "@/contexts/Animation/AnimationContext";
+import { FloatingWorkoutButton } from "@/components/FloatingWorkoutButton";
 
 const MainTheme = {
   ...DefaultTheme,
@@ -57,6 +58,7 @@ export default function App() {
       <AuthProvider>
         <AnimationProvider>
           <Routes />
+          <FloatingWorkoutButton />
         </AnimationProvider>
       </AuthProvider>
     </NavigationContainer>

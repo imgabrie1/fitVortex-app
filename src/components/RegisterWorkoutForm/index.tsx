@@ -27,6 +27,7 @@ interface RegisterWorkoutFormProps {
   previousWorkoutValues?: any;
   setValue: any;
   getValues: any;
+  microId: string;
 }
 
 export const RegisterWorkoutForm = ({
@@ -41,21 +42,24 @@ export const RegisterWorkoutForm = ({
   previousWorkoutValues,
   setValue,
   getValues,
+  microId,
 }: RegisterWorkoutFormProps) => {
-  const { loadingForm } = useContext(UserContext);
+  const { loadingForm, setActiveWorkout } = useContext(UserContext);
   const [expandedExercises, setExpandedExercises] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const [completedSets, setCompletedSets] = useState<Set<string>>(new Set());
   const [isLoaded, setIsLoaded] = useState(false);
   const [workingOut, setWorkingOut] = useState(false);
   const prevCompletedSetsRef = useRef<Set<string>>(new Set());
 
+  const workoutData = workout.workout || workout;
+
   useEffect(() => {
     const loadCompletedSets = async () => {
       try {
         const savedSets = await AsyncStorage.getItem(
-          `completedSets_${cycleItemId}`
+          `completedSets_${cycleItemId}`,
         );
         if (savedSets) {
           setCompletedSets(new Set(JSON.parse(savedSets)));
@@ -74,24 +78,31 @@ export const RegisterWorkoutForm = ({
       try {
         AsyncStorage.setItem(
           `completedSets_${cycleItemId}`,
-          JSON.stringify(Array.from(completedSets))
+          JSON.stringify(Array.from(completedSets)),
         );
       } catch (error) {
         console.error("Failed to save completed sets", error);
       }
     }
     setWorkingOut(completedSets.size > 0);
-  }, [completedSets, isLoaded, cycleItemId]);
 
-  const findNextExerciseToExpand = () => {
-    for (let i = 0; i < fields.length; i++) {
-      const exerciseId = fields[i].exerciseId;
-      if (!expandedExercises.has(exerciseId)) {
-        return exerciseId;
-      }
+    if (completedSets.size > 0) {
+      setActiveWorkout({
+        microId,
+        cycleItemId,
+        workoutName: workoutData.name,
+      });
+    } else {
+      setActiveWorkout(null);
     }
-    return null;
-  };
+  }, [
+    completedSets,
+    isLoaded,
+    cycleItemId,
+    microId,
+    setActiveWorkout,
+    workoutData.name,
+  ]);
 
   const areAllSetsCompleted = (exerciseId: string) => {
     const isUnilateral = getUnilateral(exerciseId);
@@ -147,7 +158,7 @@ export const RegisterWorkoutForm = ({
     const setKey = `${exerciseId}-${setIndex}`;
     setCompletedSets((prev) => {
       const newSet = new Set(prev);
-      
+
       if (newSet.has(setKey)) {
         newSet.delete(setKey);
       } else {
@@ -168,7 +179,7 @@ export const RegisterWorkoutForm = ({
         closeExercise(exerciseId);
 
         const currentIndex = fields.findIndex(
-          (f) => f.exerciseId === exerciseId
+          (f) => f.exerciseId === exerciseId,
         );
         if (currentIndex < fields.length - 1) {
           const nextExerciseId = fields[currentIndex + 1].exerciseId;
@@ -192,32 +203,30 @@ export const RegisterWorkoutForm = ({
     return expandedExercises.has(exerciseId);
   };
 
-  const workoutData = workout.workout || workout;
-
   const getExerciseName = (exerciseId: string) => {
     const exerciseName = workoutData.workoutExercises?.find(
-      (we: any) => we.exercise?.id === exerciseId
+      (we: any) => we.exercise?.id === exerciseId,
     )?.exercise?.name;
     return exerciseName || `Exercício`;
   };
 
   const getExerciseImg = (exerciseId: string) => {
     const exerciseImg = workoutData.workoutExercises?.find(
-      (we: any) => we.exercise?.id === exerciseId
+      (we: any) => we.exercise?.id === exerciseId,
     )?.exercise?.imageURL;
     return exerciseImg || `Erro ao carregar imagem`;
   };
 
   const getTargetSets = (exerciseId: string) => {
     const targetSets = workoutData.workoutExercises?.find(
-      (we: any) => we.exercise?.id === exerciseId
+      (we: any) => we.exercise?.id === exerciseId,
     )?.targetSets;
     return targetSets || 0;
   };
 
   const getUnilateral = (exerciseId: string) => {
     const workoutExercise = workoutData.workoutExercises?.find(
-      (we: any) => we.exercise?.id === exerciseId
+      (we: any) => we.exercise?.id === exerciseId,
     );
     if (!workoutExercise) return false;
     if (typeof (workoutExercise as any).is_unilateral === "boolean") {
@@ -230,7 +239,7 @@ export const RegisterWorkoutForm = ({
     if (!previousWorkoutValues || !previousWorkoutValues.sets) return null;
 
     const previousSetsForExercise = previousWorkoutValues.sets.filter(
-      (s: any) => s.exercise.id === exerciseId
+      (s: any) => s.exercise.id === exerciseId,
     );
 
     const result = previousSetsForExercise[setIndex];
@@ -431,11 +440,6 @@ export const RegisterWorkoutForm = ({
                                 isDone && styles.alternativeDoneButton,
                               ]}
                               onPress={() => {
-                                if (workingOut) {
-                                  console.log(workingOut);
-                                } else {
-                                  console.log(workingOut);
-                                }
                                 const weightPath = `exercises.${index}.sets.${setIndex}.weight`;
                                 const repsPath = `exercises.${index}.sets.${setIndex}.reps`;
 
@@ -448,7 +452,7 @@ export const RegisterWorkoutForm = ({
                                 ) {
                                   setValue(
                                     weightPath,
-                                    String(Number(prevSet.weight))
+                                    String(Number(prevSet.weight)),
                                   );
                                 }
 
@@ -458,7 +462,7 @@ export const RegisterWorkoutForm = ({
                                 ) {
                                   setValue(
                                     repsPath,
-                                    String(Number(prevSet.reps))
+                                    String(Number(prevSet.reps)),
                                   );
                                 }
 
@@ -492,7 +496,7 @@ export const RegisterWorkoutForm = ({
                           )}
                         </View>
                       );
-                    }
+                    },
                   )}
                 </View>
               )}
