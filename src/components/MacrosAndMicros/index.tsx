@@ -31,7 +31,7 @@ import AdjustVolumeForm from "../AdjustVolumeForm";
 import CustomAlertOneOption from "../AlertOneOptions";
 import CustomAlertTwoOptions from "../AlertTwoOptions";
 
-const MacrosAndMicros = () => {
+const MacrosAndMicros = ({ initialParams }: { initialParams?: any }) => {
   const {
     user,
     getAllMacroCycles,
@@ -51,6 +51,24 @@ const MacrosAndMicros = () => {
   const [selectedMacro, setSelectedMacro] = useState<MacroCycle | null>(null);
   const [selectedMicro, setSelectedMicro] = useState<MicroCycle | null>(null);
   const [selectedMicroId, setSelectedMicroId] = useState<string | null>(null);
+  const [initialCycleItemId, setInitialCycleItemId] = useState<string | null>(
+    null,
+  );
+  const [restoreTrigger, setRestoreTrigger] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (initialParams?.restore && initialParams?.microId) {
+      setStage(3);
+      setSelectedMicroId(initialParams.microId);
+      if (initialParams.cycleItemId) {
+        setInitialCycleItemId(initialParams.cycleItemId);
+      }
+      if (initialParams.timestamp) {
+        setRestoreTrigger(initialParams.timestamp);
+      }
+    }
+  }, [initialParams]);
+
   const [macros, setMacros] = useState<MacroCycle[]>([]);
   const [micros, setMicros] = useState<MicroCycle[]>([]);
   const [isCreateWorkoutModalVisible, setCreateWorkoutModalVisible] =
@@ -361,10 +379,13 @@ const MacrosAndMicros = () => {
       <SelectedMicro
         microId={selectedMicroId}
         allMicrosId={allMicroCycleIds}
+        initialCycleItemId={initialCycleItemId}
+        restoreTrigger={restoreTrigger}
         onBack={() => {
           setStage(2);
           setSelectedMicro(null);
           setSelectedMicroId(null);
+          setInitialCycleItemId(null);
         }}
       />
     );

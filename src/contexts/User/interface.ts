@@ -255,4 +255,12 @@ export type UserContextData = {
     workoutID: string,
     workoutData: any
   ) => Promise<any>;
+  activeWorkout: ActiveWorkout | null;
+  setActiveWorkout: (workout: ActiveWorkout | null) => void;
 };
+
+export interface ActiveWorkout {
+  microId: string;
+  cycleItemId: string;
+  workoutName: string;
+}

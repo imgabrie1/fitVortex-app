@@ -7,6 +7,7 @@ export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 export const TOKEN_STORAGE = "@fitvortex:token";
 export const USER_STORAGE = "@fitvortex:user";
 export const REFRESH_TOKEN_STORAGE = "@fitvortex:refreshToken";
+export const ACTIVE_WORKOUT_STORAGE = "@fitvortex:activeWorkout";
 
 const api = axios.create({
   baseURL: API_BASE_URL,

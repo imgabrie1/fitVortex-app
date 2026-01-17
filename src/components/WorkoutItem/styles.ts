@@ -117,7 +117,6 @@ export const styles = StyleSheet.create({
     marginTop: 8,
     backgroundColor: themas.Colors.blocks,
     width: width,
-    marginLeft: -14,
     position: "relative",
     paddingHorizontal: 14,
   },
@@ -144,6 +143,5 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     width: "99%",
     paddingHorizontal: 5
-    // backgroundColor: "red",
   },
 });

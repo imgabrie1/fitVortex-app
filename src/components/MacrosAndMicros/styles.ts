@@ -16,7 +16,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 20,
     gap: 10,
     marginTop: 10,
-    width: "100%"
+    width: "100%",
   },
 
   blockSelected: {
@@ -24,12 +24,12 @@ export const styles = StyleSheet.create({
   },
 
   textSelected: {
-    color: themas.Colors.text
+    color: themas.Colors.text,
   },
 
   name: {
     fontSize: 20,
-    fontWeight: 700
+    fontWeight: 700,
   },
 
   nameAndMenuWrap: {
@@ -51,7 +51,7 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "flex-start",
     paddingLeft: 8,
-    paddingTop: 20
+    paddingTop: 20,
   },
 
   infoSelected: {
