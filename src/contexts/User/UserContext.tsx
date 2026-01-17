@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, ReactNode } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import api, { TOKEN_STORAGE, USER_STORAGE, REFRESH_TOKEN_STORAGE, registerLogoutCallback } from "@/services/api";
+import api, { TOKEN_STORAGE, USER_STORAGE, REFRESH_TOKEN_STORAGE, ACTIVE_WORKOUT_STORAGE, registerLogoutCallback } from "@/services/api";
 import { navigate } from "@/navigation/RootNavigation";
 import {
   UserContextData,
@@ -40,6 +40,7 @@ export const AuthProvider = ({ children }: Props) => {
   const [loading, setLoading] = useState(true);
   const [loadingForm, setLoadingForm] = useState(false);
   const [volumes, setVolumes] = useState<number>(0);
+  const [activeWorkout, setActiveWorkoutState] = useState<any | null>(null);
 
   useEffect(() => {
     registerLogoutCallback(logout);
@@ -50,6 +51,9 @@ export const AuthProvider = ({ children }: Props) => {
       try {
         const storedToken = await AsyncStorage.getItem(TOKEN_STORAGE);
         const storedUser = await AsyncStorage.getItem(USER_STORAGE);
+        const storedActiveWorkout = await AsyncStorage.getItem(
+          ACTIVE_WORKOUT_STORAGE
+        );
 
         if (storedToken && storedUser) {
           setToken(storedToken);
@@ -59,6 +63,10 @@ export const AuthProvider = ({ children }: Props) => {
             "Authorization"
           ] = `Bearer ${storedToken}`;
           await getTotalVolume(parsedUser.id);
+        }
+
+        if (storedActiveWorkout) {
+          setActiveWorkoutState(JSON.parse(storedActiveWorkout));
         }
       } catch (err) {
         console.warn("Erro carregando dados:", err);
@@ -143,12 +151,29 @@ export const AuthProvider = ({ children }: Props) => {
     }
   };
 
+  const setActiveWorkout = async (workout: any | null) => {
+    setActiveWorkoutState(workout);
+    try {
+      if (workout) {
+        await AsyncStorage.setItem(
+          ACTIVE_WORKOUT_STORAGE,
+          JSON.stringify(workout)
+        );
+      } else {
+        await AsyncStorage.removeItem(ACTIVE_WORKOUT_STORAGE);
+      }
+    } catch (error) {
+      console.error("Failed to persist active workout:", error);
+    }
+  };
+
   const logout = async () => {
     setLoadingForm(true);
     try {
-      await AsyncStorage.multiRemove([TOKEN_STORAGE, USER_STORAGE, REFRESH_TOKEN_STORAGE]);
+      await AsyncStorage.multiRemove([TOKEN_STORAGE, USER_STORAGE, REFRESH_TOKEN_STORAGE, ACTIVE_WORKOUT_STORAGE]);
       setToken(null);
       setUser(null);
+      setActiveWorkoutState(null);
       delete api.defaults.headers.common["Authorization"];
       navigate("Login");
     } catch (err) {
@@ -645,6 +670,8 @@ export const AuthProvider = ({ children }: Props) => {
         adjustVolume,
         editCycles,
         skipWorkout,
+        activeWorkout,
+        setActiveWorkout,
       }}
     >
       {children}

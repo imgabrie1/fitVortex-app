@@ -1,4 +1,4 @@
-package com.imgabrie1.fitVortexapp
+package com.imgabrie1.fitVortexapp.dev
 
 import android.os.Build
 import android.os.Bundle

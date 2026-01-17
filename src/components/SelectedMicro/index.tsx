@@ -24,6 +24,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import AddExerciseForm from "../AddExerciseForm";
 import CustomAlertTwoOptions from "../AlertTwoOptions";
+import CustomAlertOneOption from "../AlertOneOptions";
 import { themas } from "@/global/themes";
 import WorkoutItem from "../WorkoutItem";
 import BackAndTitle from "../BackAndTitle";
@@ -33,12 +34,16 @@ interface SelectedMicroProps {
   microId: string;
   onBack: () => void;
   allMicrosId: any;
+  initialCycleItemId?: string | null;
+  restoreTrigger?: number | null;
 }
 
 const SelectedMicro = ({
   microId,
   onBack,
   allMicrosId,
+  initialCycleItemId,
+  restoreTrigger,
 }: SelectedMicroProps) => {
   const {
     getMicroCycleByID,
@@ -46,6 +51,7 @@ const SelectedMicro = ({
     addExerciseInWorkout,
     updateWorkoutOrder,
     skipWorkout,
+    activeWorkout,
   } = useContext(UserContext);
 
   const [micro, setMicro] = useState<MicroCycle | null>(null);
@@ -81,19 +87,42 @@ const SelectedMicro = ({
   const [previousWorkoutData, setPreviousWorkoutData] = useState<any | null>(
     null
   );
+  const [activeWorkoutAlertVisible, setActiveWorkoutAlertVisible] =
+    useState(false);
 
   // ==================== FUNÇÕES DE CALLBACK ====================
 
-  const handleRegisterWorkout = useCallback((workout: any) => {
-    setRegisteringWorkout(workout);
-    setSelectedWorkoutName(workout.workout.name);
-    setSelectedWorkoutImage(workout.workout.imageUrl || null);
-    setIsEditMode(false);
-  }, []);
+  const handleRegisterWorkout = useCallback(
+    (workout: any) => {
+      if (
+        activeWorkout &&
+        activeWorkout.cycleItemId &&
+        activeWorkout.cycleItemId !== workout.id
+      ) {
+        setActiveWorkoutAlertVisible(true);
+        return;
+      }
+
+      setRegisteringWorkout(workout);
+      setSelectedWorkoutName(workout.workout.name);
+      setSelectedWorkoutImage(workout.workout.imageUrl || null);
+      setIsEditMode(false);
+    },
+    [activeWorkout]
+  );
 
   const handleEditWorkout = useCallback(
     (ci: any) => {
       try {
+        if (
+          activeWorkout &&
+          activeWorkout.cycleItemId &&
+          activeWorkout.cycleItemId !== ci.id
+        ) {
+          setActiveWorkoutAlertVisible(true);
+          return;
+        }
+
         const hasRecordedWorkout = ci.sets && ci.sets.length > 0;
 
         if (hasRecordedWorkout) {
@@ -110,8 +139,19 @@ const SelectedMicro = ({
         setMenuVisible(null);
       }
     },
-    [handleRegisterWorkout]
+    [handleRegisterWorkout, activeWorkout]
   );
+
+  useEffect(() => {
+    if (initialCycleItemId && workouts.length > 0) {
+      const targetWorkout = workouts.find((w) => w.id === initialCycleItemId);
+      if (targetWorkout) {
+        if (registeringWorkout?.id !== targetWorkout.id) {
+          handleEditWorkout(targetWorkout);
+        }
+      }
+    }
+  }, [initialCycleItemId, workouts, restoreTrigger]);
 
   const onBackModal = () => {
     setRegisteringWorkout(null);
@@ -664,6 +704,7 @@ const SelectedMicro = ({
                       previousWorkoutValues={previousWorkoutData}
                       setValue={setValue}
                       getValues={getValues}
+                      microId={microId}
                     />
                   </ScrollView>
                 </View>
@@ -684,6 +725,15 @@ const SelectedMicro = ({
               setSkipAlertVisible(false);
               setWorkoutToSkip(null);
             }}
+          />
+        )}
+
+        {activeWorkoutAlertVisible && (
+          <CustomAlertOneOption
+            visible={activeWorkoutAlertVisible}
+            onClose={() => setActiveWorkoutAlertVisible(false)}
+            title="Treino em Andamento!"
+            message="Você já tem um treino em andamento. Termine-o antes de começar outro."
           />
         )}
       </GestureHandlerRootView>
