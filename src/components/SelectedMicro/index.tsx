@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState, useCallback } from "react";
+import React, { useContext, useEffect, useState, useCallback, useRef } from "react";
 import {
   View,
   Modal,
@@ -66,7 +66,8 @@ const SelectedMicro = ({
   const [selectedWorkoutImage, setSelectedWorkoutImage] = useState<
     string | null
   >(null);
-  const [formValues, setFormValues] = useState<Record<string, any>>({});
+  // Substituindo useState por useRef para evitar re-renders cíclicos ao digitar/atualizar form
+  const formValuesRef = useRef<Record<string, any>>({});
   const [stage, setStage] = useState<1 | 2>(1);
   const [isAddExerciseModalVisible, setAddExerciseModalVisible] =
     useState(false);
@@ -201,9 +202,16 @@ const SelectedMicro = ({
 
   // ==================== USE EFFECTS ====================
 
+  const currentCycleItemIdRef = useRef<string | null>(null);
+
   useEffect(() => {
     const fetchPreviousData = async () => {
       if (registeringWorkout && !isEditMode && allMicrosId) {
+        if (currentCycleItemIdRef.current === registeringWorkout.id) {
+          return;
+        }
+
+        currentCycleItemIdRef.current = registeringWorkout.id;
         setPreviousWorkoutData(null);
 
         const currentIndex = allMicrosId.indexOf(microId);
@@ -228,6 +236,7 @@ const SelectedMicro = ({
         }
       } else {
         setPreviousWorkoutData(null);
+        currentCycleItemIdRef.current = null;
       }
     };
     fetchPreviousData();
@@ -239,7 +248,9 @@ const SelectedMicro = ({
         const savedValuesJSON = await AsyncStorage.getItem(
           getFormStorageKey(microId)
         );
-        if (savedValuesJSON) setFormValues(JSON.parse(savedValuesJSON));
+        if (savedValuesJSON) {
+          formValuesRef.current = JSON.parse(savedValuesJSON);
+        }
       } catch (e) {
         console.error("Failed to load form values from storage", e);
       }
@@ -251,7 +262,7 @@ const SelectedMicro = ({
 
   useEffect(() => {
     if (registeringWorkout) {
-      const currentValues = formValues[registeringWorkout.id] || {};
+      const currentValues = formValuesRef.current[registeringWorkout.id] || {};
 
       const hasExistingSets =
         registeringWorkout.sets && registeringWorkout.sets.length > 0;
@@ -322,18 +333,19 @@ const SelectedMicro = ({
 
   useEffect(() => {
     if (registeringWorkout) {
-      setFormValues((prev) => {
-        const newValues = { ...prev, [registeringWorkout.id]: watchedValues };
-        try {
-          AsyncStorage.setItem(
-            getFormStorageKey(microId),
-            JSON.stringify(newValues)
-          );
-        } catch (e) {
-          console.error("Failed to save form values to storage", e);
-        }
-        return newValues;
-      });
+      formValuesRef.current = {
+        ...formValuesRef.current,
+        [registeringWorkout.id]: watchedValues,
+      };
+
+      try {
+        AsyncStorage.setItem(
+          getFormStorageKey(microId),
+          JSON.stringify(formValuesRef.current)
+        );
+      } catch (e) {
+        console.error("Failed to save form values to storage", e);
+      }
     }
   }, [JSON.stringify(watchedValues), registeringWorkout]);
 
@@ -404,20 +416,22 @@ const SelectedMicro = ({
 
   const handleFormSubmit = useCallback(() => {
     if (registeringWorkout) {
-      setFormValues((prev) => {
-        const newValues = { ...prev };
-        delete newValues[registeringWorkout.id];
-        try {
-          AsyncStorage.setItem(
-            getFormStorageKey(microId),
-            JSON.stringify(newValues)
-          );
-          AsyncStorage.removeItem(`completedSets_${registeringWorkout.id}`);
-        } catch (e) {
-          console.error("Falha ao limpar valores", e);
-        }
-        return newValues;
-      });
+      const newValues = { ...formValuesRef.current };
+      delete newValues[registeringWorkout.id];
+      formValuesRef.current = newValues;
+
+      try {
+        AsyncStorage.setItem(
+          getFormStorageKey(microId),
+          JSON.stringify(newValues)
+        );
+        AsyncStorage.removeItem(`completedSets_${registeringWorkout.id}`);
+        AsyncStorage.removeItem(
+          `previousWorkoutValues_${registeringWorkout.id}`,
+        );
+      } catch (e) {
+        console.error("Falha ao limpar valores", e);
+      }
     }
     setRegisteringWorkout(null);
     setSelectedWorkoutName(null);
@@ -668,7 +682,6 @@ const SelectedMicro = ({
                 <View style={styles.containerModal}>
                   <ScrollView>
                     <View style={styles.backAndTitleWrapp}>
-                      {/* Mostra "(Editando)" quando estiver no modo edição */}
                       <BackAndTitle
                         title={`${selectedWorkoutName ?? "Treino"} ${
                           isEditMode ? "(Editando)" : ""
@@ -692,7 +705,7 @@ const SelectedMicro = ({
                     )}
 
                     <RegisterWorkoutForm
-                      key={previousWorkoutData ? "loaded" : "loading"}
+                      key={registeringWorkout.id}
                       workout={registeringWorkout.workout}
                       control={control}
                       errors={errors}

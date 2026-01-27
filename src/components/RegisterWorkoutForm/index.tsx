@@ -44,7 +44,8 @@ export const RegisterWorkoutForm = ({
   getValues,
   microId,
 }: RegisterWorkoutFormProps) => {
-  const { loadingForm, setActiveWorkout } = useContext(UserContext);
+  const { loadingForm, setActiveWorkout, activeWorkout } =
+    useContext(UserContext);
   const [expandedExercises, setExpandedExercises] = useState<Set<string>>(
     new Set(),
   );
@@ -52,8 +53,36 @@ export const RegisterWorkoutForm = ({
   const [isLoaded, setIsLoaded] = useState(false);
   const [workingOut, setWorkingOut] = useState(false);
   const prevCompletedSetsRef = useRef<Set<string>>(new Set());
+  const autoAdvancedRef = useRef<Set<string>>(new Set());
+  const [storedPreviousValues, setStoredPreviousValues] = useState<any>(null);
 
   const workoutData = workout.workout || workout;
+
+  useEffect(() => {
+    const handlePreviousValues = async () => {
+      const key = `previousWorkoutValues_${cycleItemId}`;
+      if (previousWorkoutValues) {
+        try {
+          await AsyncStorage.setItem(
+            key,
+            JSON.stringify(previousWorkoutValues),
+          );
+        } catch (error) {
+          console.error("Failed to save previous workout values", error);
+        }
+      } else {
+        try {
+          const stored = await AsyncStorage.getItem(key);
+          if (stored) {
+            setStoredPreviousValues(JSON.parse(stored));
+          }
+        } catch (error) {
+          console.error("Failed to load previous workout values", error);
+        }
+      }
+    };
+    handlePreviousValues();
+  }, [previousWorkoutValues, cycleItemId]);
 
   useEffect(() => {
     const loadCompletedSets = async () => {
@@ -87,22 +116,25 @@ export const RegisterWorkoutForm = ({
     setWorkingOut(completedSets.size > 0);
 
     if (completedSets.size > 0) {
-      setActiveWorkout({
+      const newActiveWorkoutState = {
         microId,
         cycleItemId,
         workoutName: workoutData.name,
-      });
+      };
+
+      if (
+        !activeWorkout ||
+        activeWorkout.cycleItemId !== cycleItemId ||
+        activeWorkout.microId !== microId
+      ) {
+        setActiveWorkout(newActiveWorkoutState);
+      }
     } else {
-      setActiveWorkout(null);
+      if (activeWorkout) {
+        setActiveWorkout(null);
+      }
     }
-  }, [
-    completedSets,
-    isLoaded,
-    cycleItemId,
-    microId,
-    setActiveWorkout,
-    workoutData.name,
-  ]);
+  }, [completedSets, isLoaded, cycleItemId, microId]);
 
   const areAllSetsCompleted = (exerciseId: string) => {
     const isUnilateral = getUnilateral(exerciseId);
@@ -169,30 +201,29 @@ export const RegisterWorkoutForm = ({
   };
 
   useEffect(() => {
-    const prevCompletedSets = prevCompletedSetsRef.current;
+    if (!isLoaded) return;
 
-    fields.forEach((item) => {
+    fields.forEach((item, index) => {
       const exerciseId = item.exerciseId;
       const isExpanded = expandedExercises.has(exerciseId);
+      const allDone = areAllSetsCompleted(exerciseId);
 
-      if (isExpanded && areAllSetsCompleted(exerciseId)) {
+      if (isExpanded && allDone && !autoAdvancedRef.current.has(exerciseId)) {
+        autoAdvancedRef.current.add(exerciseId);
+
         closeExercise(exerciseId);
 
-        const currentIndex = fields.findIndex(
-          (f) => f.exerciseId === exerciseId,
-        );
-        if (currentIndex < fields.length - 1) {
-          const nextExerciseId = fields[currentIndex + 1].exerciseId;
-
+        if (index < fields.length - 1) {
+          const nextExerciseId = fields[index + 1].exerciseId;
           setTimeout(() => {
             openExercise(nextExerciseId);
           }, 300);
         }
+      } else if (!allDone && autoAdvancedRef.current.has(exerciseId)) {
+        autoAdvancedRef.current.delete(exerciseId);
       }
     });
-
-    prevCompletedSetsRef.current = new Set(completedSets);
-  }, [completedSets, fields]);
+  }, [completedSets, isLoaded]);
 
   const isSetDone = (exerciseId: string, setIndex: number) => {
     const setKey = `${exerciseId}-${setIndex}`;
@@ -236,9 +267,12 @@ export const RegisterWorkoutForm = ({
   };
 
   const getPreviousSet = (exerciseId: string, setIndex: number) => {
-    if (!previousWorkoutValues || !previousWorkoutValues.sets) return null;
+    const effectivePreviousValues =
+      previousWorkoutValues || storedPreviousValues;
 
-    const previousSetsForExercise = previousWorkoutValues.sets.filter(
+    if (!effectivePreviousValues || !effectivePreviousValues.sets) return null;
+
+    const previousSetsForExercise = effectivePreviousValues.sets.filter(
       (s: any) => s.exercise.id === exerciseId,
     );
 
@@ -278,7 +312,12 @@ export const RegisterWorkoutForm = ({
         return (
           <View key={item.id}>
             <TouchableOpacity onPress={() => toggleExercise(exerciseId)}>
-              <View style={styles.infoHeaderExercise}>
+              <View
+                style={[
+                  styles.infoHeaderExercise,
+                  allSetsCompleted && styles.teste2,
+                ]}
+              >
                 <Image
                   source={{ uri: getExerciseImg(exerciseId) }}
                   style={styles.img}
@@ -288,7 +327,6 @@ export const RegisterWorkoutForm = ({
                   <AppText style={styles.exerciseName}>
                     {getExerciseName(exerciseId)}
                     {isUnilateral && " (Unilateral)"}
-                    {allSetsCompleted && " — Feito!"}
                   </AppText>
                   <AppText style={styles.targetSets}>
                     {`${completedSetsCount}/${actualNumberOfSets} concluídos`}
@@ -358,7 +396,9 @@ export const RegisterWorkoutForm = ({
                       const placeholderReps = formatValue(prevSet?.reps);
 
                       return (
-                        <View key={setIndex}>
+                        <View
+                          key={`${setIndex}-${placeholderWeight}-${placeholderReps}`}
+                        >
                           <View
                             style={[
                               styles.setRow,

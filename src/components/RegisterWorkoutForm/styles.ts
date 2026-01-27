@@ -31,13 +31,17 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     height: height * 0.1,
     gap: 15,
-    paddingLeft: 10
+    paddingLeft: 10,
+  },
+
+  teste2: {
+    backgroundColor: themas.Colors.green,
+    padding: 5
   },
 
   notes: {
     color: themas.Colors.text,
-    paddingLeft: padding_H
-
+    paddingLeft: padding_H,
   },
   img: {
     borderColor: themas.Colors.gray,
@@ -79,7 +83,7 @@ export const styles = StyleSheet.create({
     backgroundColor: themas.Colors.gray,
     borderRadius: "50%",
     height: 30,
-    marginLeft: 10
+    marginLeft: 10,
   },
 
   alternativeDoneButton: {
@@ -143,7 +147,7 @@ export const styles = StyleSheet.create({
   },
 
   teste: {
-    marginBottom: 50
+    marginBottom: 50,
   },
 
   button: {
