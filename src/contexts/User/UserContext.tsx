@@ -1,6 +1,12 @@
 import React, { createContext, useState, useEffect, ReactNode } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import api, { TOKEN_STORAGE, USER_STORAGE, REFRESH_TOKEN_STORAGE, ACTIVE_WORKOUT_STORAGE, registerLogoutCallback } from "@/services/api";
+import api, {
+  TOKEN_STORAGE,
+  USER_STORAGE,
+  REFRESH_TOKEN_STORAGE,
+  ACTIVE_WORKOUT_STORAGE,
+  registerLogoutCallback,
+} from "@/services/api";
 import { navigate } from "@/navigation/RootNavigation";
 import {
   UserContextData,
@@ -29,7 +35,7 @@ import { AxiosError } from "axios";
 import { Alert } from "react-native";
 
 export const UserContext = createContext<UserContextData>(
-  {} as UserContextData
+  {} as UserContextData,
 );
 
 type Props = { children: ReactNode };
@@ -52,16 +58,15 @@ export const AuthProvider = ({ children }: Props) => {
         const storedToken = await AsyncStorage.getItem(TOKEN_STORAGE);
         const storedUser = await AsyncStorage.getItem(USER_STORAGE);
         const storedActiveWorkout = await AsyncStorage.getItem(
-          ACTIVE_WORKOUT_STORAGE
+          ACTIVE_WORKOUT_STORAGE,
         );
 
         if (storedToken && storedUser) {
           setToken(storedToken);
           const parsedUser = JSON.parse(storedUser);
           setUser(parsedUser);
-          api.defaults.headers.common[
-            "Authorization"
-          ] = `Bearer ${storedToken}`;
+          api.defaults.headers.common["Authorization"] =
+            `Bearer ${storedToken}`;
           await getTotalVolume(parsedUser.id);
         }
 
@@ -157,7 +162,7 @@ export const AuthProvider = ({ children }: Props) => {
       if (workout) {
         await AsyncStorage.setItem(
           ACTIVE_WORKOUT_STORAGE,
-          JSON.stringify(workout)
+          JSON.stringify(workout),
         );
       } else {
         await AsyncStorage.removeItem(ACTIVE_WORKOUT_STORAGE);
@@ -170,12 +175,16 @@ export const AuthProvider = ({ children }: Props) => {
   const logout = async () => {
     setLoadingForm(true);
     try {
-      await AsyncStorage.multiRemove([TOKEN_STORAGE, USER_STORAGE, REFRESH_TOKEN_STORAGE, ACTIVE_WORKOUT_STORAGE]);
+      await AsyncStorage.multiRemove([
+        TOKEN_STORAGE,
+        USER_STORAGE,
+        REFRESH_TOKEN_STORAGE,
+        ACTIVE_WORKOUT_STORAGE,
+      ]);
       setToken(null);
       setUser(null);
       setActiveWorkoutState(null);
       delete api.defaults.headers.common["Authorization"];
-      navigate("Login");
     } catch (err) {
       console.warn("Erro no logout:", err);
     } finally {
@@ -215,7 +224,7 @@ export const AuthProvider = ({ children }: Props) => {
       let errorData = currentError?.response?.data;
       console.error(
         "Erro completo ao carregar Macro Ciclo:",
-        JSON.stringify(currentError, null, 2)
+        JSON.stringify(currentError, null, 2),
       );
 
       if (typeof errorData === "object" && errorData !== null) {
@@ -254,7 +263,7 @@ export const AuthProvider = ({ children }: Props) => {
     try {
       const data = await api.post(
         `/macrocycle/${macroID}/generate-next`,
-        payload
+        payload,
       );
       return data;
     } catch (err: any) {
@@ -363,13 +372,13 @@ export const AuthProvider = ({ children }: Props) => {
 
   const addMicroInMacro = async (
     macroID: string,
-    microID: string
+    microID: string,
   ): Promise<any> => {
     assertUser();
     setLoadingForm(true);
     try {
       const { data } = await api.patch(
-        `/macrocycle/${macroID}/micro/${microID}`
+        `/macrocycle/${macroID}/micro/${microID}`,
       );
       return data;
     } catch (err: any) {
@@ -386,7 +395,7 @@ export const AuthProvider = ({ children }: Props) => {
 
   const updateWorkoutOrder = async (
     microCycleID: string,
-    orderedIds: string[]
+    orderedIds: string[],
   ) => {
     assertUser();
     try {
@@ -405,7 +414,7 @@ export const AuthProvider = ({ children }: Props) => {
   const getAllExercise = async (
     page?: number,
     limit?: number,
-    filters?: string
+    filters?: string,
   ): Promise<ExerciseResponse> => {
     assertUser();
 
@@ -444,7 +453,7 @@ export const AuthProvider = ({ children }: Props) => {
   //        -------------- WORKOUT --------------
   const getAllWorkouts = async (
     page?: number,
-    limit?: number
+    limit?: number,
   ): Promise<WorkoutResponse> => {
     const currentUser = requireUser();
 
@@ -491,7 +500,7 @@ export const AuthProvider = ({ children }: Props) => {
               isSkipped: cycleItem.isSkipped,
               workoutExercises: workoutExercisesWithSets,
             };
-          })
+          }),
       );
 
       return { ...data, data: workouts };
@@ -522,7 +531,7 @@ export const AuthProvider = ({ children }: Props) => {
     microID: string,
     workoutID: string,
     workoutData: any,
-    isEdit: boolean = false
+    isEdit: boolean = false,
   ): Promise<any> => {
     assertUser();
     setLoadingForm(true);
@@ -570,7 +579,7 @@ export const AuthProvider = ({ children }: Props) => {
 
   const addWorkoutInMicro = async (
     microID: string,
-    workoutID: string
+    workoutID: string,
   ): Promise<any> => {
     assertUser();
     setLoadingForm(true);
@@ -590,7 +599,7 @@ export const AuthProvider = ({ children }: Props) => {
 
   const addExerciseInWorkout = async (
     payload: ExerciseInCreateAndPatch,
-    workoutID: string
+    workoutID: string,
   ) => {
     assertUser();
     setLoadingForm(true);
@@ -612,14 +621,14 @@ export const AuthProvider = ({ children }: Props) => {
   const skipWorkout = async (
     microID: string,
     workoutID: string,
-    workoutData: any
+    workoutData: any,
   ): Promise<any> => {
     assertUser();
     setLoadingForm(true);
     try {
       const { data } = await api.patch(
         `microcycle/${microID}/workouts/${workoutID}/skip`,
-        workoutData
+        workoutData,
       );
 
       await refreshWorkoutsData();

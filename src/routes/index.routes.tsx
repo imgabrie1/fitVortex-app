@@ -7,6 +7,7 @@ import Login from "@/pages/Login";
 import BottomRoutes from "./BottomRoutes/bottom.routes";
 import Register from "@/pages/Register";
 import StartApp from "@/pages/StartApp";
+import { themas } from "@/global/themes";
 
 const Stack = createStackNavigator();
 
@@ -32,8 +33,15 @@ const AppRoutes = () => (
 );
 
 const LoadingScreen = () => (
-  <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-    <ActivityIndicator size="large" color="#0000ff" />
+  <View
+    style={{
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: themas.Colors.background,
+    }}
+  >
+    <ActivityIndicator size="large" color={themas.Colors.primary} />
   </View>
 );
 
