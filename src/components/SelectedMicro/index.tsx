@@ -1,4 +1,10 @@
-import React, { useContext, useEffect, useState, useCallback, useRef } from "react";
+import React, {
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  useRef,
+} from "react";
 import {
   View,
   Modal,
@@ -29,6 +35,7 @@ import { themas } from "@/global/themes";
 import WorkoutItem from "../WorkoutItem";
 import BackAndTitle from "../BackAndTitle";
 import ExerciseSelector from "../ExerciseSelector";
+import { Button } from "../Button";
 
 interface SelectedMicroProps {
   microId: string;
@@ -58,10 +65,10 @@ const SelectedMicro = ({
   const [workouts, setWorkouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [registeringWorkout, setRegisteringWorkout] = useState<any | null>(
-    null
+    null,
   );
   const [selectedWorkoutName, setSelectedWorkoutName] = useState<string | null>(
-    null
+    null,
   );
   const [selectedWorkoutImage, setSelectedWorkoutImage] = useState<
     string | null
@@ -72,10 +79,10 @@ const SelectedMicro = ({
   const [isAddExerciseModalVisible, setAddExerciseModalVisible] =
     useState(false);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
-    null
+    null,
   );
   const [targetWorkoutName, setTargetWorkoutName] = useState<string | null>(
-    null
+    null,
   );
   const [menuOrigin, setMenuOrigin] = useState<
     { x: number; y: number } | undefined
@@ -86,7 +93,7 @@ const SelectedMicro = ({
   const [skipAlertVisible, setSkipAlertVisible] = useState(false);
   const [workoutToSkip, setWorkoutToSkip] = useState<any | null>(null);
   const [previousWorkoutData, setPreviousWorkoutData] = useState<any | null>(
-    null
+    null,
   );
   const [activeWorkoutAlertVisible, setActiveWorkoutAlertVisible] =
     useState(false);
@@ -109,7 +116,7 @@ const SelectedMicro = ({
       setSelectedWorkoutImage(workout.workout.imageUrl || null);
       setIsEditMode(false);
     },
-    [activeWorkout]
+    [activeWorkout],
   );
 
   const handleEditWorkout = useCallback(
@@ -140,7 +147,7 @@ const SelectedMicro = ({
         setMenuVisible(null);
       }
     },
-    [handleRegisterWorkout, activeWorkout]
+    [handleRegisterWorkout, activeWorkout],
   );
 
   useEffect(() => {
@@ -183,21 +190,21 @@ const SelectedMicro = ({
       if (!targetWorkoutName) return false;
 
       const targetWorkout = workouts.find(
-        (w) => w.workout.name === targetWorkoutName
+        (w) => w.workout.name === targetWorkoutName,
       );
 
       if (!targetWorkout?.workout?.workoutExercises) return false;
 
       return targetWorkout.workout.workoutExercises.some(
-        (we: any) => we.exercise.id === exerciseId
+        (we: any) => we.exercise.id === exerciseId,
       );
     },
-    [targetWorkoutName, workouts]
+    [targetWorkoutName, workouts],
   );
 
   const getFormStorageKey = useCallback(
     (microId: string) => `workoutFormValues_${microId}`,
-    []
+    [],
   );
 
   // ==================== USE EFFECTS ====================
@@ -223,7 +230,7 @@ const SelectedMicro = ({
             if (prevMicro && prevMicro.cycleItems) {
               const currentWorkoutName = registeringWorkout.workout.name;
               const match = prevMicro.cycleItems.find(
-                (ci: any) => ci.workout?.name === currentWorkoutName
+                (ci: any) => ci.workout?.name === currentWorkoutName,
               );
 
               if (match && match.sets && match.sets.length > 0) {
@@ -246,7 +253,7 @@ const SelectedMicro = ({
     const loadFormValues = async () => {
       try {
         const savedValuesJSON = await AsyncStorage.getItem(
-          getFormStorageKey(microId)
+          getFormStorageKey(microId),
         );
         if (savedValuesJSON) {
           formValuesRef.current = JSON.parse(savedValuesJSON);
@@ -287,7 +294,7 @@ const SelectedMicro = ({
             const sets = groupedByExercise[exerciseId];
             const workoutExercise =
               registeringWorkout.workout.workoutExercises?.find(
-                (we: any) => we.exercise.id === exerciseId
+                (we: any) => we.exercise.id === exerciseId,
               );
             return {
               exerciseId,
@@ -297,7 +304,7 @@ const SelectedMicro = ({
                 weight: set.weight,
               })),
             };
-          }
+          },
         );
 
         reset({
@@ -310,7 +317,7 @@ const SelectedMicro = ({
             .sort((a: any, b: any) => a.position - b.position)
             .map((we: any) => {
               const existingExercise = currentValues.exercises?.find(
-                (ex: any) => ex.exerciseId === we.exercise.id
+                (ex: any) => ex.exerciseId === we.exercise.id,
               );
               if (existingExercise) return existingExercise;
 
@@ -341,7 +348,7 @@ const SelectedMicro = ({
       try {
         AsyncStorage.setItem(
           getFormStorageKey(microId),
-          JSON.stringify(formValuesRef.current)
+          JSON.stringify(formValuesRef.current),
         );
       } catch (e) {
         console.error("Failed to save form values to storage", e);
@@ -373,7 +380,7 @@ const SelectedMicro = ({
         microId,
         registeringWorkout.workout.id,
         finalPayload,
-        isEditMode
+        isEditMode,
       );
       handleFormSubmit();
     } catch (err: any) {
@@ -423,7 +430,7 @@ const SelectedMicro = ({
       try {
         AsyncStorage.setItem(
           getFormStorageKey(microId),
-          JSON.stringify(newValues)
+          JSON.stringify(newValues),
         );
         AsyncStorage.removeItem(`completedSets_${registeringWorkout.id}`);
         AsyncStorage.removeItem(
@@ -461,7 +468,7 @@ const SelectedMicro = ({
 
     try {
       const workoutsToUpdate = workouts.filter(
-        (w) => w.workout.name === targetWorkoutName
+        (w) => w.workout.name === targetWorkoutName,
       );
 
       if (workoutsToUpdate.length === 0) {
@@ -472,8 +479,8 @@ const SelectedMicro = ({
 
       const exerciseAlreadyExists = workoutsToUpdate.some((workoutItem) =>
         workoutItem.workout.workoutExercises.some(
-          (we: any) => we.exercise.id === newExercise.exerciseId
-        )
+          (we: any) => we.exercise.id === newExercise.exerciseId,
+        ),
       );
 
       if (exerciseAlreadyExists) {
@@ -485,7 +492,7 @@ const SelectedMicro = ({
       const updatePromises = workoutsToUpdate.map(async (workoutItem) => {
         const exerciseExistsInThisWorkout =
           workoutItem.workout.workoutExercises.some(
-            (we: any) => we.exercise.id === newExercise.exerciseId
+            (we: any) => we.exercise.id === newExercise.exerciseId,
           );
 
         if (exerciseExistsInThisWorkout) {
@@ -498,7 +505,7 @@ const SelectedMicro = ({
             exerciseId: we.exercise.id,
             targetSets: we.targetSets,
             is_unilateral: we.is_unilateral,
-          })
+          }),
         );
 
         const finalExercises = [...existingExercises, newExercise];
@@ -523,8 +530,8 @@ const SelectedMicro = ({
                     ],
                   },
                 }
-              : w
-          )
+              : w,
+          ),
         );
       });
 
@@ -614,11 +621,11 @@ const SelectedMicro = ({
       handleDeleteWorkout,
       handleRegisterWorkout,
       handleSkipWorkout,
-    ]
+    ],
   );
 
   const workoutsDoneCount = workouts.filter(
-    (workout) => workout.sets && workout.sets.length > 0
+    (workout) => workout.sets && workout.sets.length > 0,
   ).length;
 
   // ==================== RENDERIZAÇÃO ====================
@@ -634,6 +641,40 @@ const SelectedMicro = ({
   // ----------------- STAGE 1: TELA DE MICROCICLO -----------------
   if (stage === 1) {
     if (!micro) return null;
+
+    const teste = () => {
+      if (!micro || !micro.cycleItems) {
+        console.log("Microciclo ou itens do ciclo não encontrados.");
+        return;
+      }
+
+      const volumePorMusculo: Record<string, number> = {};
+
+      micro.cycleItems.forEach((item) => {
+        if (item.workout && item.workout.workoutExercises) {
+          item.workout.workoutExercises.forEach((workoutExercise: any) => {
+            const primary = workoutExercise.exercise.primaryMuscle;
+            const secondaries = workoutExercise.exercise.secondaryMuscle || [];
+            const sets = workoutExercise.targetSets || 0;
+
+            if (primary) {
+              volumePorMusculo[primary] =
+                (volumePorMusculo[primary] || 0) + sets;
+            }
+
+            secondaries.forEach((sec: string) => {
+              volumePorMusculo[sec] = (volumePorMusculo[sec] || 0) + sets;
+            });
+          });
+        }
+      });
+
+      console.log("Volume Total (Primários + Secundários):", volumePorMusculo);
+      Alert.alert(
+        "Volume Total (Sets)",
+        JSON.stringify(volumePorMusculo, null, 2).replace(/[{}"]/g, ""),
+      );
+    };
 
     return (
       <GestureHandlerRootView style={{ flex: 1 }}>
@@ -723,6 +764,7 @@ const SelectedMicro = ({
                 </View>
               </Modal>
             )}
+            <Button text="teste" onPress={teste} />
           </View>
         </TouchableWithoutFeedback>
 

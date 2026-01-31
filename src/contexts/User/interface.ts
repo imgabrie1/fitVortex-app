@@ -208,6 +208,12 @@ export interface WorkoutResponse {
   limit: number;
 }
 
+export interface ActiveWorkout {
+  microId: string;
+  cycleItemId: string;
+  workoutName: string;
+}
+
 export type UserContextData = {
   token: string | null;
   user: iUserResponse | null;
@@ -227,7 +233,7 @@ export type UserContextData = {
     microID: string,
     workoutID: string,
     workoutData: any,
-    isEdit: boolean
+    isEdit: boolean,
   ) => Promise<any>;
   createMacroCycle: (payload: any) => Promise<iCreateMacroCycle>;
   createMicroCycle: (payload: any) => Promise<MicroCycle>;
@@ -236,31 +242,25 @@ export type UserContextData = {
   getAllExercise: (
     page?: number,
     limit?: number,
-    filters?: string
+    filters?: string,
   ) => Promise<ExerciseResponse>;
   createWorkout: (payload: iCreateWorkout) => Promise<any>;
   addWorkoutInMicro: (microID: string, workoutID: string) => Promise<any>;
   updateWorkoutOrder: (
     microCycleID: string,
-    orderedIds: string[]
+    orderedIds: string[],
   ) => Promise<void>;
   addExerciseInWorkout: (
     payload: ExerciseInCreateAndPatch,
-    workoutID: string
+    workoutID: string,
   ) => Promise<any>;
   adjustVolume: (macroID: string, payload: newMacroWithAI) => Promise<any>;
   editCycles: (cycle: string, cycleID: string, payload: any) => Promise<any>;
   skipWorkout: (
     microID: string,
     workoutID: string,
-    workoutData: any
+    workoutData: any,
   ) => Promise<any>;
   activeWorkout: ActiveWorkout | null;
   setActiveWorkout: (workout: ActiveWorkout | null) => void;
 };
-
-export interface ActiveWorkout {
-  microId: string;
-  cycleItemId: string;
-  workoutName: string;
-}
