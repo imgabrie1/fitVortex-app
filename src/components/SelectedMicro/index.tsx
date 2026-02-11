@@ -364,8 +364,6 @@ const SelectedMicro = ({
     if (!registeringWorkout) return;
 
     const exercisesPayload = data.exercises.map((exercise: any) => {
-      // Sempre enviamos exerciseID para o backend, a menos que o contrato de edição exija exerciseId (minúsculo).
-      // Baseado no erro de validação, vamos normalizar para o que o backend espera.
       return {
         exerciseID: exercise.exerciseId, 
         sets: exercise.sets.map((set: any) => ({
