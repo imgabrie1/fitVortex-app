@@ -150,10 +150,13 @@ const SelectedMicro = ({
     [handleRegisterWorkout, activeWorkout],
   );
 
+  const hasAutoOpenedRef = useRef(false);
+
   useEffect(() => {
-    if (initialCycleItemId && workouts.length > 0) {
+    if (initialCycleItemId && workouts.length > 0 && !hasAutoOpenedRef.current) {
       const targetWorkout = workouts.find((w) => w.id === initialCycleItemId);
       if (targetWorkout) {
+        hasAutoOpenedRef.current = true;
         if (registeringWorkout?.id !== targetWorkout.id) {
           handleEditWorkout(targetWorkout);
         }
@@ -289,23 +292,22 @@ const SelectedMicro = ({
           });
         });
 
-        const exercisesForm = Object.keys(groupedByExercise).map(
-          (exerciseId) => {
-            const sets = groupedByExercise[exerciseId];
-            const workoutExercise =
-              registeringWorkout.workout.workoutExercises?.find(
-                (we: any) => we.exercise.id === exerciseId,
-              );
+        const exercisesForm = (registeringWorkout.workout?.workoutExercises || [])
+          .slice()
+          .sort((a: any, b: any) => a.position - b.position)
+          .map((we: any) => {
+            const exerciseId = we.exercise.id;
+            const sets = groupedByExercise[exerciseId] || [];
             return {
               exerciseId,
-              notes: workoutExercise?.notes || "",
+              notes: we.notes || "",
               sets: sets.map((set) => ({
                 reps: set.reps,
-                weight: set.weight,
+                weight: set.weight != null ? Number(set.weight) : undefined,
               })),
             };
-          },
-        );
+          })
+          .filter((ex: any) => ex.sets.length > 0); // Opcional: Garante que só mostramos exercícios que têm séries se for edição
 
         reset({
           exercises: exercisesForm,
@@ -362,9 +364,8 @@ const SelectedMicro = ({
     if (!registeringWorkout) return;
 
     const exercisesPayload = data.exercises.map((exercise: any) => {
-      const exerciseIdentifierKey = isEditMode ? "exerciseId" : "exerciseID";
       return {
-        [exerciseIdentifierKey]: exercise.exerciseId,
+        exerciseID: exercise.exerciseId, 
         sets: exercise.sets.map((set: any) => ({
           reps: set.reps,
           weight: set.weight,
@@ -390,7 +391,7 @@ const SelectedMicro = ({
         currentError?.response?.data ||
         err?.message ||
         (isEditMode ? "Erro ao atualizar treino" : "Erro ao registrar treino");
-      throw new Error(String(msg));
+      throw new Error(typeof msg === 'object' ? JSON.stringify(msg) : String(msg));
     }
   };
 
