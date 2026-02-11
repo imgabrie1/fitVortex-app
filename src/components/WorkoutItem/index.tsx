@@ -166,10 +166,10 @@ const WorkoutItem = memo(
                       <View style={styles.setsContainer}>
                         {arr
                           .slice()
-                          .sort((a, b) => a.id.localeCompare(b.id))
+                          .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
                           .map((s: any, index: number) => {
                             const weight = toNumber(s.weight);
-                            weight % 1 === 0
+                            const formattedWeight = weight % 1 === 0
                               ? weight.toString()
                               : weight.toFixed(2).replace(/\.?0+$/, "");
                             return (
@@ -181,7 +181,7 @@ const WorkoutItem = memo(
                                   {s.reps ?? "—"} reps
                                 </AppText>
                                 <AppText style={styles.setInfo}>
-                                  {weight} kg
+                                  {formattedWeight} kg
                                 </AppText>
                               </View>
                             );
