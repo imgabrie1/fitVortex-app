@@ -59,6 +59,7 @@ const SelectedMicro = ({
     updateWorkoutOrder,
     skipWorkout,
     activeWorkout,
+    setActiveWorkout,
   } = useContext(UserContext);
 
   const [micro, setMicro] = useState<MicroCycle | null>(null);
@@ -440,13 +441,14 @@ const SelectedMicro = ({
       } catch (e) {
         console.error("Falha ao limpar valores", e);
       }
+      setActiveWorkout(null);
     }
     setRegisteringWorkout(null);
     setSelectedWorkoutName(null);
     setSelectedWorkoutImage(null);
     setIsEditMode(false);
     loadMicro();
-  }, [registeringWorkout, microId, getFormStorageKey, loadMicro]);
+  }, [registeringWorkout, microId, getFormStorageKey, loadMicro, setActiveWorkout]);
 
   const handleDragEnd = async ({ data }: { data: any[] }) => {
     setWorkouts(data);
@@ -557,6 +559,9 @@ const SelectedMicro = ({
 
     try {
       await skipWorkout(microId, workoutId, {});
+      if (activeWorkout && activeWorkout.cycleItemId === workoutId) {
+        setActiveWorkout(null);
+      }
       loadMicro();
     } catch (error) {
       console.log("Erro ao pular treino:", error);
@@ -649,9 +654,52 @@ const SelectedMicro = ({
         return;
       }
 
-      const volumePorMusculo: Record<string, number> = {};
+      const MuscleGroupHierarchy: Record<string, string[]> = {
+        "Peito (Total)": ["Peito Superior", "Peito Médio", "Peito Inferior"],
+        "Costas (Total)": ["Costas Superior", "Costas Inferior", "Dorsais (Latíssimo do Dorso)", "Rombóides"],
+        "Pernas (Total)": ["Quadríceps (Total)", "Posterior de Coxa (Total)", "Panturrilhas (Total)", "Glúteos"],
+        "Quadríceps (Total)": ["Reto Femoral", "Vasto Lateral", "Vasto Medial", "Vasto Intermédio"],
+        "Posterior de Coxa (Total)": ["Bíceps Femoral", "Semitendíneo", "Semimembranoso"],
+        "Panturrilhas (Total)": ["Gastrocnêmio", "Sóleo"],
+        "Ombros (Total)": ["Deltóide Anterior", "Deltóide Lateral", "Deltóide Posterior"],
+        "Bíceps (Total)": ["Cabeça Longa do Bíceps", "Cabeça Curta do Bíceps", "Braquial"],
+        "Tríceps (Total)": ["Cabeça Longa do Tríceps", "Cabeça Medial do Tríceps", "Cabeça Lateral do Tríceps"],
+        "Abdominais (Total)": ["Abdominais Superiores", "Abdominais Inferiores", "Oblíquos"]
+      };
+
+      const getMuscleGroupParents = (muscle: string): string[] => {
+        const parents: string[] = [];
+        for (const parent in MuscleGroupHierarchy) {
+          if (MuscleGroupHierarchy[parent].includes(muscle)) {
+            parents.push(parent);
+            parents.push(...getMuscleGroupParents(parent));
+          }
+        }
+        return [...new Set(parents)];
+      };
+
+      const seriesDiretas: Record<string, number> = {};
+      const volumeDeSets: Record<string, number> = {};
+      const cargaVolumePorMusculo: Record<string, number> = {};
+
+      const addVolumeDeSetsToHierarchy = (muscle: string, setsVal: number) => {
+        volumeDeSets[muscle] = (volumeDeSets[muscle] || 0) + setsVal;
+        const parents = getMuscleGroupParents(muscle);
+        for (const parent of parents) {
+          volumeDeSets[parent] = (volumeDeSets[parent] || 0) + setsVal;
+        }
+      };
+
+      const addCargaToHierarchy = (muscle: string, cargaVal: number) => {
+        cargaVolumePorMusculo[muscle] = (cargaVolumePorMusculo[muscle] || 0) + cargaVal;
+        const parents = getMuscleGroupParents(muscle);
+        for (const parent of parents) {
+          cargaVolumePorMusculo[parent] = (cargaVolumePorMusculo[parent] || 0) + cargaVal;
+        }
+      };
 
       micro.cycleItems.forEach((item) => {
+        // 1. Séries e Volume de Séries (Target Sets estáticos do treino)
         if (item.workout && item.workout.workoutExercises) {
           item.workout.workoutExercises.forEach((workoutExercise: any) => {
             const primary = workoutExercise.exercise.primaryMuscle;
@@ -659,21 +707,61 @@ const SelectedMicro = ({
             const sets = workoutExercise.targetSets || 0;
 
             if (primary) {
-              volumePorMusculo[primary] =
-                (volumePorMusculo[primary] || 0) + sets;
+              // Séries Diretas (Apenas para o músculo primário direto do exercício)
+              seriesDiretas[primary] = (seriesDiretas[primary] || 0) + sets;
+
+              // Volume de Séries (Acumula 100% no primário e propaga para os pais)
+              addVolumeDeSetsToHierarchy(primary, sets);
             }
 
             secondaries.forEach((sec: string) => {
-              volumePorMusculo[sec] = (volumePorMusculo[sec] || 0) + sets;
+              // Volume de Séries (Acumula 50% para secundários e propaga para os pais)
+              addVolumeDeSetsToHierarchy(sec, sets * 0.5);
+            });
+          });
+        }
+
+        // 2. Volume Real de Carga (Tonnage = reps * weight) com os treinos gravados (item.sets)
+        if (item.sets && item.sets.length > 0) {
+          item.sets.forEach((set: any) => {
+            const reps = set.reps || 0;
+            const weight = parseFloat(set.weight) || 0;
+            const setVolume = reps * weight;
+            const primary = set.exercise?.primaryMuscle;
+            const secondaries = set.exercise?.secondaryMuscle || [];
+
+            if (primary) {
+              addCargaToHierarchy(primary, setVolume);
+            }
+
+            secondaries.forEach((sec: string) => {
+              addCargaToHierarchy(sec, setVolume * 0.5);
             });
           });
         }
       });
 
-      console.log("Volume Total (Primários + Secundários):", volumePorMusculo);
+      console.log("Séries Diretas:", seriesDiretas);
+      console.log("Volume de Séries:", volumeDeSets);
+      console.log("Volume de Carga (Tonnage):", cargaVolumePorMusculo);
+
+      const formatOutput = (obj: Record<string, number>) => {
+        return Object.entries(obj)
+          .map(([key, val]) => `${key}: ${val.toFixed(1)}`)
+          .join("\n");
+      };
+
+      const alertMessage = 
+        `--- SÉRIES DIRETAS ---\n` +
+        `${formatOutput(seriesDiretas)}\n\n` +
+        `--- VOLUME DE SÉRIES (Equiv. + Pais) ---\n` +
+        `${formatOutput(volumeDeSets)}\n\n` +
+        `--- VOLUME DE CARGA (reps * kg) ---\n` +
+        `${Object.keys(cargaVolumePorMusculo).length > 0 ? formatOutput(cargaVolumePorMusculo) : "Nenhum treino gravado neste microciclo."}`;
+
       Alert.alert(
-        "Volume Total (Sets)",
-        JSON.stringify(volumePorMusculo, null, 2).replace(/[{}"]/g, ""),
+        "Resultados do Teste de Volume",
+        alertMessage
       );
     };
 
