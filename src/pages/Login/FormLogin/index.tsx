@@ -27,7 +27,11 @@ const FormLogin = () => {
   });
 
   const onSubmit = async (data: iDataLogin) => {
-    await login(data);
+    try {
+      await login(data);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const RegisterNavigation = () => {
@@ -87,10 +91,10 @@ const FormLogin = () => {
           />
 
           <AppText style={styles.text}>
-            Não tem conta? <AppText
-            style={styles.link}
-            onPress={()=> RegisterNavigation()}
-            >Crie agora!</AppText>
+            Não tem conta?{" "}
+            <AppText style={styles.link} onPress={() => RegisterNavigation()}>
+              Crie agora!
+            </AppText>
           </AppText>
         </View>
       </View>
