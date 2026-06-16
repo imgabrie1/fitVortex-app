@@ -27,6 +27,7 @@ export const styles = StyleSheet.create({
     color: "#333",
     textAlign: "center",
     marginBottom: 20,
+    padding: 10
   },
   dividerHorizontal: {
     height: 1,

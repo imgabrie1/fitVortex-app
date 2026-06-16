@@ -1,12 +1,11 @@
 import { themas } from "@/global/themes";
 import { MaterialIcons } from "@expo/vector-icons";
-import { memo, useContext, useState } from "react";
-import { Image, TouchableOpacity, View } from "react-native";
+import { memo, useState } from "react";
+import { Alert, Image, Text, TouchableOpacity, View } from "react-native";
 import AnimatedMenu from "../AnimatedMenu";
 import AppText from "../AppText";
 import { styles } from "./styles";
-import { Button } from "../Button";
-import { UserContext } from "@/contexts/User/UserContext";
+import CustomAlertOneOption from "../AlertOneOptions";
 
 interface WorkoutItemProps {
   item: any;
@@ -34,10 +33,9 @@ const WorkoutItem = memo(
     onEditWorkout,
     onDeleteWorkout,
     onRegisterWorkout,
-    onSkipWorkout,
   }: WorkoutItemProps) => {
-    const { loadingForm } = useContext(UserContext);
     const [isExpanded, setIsExpanded] = useState(false);
+    const [openModal, setOpenModal] = useState(false);
 
     const workoutName = item.workout.name;
     const workoutExercises = item.workout?.workoutExercises ?? [];
@@ -45,8 +43,23 @@ const WorkoutItem = memo(
     const isSkipped = item.isSkipped;
     const hasSets = sets.length > 0;
 
-    const openOptions = () => {
-      setIsExpanded((prev) => !prev);
+    const handleCardPress = () => {
+      if (isSkipped) {
+        setOpenModal(true)
+        return;
+      }
+
+      if (hasSets) {
+        setIsExpanded((prev) => !prev);
+        return;
+      }
+
+      if (workoutExercises.length === 0) {
+        onAddExercise(workoutName);
+        return;
+      }
+
+      onRegisterWorkout(item);
     };
 
     const groupSetsByExercise = (sets: any[] = []) => {
@@ -68,7 +81,7 @@ const WorkoutItem = memo(
 
     const getExercisePosition = (exerciseId: string) => {
       const workoutExercise = workoutExercises.find(
-        (we: any) => we.exercise.id === exerciseId
+        (we: any) => we.exercise.id === exerciseId,
       );
       return workoutExercise?.position ?? 0;
     };
@@ -78,7 +91,7 @@ const WorkoutItem = memo(
         const posA = getExercisePosition(exIdA);
         const posB = getExercisePosition(exIdB);
         return posA - posB;
-      }
+      },
     );
 
     const getBlockBackgroundColor = () => {
@@ -92,136 +105,124 @@ const WorkoutItem = memo(
     };
 
     return (
-      <TouchableOpacity
-        onLongPress={drag}
-        disabled={isActive}
-        style={[
-          styles.blocks,
-          {
-            marginTop: 12,
-            backgroundColor: getBlockBackgroundColor(),
-          },
-        ]}
-      >
-        <TouchableOpacity style={styles.infoWorkoutWrap} onPress={openOptions}>
-          <View style={styles.nameAndMenuWrap}>
-            <AppText style={styles.name}>{workoutName}</AppText>
-            <TouchableOpacity onPress={(e) => onMenuPress(e, item.id)}>
-              <MaterialIcons name="menu" size={18} color={themas.Colors.text} />
-            </TouchableOpacity>
+      <>
+        <TouchableOpacity
+          onLongPress={drag}
+          disabled={isActive}
+          onPress={handleCardPress}
+          style={[
+            styles.blocks,
+            {
+              marginTop: 12,
+              backgroundColor: getBlockBackgroundColor(),
+            },
+          ]}
+        >
+          <View style={styles.infoWorkoutWrap}>
+            <View style={styles.nameAndMenuWrap}>
+              <AppText style={styles.name}>{workoutName}</AppText>
 
-            <AnimatedMenu
-              visible={menuVisible === item.id}
-              origin={menuOrigin}
-              style={styles.editAndDeleteWrap}
-              onAddExercise={() => onAddExercise(item.workout.name)}
-              onEdit={() => onEditWorkout(item)}
-              onDelete={() => onDeleteWorkout(item)}
-            />
-          </View>
-          <AppText style={styles.info}>
-            Exercícios no treino: {workoutExercises.length}
-          </AppText>
-        </TouchableOpacity>
+              <TouchableOpacity onPress={(e) => onMenuPress(e, item.id)}>
+                <MaterialIcons name="menu" size={18} color={themas.Colors.text} />
+              </TouchableOpacity>
 
-        {isExpanded && hasSets && !isSkipped && (
-          <View style={styles.setsWrapp}>
-            <View style={styles.setsBorder}>
-              <AppText style={[styles.info, { fontWeight: "600" }]}>
-                Séries registradas:
-              </AppText>
+              <AnimatedMenu
+                visible={menuVisible === item.id}
+                origin={menuOrigin}
+                style={styles.editAndDeleteWrap}
+                onAddExercise={() => onAddExercise(item.workout.name)}
+                onEdit={() => onEditWorkout(item)}
+                onDelete={() => onDeleteWorkout(item)}
+              />
             </View>
+            <AppText style={styles.info}>
+              Exercícios no treino: {workoutExercises.length}
+            </AppText>
+          </View>
 
-            {/* container principal dos exercícios */}
-            <View style={styles.exercisesContainer}>
-              {sortedSetsByExercise.map(([exId, arr]) => {
-                const exName = arr[0]?.exercise?.name ?? "Exercício";
-                const exImage = arr[0]?.exercise?.imageURL;
-                const workoutExerciseNotes = workoutExercises.find(
-                  (we: any) => we.exercise.id === exId
-                )?.notes;
+          {isExpanded && hasSets && !isSkipped && (
+            <View style={styles.setsWrapp}>
+              <View style={styles.setsBorder}>
+                <AppText style={[styles.info, { fontWeight: "600" }]}>
+                  Séries registradas:
+                </AppText>
+              </View>
 
-                return (
-                  <View key={exId} style={styles.exerciseItem}>
-                    {/* imagem do exercício */}
-                    {exImage && (
-                      <Image
-                        source={{ uri: exImage }}
-                        style={styles.exerciseImage}
-                        resizeMode="cover"
-                        fadeDuration={0}
-                      />
-                    )}
+              <View style={styles.exercisesContainer}>
+                {sortedSetsByExercise.map(([exId, arr]) => {
+                  const exName = arr[0]?.exercise?.name ?? "Exercício";
+                  const exImage = arr[0]?.exercise?.imageURL;
+                  const workoutExerciseNotes = workoutExercises.find(
+                    (we: any) => we.exercise.id === exId,
+                  )?.notes;
 
-                    <View style={styles.infoWorkoutWrapp}>
-                      {/* nome do exercício */}
-                      <AppText style={styles.exerciseName}>{exName}</AppText>
-                      {workoutExerciseNotes ? (
-                        <AppText style={styles.notes}>
-                          Nota: {workoutExerciseNotes}
-                        </AppText>
-                      ) : null}
+                  return (
+                    <View key={exId} style={styles.exerciseItem}>
+                      {exImage && (
+                        <Image
+                          source={{ uri: exImage }}
+                          style={styles.exerciseImage}
+                          resizeMode="cover"
+                          fadeDuration={0}
+                        />
+                      )}
 
-                      {/* séries e reps */}
-                      <View style={styles.setsContainer}>
-                        {arr
-                          .slice()
-                          .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-                          .map((s: any, index: number) => {
-                            const weight = toNumber(s.weight);
-                            const formattedWeight = weight % 1 === 0
-                              ? weight.toString()
-                              : weight.toFixed(2).replace(/\.?0+$/, "");
-                            return (
-                              <View key={s.id} style={styles.setItem}>
-                                <AppText style={[styles.setInfo, styles.set]}>
-                                  Série {index + 1}
-                                </AppText>
-                                <AppText style={styles.setInfo}>
-                                  {s.reps ?? "—"} reps
-                                </AppText>
-                                <AppText style={styles.setInfo}>
-                                  {formattedWeight} kg
-                                </AppText>
-                              </View>
-                            );
-                          })}
+                      <View style={styles.infoWorkoutWrapp}>
+                        <AppText style={styles.exerciseName}>{exName}</AppText>
+                        {workoutExerciseNotes ? (
+                          <AppText style={styles.notes}>
+                            Nota: {workoutExerciseNotes}
+                          </AppText>
+                        ) : null}
+
+                        <View style={styles.setsContainer}>
+                          {arr
+                            .slice()
+                            .sort(
+                              (a, b) =>
+                                new Date(a.createdAt).getTime() -
+                                new Date(b.createdAt).getTime(),
+                            )
+                            .map((s: any, index: number) => {
+                              const weight = toNumber(s.weight);
+                              const formattedWeight =
+                                weight % 1 === 0
+                                  ? weight.toString()
+                                  : weight.toFixed(2).replace(/\.?0+$/, "");
+                              return (
+                                <View key={s.id} style={styles.setItem}>
+                                  <AppText style={[styles.setInfo, styles.set]}>
+                                    Série {index + 1}
+                                  </AppText>
+                                  <AppText style={styles.setInfo}>
+                                    {s.reps ?? "—"} reps
+                                  </AppText>
+                                  <AppText style={styles.setInfo}>
+                                    {formattedWeight} kg
+                                  </AppText>
+                                </View>
+                              );
+                            })}
+                        </View>
                       </View>
                     </View>
-                  </View>
-                );
-              })}
-            </View>
-          </View>
-        )}
-
-        {isExpanded && !hasSets && (
-          <View style={{ marginTop: 12 }}>
-            {workoutExercises.length <= 0 ? (
-              <Button
-                text="Adicionar Exercícios"
-                onPress={() => onAddExercise(workoutName)}
-              />
-            ) : (
-              <View style={styles.buttonsWorkoutWrapp}>
-                <Button
-                  text="Treinar"
-                  onPress={() => onRegisterWorkout(item)}
-                  styleButton={styles.buttonWorkout}
-                />
-                <Button
-                  text="Faltei..."
-                  onPress={() => onSkipWorkout(item)}
-                  loading={loadingForm}
-                  styleButton={styles.buttonSkipWorkout}
-                />
+                  );
+                })}
               </View>
-            )}
-          </View>
-        )}
-      </TouchableOpacity>
+            </View>
+          )}
+        </TouchableOpacity>
+
+        {/* Movido para fora do TouchableOpacity principal usando fragmentos <></> */}
+        <CustomAlertOneOption
+          visible={openModal}
+          onClose={() => setOpenModal(false)}
+          title="Treino Pulado"
+          message="Este treino foi marcado como pulado neste microciclo."
+        />
+      </>
     );
-  }
+  },
 );
 
 export default WorkoutItem;
