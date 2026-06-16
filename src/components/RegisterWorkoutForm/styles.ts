@@ -151,6 +151,70 @@ export const styles = StyleSheet.create({
   },
 
   button: {
+    backgroundColor: themas.Colors.green,
     marginBottom: 10,
   },
+
+
+  actionContainer: {
+    marginTop: 24,
+    paddingHorizontal: 16,
+    gap: 16,
+    alignItems: "center",
+    width: "100%",
+  },
+  buttonMain: {
+    width: "100%",
+    height: 48,
+    borderRadius: 8,
+    backgroundColor: "#6200EE",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  moreOptionsContainer: {
+    width: "100%",
+    alignItems: "center",
+    gap: 12,
+  },
+  moreOptionsButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    gap: 4,
+  },
+  moreOptionsText: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: themas.Colors.secondary,
+    letterSpacing: 1.25,
+  },
+  skipButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    width: "60%",
+    height: 40,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#B00020",
+    backgroundColor: "transparent",
+  },
+  skipButtonText: {
+    fontSize: 13,
+    fontWeight: "bold",
+    color: "#B00020",
+    letterSpacing: 1.25,
+  },
+
+
 });
+
+

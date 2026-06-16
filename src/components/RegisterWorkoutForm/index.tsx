@@ -5,6 +5,7 @@ import {
   Image,
   TextInput,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { Controller } from "react-hook-form";
 import { Button } from "@/components/Button";
@@ -28,6 +29,7 @@ interface RegisterWorkoutFormProps {
   setValue: any;
   getValues: any;
   microId: string;
+  onSkipSuccess?: () => void;
 }
 
 export const RegisterWorkoutForm = ({
@@ -43,9 +45,11 @@ export const RegisterWorkoutForm = ({
   setValue,
   getValues,
   microId,
+  onSkipSuccess,
 }: RegisterWorkoutFormProps) => {
-  const { loadingForm, setActiveWorkout, activeWorkout } =
+  const { loadingForm, setActiveWorkout, activeWorkout, skipWorkout } =
     useContext(UserContext);
+
   const [expandedExercises, setExpandedExercises] = useState<Set<string>>(
     new Set(),
   );
@@ -55,6 +59,7 @@ export const RegisterWorkoutForm = ({
   const prevCompletedSetsRef = useRef<Set<string>>(new Set());
   const autoAdvancedRef = useRef<Set<string>>(new Set());
   const [storedPreviousValues, setStoredPreviousValues] = useState<any>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const workoutData = workout.workout || workout;
 
@@ -186,6 +191,10 @@ export const RegisterWorkoutForm = ({
     });
   };
 
+  const toggleMoreOptions = () => {
+    isExpanded ? setIsExpanded(false) : setIsExpanded(true);
+  };
+
   const toggleSetDone = (exerciseId: string, setIndex: number) => {
     const setKey = `${exerciseId}-${setIndex}`;
     setCompletedSets((prev) => {
@@ -198,6 +207,28 @@ export const RegisterWorkoutForm = ({
       }
       return newSet;
     });
+  };
+
+  const handleSkipWorkout = async () => {
+    if (!skipWorkout) {
+      Alert.alert("Erro", "Função de pular treino não encontrada no contexto.");
+      return;
+    }
+
+    try {
+      await skipWorkout(microId, workout.id, workout);
+
+      await AsyncStorage.removeItem(`completedSets_${cycleItemId}`);
+      setCompletedSets(new Set());
+
+      if (onSkipSuccess) {
+        onSkipSuccess();
+      } else {
+        Alert.alert("Sucesso", "Treino pulado com sucesso!");
+      }
+    } catch (error: any) {
+      Alert.alert("Aviso", error.message || "Não foi possível pular o treino.");
+    }
   };
 
   useEffect(() => {
@@ -544,12 +575,44 @@ export const RegisterWorkoutForm = ({
           </View>
         );
       })}
-      <Button
-        text={isEditMode ? "Atualizar!" : "Pronto!"}
-        onPress={handleSubmit(onSubmit)}
-        styleButton={styles.button}
-        loading={loadingForm}
-      />
+
+      <View style={styles.actionContainer}>
+        <Button
+          text={isEditMode ? "ATUALIZAR TREINO" : "FINALIZAR TREINO"}
+          onPress={handleSubmit(onSubmit)}
+          styleButton={styles.buttonMain}
+          loading={loadingForm}
+        />
+
+        <View style={styles.moreOptionsContainer}>
+          <TouchableOpacity
+            onPress={toggleMoreOptions}
+            style={styles.moreOptionsButton}
+            activeOpacity={0.7}
+          >
+            <AppText style={styles.moreOptionsText}>
+              {isExpanded ? "MENOS OPÇÕES" : "MAIS OPÇÕES"}
+            </AppText>
+            <MaterialIcons
+              name={isExpanded ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+              size={20}
+              color={themas.Colors.secondary || "#6200EE"}
+            />
+          </TouchableOpacity>
+
+          {isExpanded && (
+            <TouchableOpacity
+              style={styles.skipButton}
+              activeOpacity={0.7}
+              onPress={handleSkipWorkout}
+              disabled={loadingForm}
+            >
+              <MaterialIcons name="skip-next" size={20} color="#B00020" />
+              <AppText style={styles.skipButtonText}>PULAR TREINO</AppText>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
     </View>
   );
 };

@@ -848,6 +848,7 @@ const SelectedMicro = ({
                       setValue={setValue}
                       getValues={getValues}
                       microId={microId}
+                      onSkipSuccess={handleFormSubmit}
                     />
                   </ScrollView>
                 </View>
