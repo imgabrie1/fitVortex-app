@@ -254,6 +254,10 @@ export type UserContextData = {
     payload: ExerciseInCreateAndPatch,
     workoutID: string,
   ) => Promise<any>;
+  updateExerciseUnilateral: (
+    workoutID: string,
+    exercises: { exerciseId: string; targetSets: number; is_unilateral: boolean; notes?: string }[],
+  ) => Promise<any>;
   adjustVolume: (macroID: string, payload: newMacroWithAI) => Promise<any>;
   editCycles: (cycle: string, cycleID: string, payload: any) => Promise<any>;
   skipWorkout: (

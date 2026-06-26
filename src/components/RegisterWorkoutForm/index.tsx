@@ -30,6 +30,11 @@ interface RegisterWorkoutFormProps {
   getValues: any;
   microId: string;
   onSkipSuccess?: () => void;
+  workoutId: string;
+  updateExerciseUnilateral: (
+    workoutId: string,
+    exercises: { exerciseId: string; targetSets: number; is_unilateral: boolean; notes?: string }[],
+  ) => Promise<any>;
 }
 
 export const RegisterWorkoutForm = ({
@@ -46,6 +51,8 @@ export const RegisterWorkoutForm = ({
   getValues,
   microId,
   onSkipSuccess,
+  workoutId,
+  updateExerciseUnilateral,
 }: RegisterWorkoutFormProps) => {
   const { loadingForm, setActiveWorkout, activeWorkout, skipWorkout } =
     useContext(UserContext);
@@ -60,6 +67,22 @@ export const RegisterWorkoutForm = ({
   const autoAdvancedRef = useRef<Set<string>>(new Set());
   const [storedPreviousValues, setStoredPreviousValues] = useState<any>(null);
   const [isExpanded, setIsExpanded] = useState(false);
+
+  const [unilateralOverrides, setUnilateralOverrides] = useState<Record<string, boolean>>(() => {
+    const workoutData = workout.workout || workout;
+    const initial: Record<string, boolean> = {};
+    (workoutData.workoutExercises || []).forEach((we: any) => {
+      const id = we.exercise?.id;
+      if (id !== undefined) {
+        initial[id] =
+          typeof we.is_unilateral === "boolean"
+            ? we.is_unilateral
+            : we.exercise?.default_unilateral ?? false;
+      }
+    });
+    return initial;
+  });
+  const originalUnilateralRef = useRef<Record<string, boolean>>(unilateralOverrides);
 
   const workoutData = workout.workout || workout;
 
@@ -288,6 +311,9 @@ export const RegisterWorkoutForm = ({
   };
 
   const getUnilateral = (exerciseId: string) => {
+    if (unilateralOverrides[exerciseId] !== undefined) {
+      return unilateralOverrides[exerciseId];
+    }
     const workoutExercise = workoutData.workoutExercises?.find(
       (we: any) => we.exercise?.id === exerciseId,
     );
@@ -296,6 +322,42 @@ export const RegisterWorkoutForm = ({
       return (workoutExercise as any).is_unilateral as boolean;
     }
     return workoutExercise.exercise?.default_unilateral || false;
+  };
+
+  const toggleUnilateral = (exerciseId: string, exerciseIndex: number, targetSets: number) => {
+    const currentIsUni = getUnilateral(exerciseId);
+    const newIsUni = !currentIsUni;
+
+    const currentSets = getValues(`exercises.${exerciseIndex}.sets`);
+    if (currentSets && Array.isArray(currentSets)) {
+      const newSets = [];
+      if (newIsUni) {
+        for (let i = 0; i < targetSets; i++) {
+          const oldSet = currentSets[i] || {};
+          let newWeight = oldSet.weight;
+          if (newWeight !== undefined && newWeight !== null && newWeight.toString().trim() !== "" && !isNaN(Number(newWeight))) {
+            newWeight = String(Number(newWeight) / 2);
+          }
+          newSets.push({ reps: oldSet.reps, weight: newWeight });
+          newSets.push({ reps: oldSet.reps, weight: newWeight });
+        }
+      } else {
+        for (let i = 0; i < targetSets; i++) {
+          const oldSet = currentSets[i * 2] || {};
+          let newWeight = oldSet.weight;
+          if (newWeight !== undefined && newWeight !== null && newWeight.toString().trim() !== "" && !isNaN(Number(newWeight))) {
+            newWeight = String(Number(newWeight) * 2);
+          }
+          newSets.push({ reps: oldSet.reps, weight: newWeight });
+        }
+      }
+      setValue(`exercises.${exerciseIndex}.sets`, newSets);
+    }
+
+    setUnilateralOverrides((prev) => ({
+      ...prev,
+      [exerciseId]: newIsUni,
+    }));
   };
 
   const getPreviousSet = (exerciseId: string, setIndex: number) => {
@@ -308,8 +370,38 @@ export const RegisterWorkoutForm = ({
       (s: any) => s.exercise.id === exerciseId,
     );
 
-    const result = previousSetsForExercise[setIndex];
-    return result;
+    if (previousSetsForExercise.length === 0) return null;
+
+    const prevWasUni = originalUnilateralRef.current[exerciseId] ?? false;
+    const currentIsUni = getUnilateral(exerciseId);
+
+    if (prevWasUni === currentIsUni) {
+      return previousSetsForExercise[setIndex];
+    }
+
+    if (!prevWasUni && currentIsUni) {
+      const prevIndex = Math.floor(setIndex / 2);
+      const prevSet = previousSetsForExercise[prevIndex];
+      if (!prevSet) return null;
+      let newWeight = prevSet.weight;
+      if (newWeight !== undefined && newWeight !== null && newWeight.toString().trim() !== "" && !isNaN(Number(newWeight))) {
+        newWeight = String(Number(newWeight) / 2);
+      }
+      return { ...prevSet, weight: newWeight };
+    }
+
+    if (prevWasUni && !currentIsUni) {
+      const prevIndex = setIndex * 2;
+      const prevSet = previousSetsForExercise[prevIndex];
+      if (!prevSet) return null;
+      let newWeight = prevSet.weight;
+      if (newWeight !== undefined && newWeight !== null && newWeight.toString().trim() !== "" && !isNaN(Number(newWeight))) {
+        newWeight = String(Number(newWeight) * 2);
+      }
+      return { ...prevSet, weight: newWeight };
+    }
+
+    return null;
   };
 
   useEffect(() => {
@@ -368,7 +460,6 @@ export const RegisterWorkoutForm = ({
                       ]}
                     >
                       {getExerciseName(exerciseId)}
-                      {isUnilateral && " (Unilateral)"}
                     </AppText>
 
                     {allSetsCompleted && (
@@ -387,6 +478,32 @@ export const RegisterWorkoutForm = ({
                     {`${completedSetsCount}/${actualNumberOfSets} concluídos`}
                     {isUnilateral && ` (${actualNumberOfSets} lados)`}
                   </AppText>
+
+                  <TouchableOpacity
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      toggleUnilateral(exerciseId, index, numberOfSets);
+                    }}
+                    style={[
+                      styles.unilateralToggle,
+                      isUnilateral && styles.unilateralToggleActive,
+                    ]}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <MaterialIcons
+                      name="swap-horiz"
+                      size={14}
+                      color={isUnilateral ? "#fff" : themas.Colors.gray}
+                    />
+                    <AppText
+                      style={[
+                        styles.unilateralToggleText,
+                        isUnilateral && styles.unilateralToggleTextActive,
+                      ]}
+                    >
+                      {isUnilateral ? "Unilateral" : "Bilateral"}
+                    </AppText>
+                  </TouchableOpacity>
                 </View>
               </View>
             </TouchableOpacity>
@@ -603,7 +720,25 @@ export const RegisterWorkoutForm = ({
       <View style={styles.actionContainer}>
         <Button
           text={isEditMode ? "ATUALIZAR TREINO" : "FINALIZAR TREINO"}
-          onPress={handleSubmit(onSubmit)}
+          onPress={handleSubmit(async (data: any) => {
+            const changed = Object.entries(unilateralOverrides).filter(
+              ([id, val]) => originalUnilateralRef.current[id] !== val,
+            );
+            if (changed.length > 0) {
+              const exercises = (workoutData.workoutExercises || []).map((we: any) => ({
+                exerciseId: we.exercise.id,
+                targetSets: we.targetSets,
+                is_unilateral: unilateralOverrides[we.exercise.id] ?? we.is_unilateral ?? we.exercise?.default_unilateral ?? false,
+                notes: we.notes ?? undefined,
+              }));
+              try {
+                await updateExerciseUnilateral(workoutId, exercises);
+              } catch (err) {
+                console.error("Erro ao atualizar unilateral:", err);
+              }
+            }
+            return onSubmit(data);
+          })}
           styleButton={styles.buttonMain}
           loading={loadingForm}
         />
