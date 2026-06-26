@@ -94,7 +94,7 @@ const AdjustVolumeForm = ({
   const handleSelectWorkoutName = (name: string) => {
     if (selectingWorkoutNameIndex !== null) {
       setValue(`modifications.${selectingWorkoutNameIndex}.workoutName`, name);
-      setValue(`modifications.${selectingWorkoutNameIndex}.fromExercise`, ""); // Limpa o exercício anterior se mudar o treino
+      setValue(`modifications.${selectingWorkoutNameIndex}.fromExercise`, "");
       setSelectingWorkoutNameIndex(null);
     }
   };

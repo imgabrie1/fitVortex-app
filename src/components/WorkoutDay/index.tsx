@@ -40,8 +40,8 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
                 !prevWorkouts.some(
                   (prevWorkout) =>
                     prevWorkout.id === newWorkout.id &&
-                    prevWorkout.createdAt === newWorkout.createdAt
-                )
+                    prevWorkout.createdAt === newWorkout.createdAt,
+                ),
             );
             return [...prevWorkouts, ...newWorkouts];
           });
@@ -82,36 +82,22 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
     const totalExecutedSeries = workout.workoutExercises.reduce(
       (acc: number, exercise: WorkoutExerciseWithSets) =>
         acc + (exercise.sets?.length || 0),
-      0
+      0,
     );
 
     const totalPlannedSeries = workout.workoutExercises.reduce(
       (acc: number, exercise: WorkoutExerciseWithSets) =>
         acc + (exercise.targetSets || 0),
-      0
+      0,
     );
-
-    // const date = new Date(workout.createdAt);
-    // const formattedDate = date.toLocaleDateString("pt-BR", {
-    //   weekday: "long",
-    //   day: "2-digit",
-    //   month: "long",
-    //   timeZone: "UTC",
-    // });
-    // const formattedTime = date.toLocaleTimeString("pt-BR", {
-    //   hour: "2-digit",
-    //   minute: "2-digit",
-    // });
 
     return (
       <View style={styles.card}>
         <View style={styles.headerInfo}>
           <View style={styles.nameWhenWrap}>
-            {/* <AppText style={styles.nameWorkout}>{microName}</AppText> */}
-            <AppText style={styles.nameWorkout}>{workout.name.toLocaleUpperCase()}</AppText>
-            {/* <AppText style={styles.dayText}>
-              {formattedDate} às {formattedTime}
-            </AppText> */}
+            <AppText style={styles.nameWorkout}>
+              {workout.name.toLocaleUpperCase()}
+            </AppText>
           </View>
 
           <View style={styles.setsDurationWrap}>
@@ -172,7 +158,7 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
                   </View>
                 </View>
               );
-            }
+            },
           )}
         </View>
         <View style={styles.separatorWrapper}>
@@ -188,8 +174,8 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
         (workout) =>
           workout.workoutExercises.reduce(
             (total, exercise) => total + (exercise.sets?.length || 0),
-            0
-          ) > 0 && !workout.isSkipped
+            0,
+          ) > 0 && !workout.isSkipped,
       )}
       renderItem={renderItem}
       keyExtractor={(item) => `${item.id}-${item.createdAt}`}

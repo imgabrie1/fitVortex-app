@@ -137,7 +137,7 @@ export interface MacroCycle {
   startDate: string;
   endDate: string;
   microQuantity: number;
-  microCycles: MicroCycle[]; // Correctly defined as an array of MicroCycle
+  microCycles: MicroCycle[];
 }
 
 export interface SetInput {
