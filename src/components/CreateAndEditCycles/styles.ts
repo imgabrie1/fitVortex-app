@@ -6,7 +6,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: themas.Colors.background,
     paddingHorizontal: 20,
-    paddingTop: 100, // deixa espaço pra header
+    paddingTop: 100,
   },
 
   name: {

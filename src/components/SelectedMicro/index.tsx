@@ -74,7 +74,6 @@ const SelectedMicro = ({
   const [selectedWorkoutImage, setSelectedWorkoutImage] = useState<
     string | null
   >(null);
-  // Substituindo useState por useRef para evitar re-renders cíclicos ao digitar/atualizar form
   const formValuesRef = useRef<Record<string, any>>({});
   const [stage, setStage] = useState<1 | 2>(1);
   const [isAddExerciseModalVisible, setAddExerciseModalVisible] =
@@ -166,6 +165,7 @@ const SelectedMicro = ({
   }, [initialCycleItemId, workouts, restoreTrigger]);
 
   const onBackModal = () => {
+    hasAutoOpenedRef.current = false;
     setRegisteringWorkout(null);
     setSelectedWorkoutName(null);
     setSelectedWorkoutImage(null);
@@ -308,7 +308,7 @@ const SelectedMicro = ({
               })),
             };
           })
-          .filter((ex: any) => ex.sets.length > 0); // Opcional: Garante que só mostramos exercícios que têm séries se for edição
+          .filter((ex: any) => ex.sets.length > 0);
 
         reset({
           exercises: exercisesForm,
@@ -699,7 +699,6 @@ const SelectedMicro = ({
       };
 
       micro.cycleItems.forEach((item) => {
-        // 1. Séries e Volume de Séries (Target Sets estáticos do treino)
         if (item.workout && item.workout.workoutExercises) {
           item.workout.workoutExercises.forEach((workoutExercise: any) => {
             const primary = workoutExercise.exercise.primaryMuscle;
@@ -707,21 +706,17 @@ const SelectedMicro = ({
             const sets = workoutExercise.targetSets || 0;
 
             if (primary) {
-              // Séries Diretas (Apenas para o músculo primário direto do exercício)
               seriesDiretas[primary] = (seriesDiretas[primary] || 0) + sets;
 
-              // Volume de Séries (Acumula 100% no primário e propaga para os pais)
               addVolumeDeSetsToHierarchy(primary, sets);
             }
 
             secondaries.forEach((sec: string) => {
-              // Volume de Séries (Acumula 50% para secundários e propaga para os pais)
               addVolumeDeSetsToHierarchy(sec, sets * 0.5);
             });
           });
         }
 
-        // 2. Volume Real de Carga (Tonnage = reps * weight) com os treinos gravados (item.sets)
         if (item.sets && item.sets.length > 0) {
           item.sets.forEach((set: any) => {
             const reps = set.reps || 0;
@@ -803,6 +798,7 @@ const SelectedMicro = ({
                 transparent={false}
                 visible={!!registeringWorkout}
                 onRequestClose={() => {
+                  hasAutoOpenedRef.current = false;
                   setRegisteringWorkout(null);
                   setSelectedWorkoutName(null);
                   setSelectedWorkoutImage(null);

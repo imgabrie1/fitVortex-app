@@ -16,6 +16,7 @@ export const themas = {
     alternativeBlocks: "#202020ff",
     green: "#015d11ff",
     alternativeGreen: "#04ef6eff",
+    isDoneLine: "rgba(4, 239, 110, 0.11)"
 
   },
 };

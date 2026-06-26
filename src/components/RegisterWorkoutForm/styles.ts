@@ -34,9 +34,22 @@ export const styles = StyleSheet.create({
     paddingLeft: 10,
   },
 
-  teste2: {
+  textCompleted: {
+    color: themas.Colors.green,
+  },
+
+  badgeDone: {
     backgroundColor: themas.Colors.green,
-    padding: 5
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginLeft: 8,
+  },
+
+  badgeDoneText: {
+    color: "#FFF",
+    fontSize: 10,
+    fontWeight: "bold",
   },
 
   notes: {
@@ -49,6 +62,11 @@ export const styles = StyleSheet.create({
     borderWidth: 0.9,
     width: "15%",
     height: "100%",
+  },
+
+  imgExerciseDone: {
+    borderColor: themas.Colors.green,
+    backgroundColor: themas.Colors.isDoneLine
   },
 
   setRow: {
@@ -143,7 +161,7 @@ export const styles = StyleSheet.create({
   },
 
   isDoneLine: {
-    backgroundColor: themas.Colors.green,
+    backgroundColor: themas.Colors.isDoneLine,
   },
 
   teste: {
@@ -154,7 +172,6 @@ export const styles = StyleSheet.create({
     backgroundColor: themas.Colors.green,
     marginBottom: 10,
   },
-
 
   actionContainer: {
     marginTop: 24,
@@ -213,8 +230,4 @@ export const styles = StyleSheet.create({
     color: "#B00020",
     letterSpacing: 1.25,
   },
-
-
 });
-
-

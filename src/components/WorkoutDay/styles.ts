@@ -79,8 +79,6 @@ export const styles = StyleSheet.create({
     backgroundColor: themas.Colors.background,
     width: "100%",
     flexDirection: "column",
-    // flexWrap: "wrap",
-    // justifyContent: "space-between",
   },
 
   exerciseCard: {

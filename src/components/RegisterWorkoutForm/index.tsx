@@ -108,16 +108,17 @@ export const RegisterWorkoutForm = ({
   }, [cycleItemId]);
 
   useEffect(() => {
-    if (isLoaded) {
-      try {
-        AsyncStorage.setItem(
-          `completedSets_${cycleItemId}`,
-          JSON.stringify(Array.from(completedSets)),
-        );
-      } catch (error) {
-        console.error("Failed to save completed sets", error);
-      }
+    if (!isLoaded) return;
+
+    try {
+      AsyncStorage.setItem(
+        `completedSets_${cycleItemId}`,
+        JSON.stringify(Array.from(completedSets)),
+      );
+    } catch (error) {
+      console.error("Failed to save completed sets", error);
     }
+
     setWorkingOut(completedSets.size > 0);
 
     if (completedSets.size > 0) {
@@ -341,25 +342,48 @@ export const RegisterWorkoutForm = ({
         const allSetsCompleted = completedSetsCount === actualNumberOfSets;
 
         return (
-          <View key={item.id}>
+          <View
+            key={item.id}
+          >
             <TouchableOpacity onPress={() => toggleExercise(exerciseId)}>
               <View
                 style={[
                   styles.infoHeaderExercise,
-                  allSetsCompleted && styles.teste2,
                 ]}
               >
                 <Image
                   source={{ uri: getExerciseImg(exerciseId) }}
-                  style={styles.img}
+                  style={[
+                        styles.img,
+                        allSetsCompleted && styles.imgExerciseDone,
+                      ]}
                   resizeMode="cover"
                 />
                 <View style={styles.nameAndSetsWrapp}>
-                  <AppText style={styles.exerciseName}>
-                    {getExerciseName(exerciseId)}
-                    {isUnilateral && " (Unilateral)"}
-                  </AppText>
-                  <AppText style={styles.targetSets}>
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <AppText
+                      style={[
+                        styles.exerciseName,
+                        allSetsCompleted && styles.textCompleted,
+                      ]}
+                    >
+                      {getExerciseName(exerciseId)}
+                      {isUnilateral && " (Unilateral)"}
+                    </AppText>
+
+                    {allSetsCompleted && (
+                      <View style={styles.badgeDone}>
+                        <AppText style={styles.badgeDoneText}>FEITO</AppText>
+                      </View>
+                    )}
+                  </View>
+
+                  <AppText
+                    style={[
+                      styles.targetSets,
+                      allSetsCompleted && styles.textCompleted,
+                    ]}
+                  >
                     {`${completedSetsCount}/${actualNumberOfSets} concluídos`}
                     {isUnilateral && ` (${actualNumberOfSets} lados)`}
                   </AppText>
