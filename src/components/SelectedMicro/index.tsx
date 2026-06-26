@@ -60,6 +60,7 @@ const SelectedMicro = ({
     skipWorkout,
     activeWorkout,
     setActiveWorkout,
+    updateExerciseUnilateral,
   } = useContext(UserContext);
 
   const [micro, setMicro] = useState<MicroCycle | null>(null);
@@ -845,6 +846,8 @@ const SelectedMicro = ({
                       getValues={getValues}
                       microId={microId}
                       onSkipSuccess={handleFormSubmit}
+                      workoutId={registeringWorkout.workout.id}
+                      updateExerciseUnilateral={updateExerciseUnilateral}
                     />
                   </ScrollView>
                 </View>

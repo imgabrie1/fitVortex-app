@@ -618,6 +618,24 @@ export const AuthProvider = ({ children }: Props) => {
     }
   };
 
+  const updateExerciseUnilateral = async (
+    workoutID: string,
+    exercises: { exerciseId: string; targetSets: number; is_unilateral: boolean; notes?: string }[],
+  ) => {
+    assertUser();
+    try {
+      const { data } = await api.patch(`workout/${workoutID}`, { exercises });
+      return data;
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      const msg =
+        currentError?.response?.data ||
+        err?.message ||
+        "Erro ao atualizar unilateral do exercício";
+      throw new Error(String(msg));
+    }
+  };
+
   const skipWorkout = async (
     microID: string,
     workoutID: string,
@@ -675,6 +693,7 @@ export const AuthProvider = ({ children }: Props) => {
         createWorkout,
         addWorkoutInMicro,
         addExerciseInWorkout,
+        updateExerciseUnilateral,
         updateWorkoutOrder,
         adjustVolume,
         editCycles,
