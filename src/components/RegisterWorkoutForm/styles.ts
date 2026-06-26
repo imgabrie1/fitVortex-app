@@ -230,4 +230,28 @@ export const styles = StyleSheet.create({
     color: "#B00020",
     letterSpacing: 1.25,
   },
+  unilateralToggle: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: themas.Colors.gray,
+    alignSelf: "flex-start",
+    marginTop: 4,
+    gap: 4,
+  },
+  unilateralToggleActive: {
+    backgroundColor: themas.Colors.secondary,
+    borderColor: themas.Colors.secondary,
+  },
+  unilateralToggleText: {
+    fontSize: 10,
+    color: themas.Colors.gray,
+    fontWeight: "bold",
+  },
+  unilateralToggleTextActive: {
+    color: "#fff",
+  },
 });
