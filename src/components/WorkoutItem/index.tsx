@@ -213,7 +213,6 @@ const WorkoutItem = memo(
           )}
         </TouchableOpacity>
 
-        {/* Movido para fora do TouchableOpacity principal usando fragmentos <></> */}
         <CustomAlertOneOption
           visible={openModal}
           onClose={() => setOpenModal(false)}
