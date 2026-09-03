@@ -692,28 +692,26 @@ export const RegisterWorkoutForm = ({
                             ]}
                           >
                             <View style={styles.columnSeries}>
-                              {isUnilateralSet ? (
-                                <View>
-                                  <AppText
-                                    style={[
-                                      styles.setLabel,
-                                      isRightSide
+                              <View style={styles.setNumberContainer}>
+                                <View style={styles.invisibleVolumeButton} />
+                                <AppText
+                                  style={[
+                                    styles.setLabel,
+                                    isUnilateralSet
+                                      ? isRightSide
                                         ? styles.setUniRight
-                                        : styles.setUniLeft,
-                                    ]}
-                                  >
-                                    {isRightSide ? "D" : "E"}
-                                  </AppText>
-                                </View>
-                              ) : (
-                                <View style={styles.setNumberContainer}>
-                                  <View style={styles.invisibleVolumeButton} />
-                                  <AppText style={styles.setLabel}>
-                                    {setIndex + 1}
-                                  </AppText>
-                                  {renderVolumeButton(exerciseId, setIndex)}
-                                </View>
-                              )}
+                                        : styles.setUniLeft
+                                      : null,
+                                  ]}
+                                >
+                                  {isUnilateralSet
+                                    ? isRightSide
+                                      ? "D"
+                                      : "E"
+                                    : realSetIndex + 1}
+                                </AppText>
+                                {renderVolumeButton(exerciseId, setIndex)}
+                              </View>
                             </View>
 
                             <View style={styles.columnKg}>
