@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState, useCallback } from "react";
+import React, { useContext, useEffect, useState, useCallback, useRef } from "react";
 import { View, FlatList, ActivityIndicator, Pressable } from "react-native";
 import { FontAwesome6, MaterialIcons } from "@expo/vector-icons";
 import { UserContext } from "@/contexts/User/UserContext";
@@ -40,15 +40,22 @@ const ExerciseSelector = ({
   const [filtersLoaded, setFiltersLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const loadingMoreRef = useRef(false);
+  const hasMoreRef = useRef(true);
+  const pageRef = useRef(1);
+
   const loadExercises = useCallback(
     async (pageNumber: number, limit: number = 10) => {
       if (staticData) {
         setExercises(staticData);
         setHasMore(false);
+        hasMoreRef.current = false;
         return;
       }
 
-      if (loadingMore || !hasMore) return;
+      if (loadingMoreRef.current || !hasMoreRef.current) return;
+
+      loadingMoreRef.current = true;
       setLoadingMore(true);
 
       try {
@@ -62,8 +69,16 @@ const ExerciseSelector = ({
             );
             return [...prev, ...newExercises];
           });
-          setPage(pageNumber + 1);
+          const nextPage = pageNumber + 1;
+          pageRef.current = nextPage;
+          setPage(nextPage);
+
+          if (data.page >= data.lastPage) {
+            hasMoreRef.current = false;
+            setHasMore(false);
+          }
         } else {
+          hasMoreRef.current = false;
           setHasMore(false);
         }
       } catch (err: any) {
@@ -71,27 +86,29 @@ const ExerciseSelector = ({
           err?.response?.status === 404 ||
           err?.response?.data === "No exercises"
         ) {
+          hasMoreRef.current = false;
           setHasMore(false);
         } else {
           console.error("Erro ao carregar os exercícios:", err);
         }
       } finally {
+        loadingMoreRef.current = false;
         setLoadingMore(false);
       }
     },
-    [loadingMore, hasMore, getAllExercise, staticData],
+    [getAllExercise, staticData],
   );
 
   useEffect(() => {
     loadExercises(1);
-  }, [loadExercises]);
+  }, []);
 
   const handleLoadMore = useCallback(() => {
     if (staticData) return;
-    if (!loadingMore && hasMore && !activeFilter) {
-      loadExercises(page);
+    if (!loadingMoreRef.current && hasMoreRef.current && !activeFilter) {
+      loadExercises(pageRef.current);
     }
-  }, [loadingMore, hasMore, page, loadExercises, activeFilter, staticData]);
+  }, [loadExercises, activeFilter, staticData]);
 
   const handleSelectPrimaryMuscle = async (muscleLabel: string) => {
     try {
@@ -100,9 +117,11 @@ const ExerciseSelector = ({
       const filtersPrimaryMuscle = `primaryMuscle=${encodeURIComponent(
         muscleLabel,
       )}`;
-      const { data } = await getAllExercise(1, 10, filtersPrimaryMuscle);
+      const response = await getAllExercise(1, 100, filtersPrimaryMuscle);
 
-      setFilteredExercises(data);
+      setFilteredExercises(response.data);
+      hasMoreRef.current = false;
+      setHasMore(false);
       setShowFilters(false);
     } catch (err) {
       console.error("Erro ao filtrar exercícios:", err);
@@ -114,7 +133,20 @@ const ExerciseSelector = ({
   const handleClearFilter = useCallback(() => {
     setFilteredExercises(null);
     setActiveFilter(null);
+    hasMoreRef.current = true;
+    setHasMore(true);
   }, []);
+
+  const renderFooter = () => {
+    if (!loadingMore) return null;
+    return (
+      <ActivityIndicator
+        size="large"
+        style={{ marginVertical: 20 }}
+        color={themas.Colors.secondary}
+      />
+    );
+  };
 
   if (loading) {
     return (
@@ -126,7 +158,6 @@ const ExerciseSelector = ({
 
   return (
     <View style={styles.container}>
-      {/* lista de exercícios */}
       <View style={{ flex: 1, display: showFilters ? "none" : "flex" }}>
         <FlatList
           data={filteredExercises ?? exercises}
@@ -199,9 +230,7 @@ const ExerciseSelector = ({
               )}
             </>
           }
-          ListFooterComponent={() =>
-            loadingMore ? <ActivityIndicator size="large" /> : null
-          }
+          ListFooterComponent={renderFooter}
           ListEmptyComponent={() => (
             <AppText style={{ textAlign: "center", marginTop: 20 }}>
               Nenhum Exercício Encontrado
@@ -210,7 +239,6 @@ const ExerciseSelector = ({
         />
       </View>
 
-      {/* filtros */}
       {(showFilters || filtersLoaded) && !staticData && (
         <View
           style={[styles.container, { display: showFilters ? "flex" : "none" }]}
