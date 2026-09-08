@@ -303,6 +303,7 @@ const SelectedMicro = ({
             return {
               exerciseId,
               notes: we.notes || "",
+              is_unilateral: typeof we.is_unilateral === 'boolean' ? we.is_unilateral : we.exercise?.default_unilateral || false,
               sets: sets.map((set) => ({
                 reps: set.reps,
                 weight: set.weight != null ? Number(set.weight) : undefined,
@@ -334,6 +335,7 @@ const SelectedMicro = ({
               return {
                 exerciseId: we.exercise.id,
                 notes: we.notes || "",
+                is_unilateral: typeof we.is_unilateral === 'boolean' ? we.is_unilateral : we.exercise?.default_unilateral || false,
                 sets,
               };
             }),
@@ -368,11 +370,19 @@ const SelectedMicro = ({
     const exercisesPayload = data.exercises.map((exercise: any) => {
       return {
         exerciseID: exercise.exerciseId, 
-        sets: exercise.sets.map((set: any) => ({
-          reps: set.reps,
-          weight: set.weight,
-        })),
+        sets: exercise.sets.map((set: any, index: number) => {
+          let side = "both";
+          if (exercise.is_unilateral) {
+            side = index % 2 === 0 ? "right" : "left";
+          }
+          return {
+            reps: set.reps,
+            weight: set.weight,
+            side: side,
+          };
+        }),
         notes: exercise.notes || "",
+        is_unilateral: exercise.is_unilateral,
       };
     });
 

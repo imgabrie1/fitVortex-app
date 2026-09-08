@@ -443,6 +443,7 @@ export const RegisterWorkoutForm = ({
       ...prev,
       [exerciseId]: newIsUni,
     }));
+    setValue(`exercises.${exerciseIndex}.is_unilateral`, newIsUni);
   };
 
   const getPreviousSet = (exerciseId: string, setIndex: number) => {
