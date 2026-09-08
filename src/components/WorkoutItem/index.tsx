@@ -152,9 +152,10 @@ const WorkoutItem = memo(
                 {sortedSetsByExercise.map(([exId, arr]) => {
                   const exName = arr[0]?.exercise?.name ?? "Exercício";
                   const exImage = arr[0]?.exercise?.imageURL;
-                  const workoutExerciseNotes = workoutExercises.find(
+                  const workoutExercise = workoutExercises.find(
                     (we: any) => we.exercise.id === exId,
-                  )?.notes;
+                  );
+                  const workoutExerciseNotes = workoutExercise?.notes;
 
                   return (
                     <View key={exId} style={styles.exerciseItem}>
@@ -189,10 +190,20 @@ const WorkoutItem = memo(
                                 weight % 1 === 0
                                   ? weight.toString()
                                   : weight.toFixed(2).replace(/\.?0+$/, "");
+                                  
+                              let seriesLabel = `Série ${index + 1}`;
+                              if (s.side && s.side !== "both") {
+                                const sortedArr = arr.slice().sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+                                const sideIndex = sortedArr.filter((set: any) => set.side === s.side).findIndex((set: any) => set.id === s.id);
+                                const realIndex = (sideIndex >= 0 ? sideIndex : 0) + 1;
+                                const sideLabel = s.side === "right" ? "(D)" : "(E)";
+                                seriesLabel = `Série ${realIndex} ${sideLabel}`;
+                              }
+
                               return (
                                 <View key={s.id} style={styles.setItem}>
                                   <AppText style={[styles.setInfo, styles.set]}>
-                                    Série {index + 1}
+                                    {seriesLabel}
                                   </AppText>
                                   <AppText style={styles.setInfo}>
                                     {s.reps ?? "—"} reps

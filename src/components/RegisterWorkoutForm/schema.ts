@@ -5,6 +5,7 @@ export const schema = yup.object().shape({
     yup.object().shape({
       exerciseId: yup.string().required(),
       notes: yup.string().optional(),
+      is_unilateral: yup.boolean().optional(),
       sets: yup
         .array()
         .of(
