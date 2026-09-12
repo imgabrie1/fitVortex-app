@@ -680,6 +680,12 @@ export const RegisterWorkoutForm = ({
                       const placeholderWeight = formatValue(prevSet?.weight);
                       const placeholderReps = formatValue(prevSet?.reps);
 
+                      const volumeButton = renderVolumeButton(
+                        exerciseId,
+                        setIndex,
+                      );
+                      const hasVolumeButton = volumeButton !== null;
+
                       return (
                         <View
                           key={`${setIndex}-${placeholderWeight}-${placeholderReps}`}
@@ -694,7 +700,9 @@ export const RegisterWorkoutForm = ({
                           >
                             <View style={styles.columnSeries}>
                               <View style={styles.setNumberContainer}>
-                                <View style={styles.invisibleVolumeButton} />
+                                {hasVolumeButton && (
+                                  <View style={styles.invisibleVolumeButton} />
+                                )}
                                 <AppText
                                   style={[
                                     styles.setLabel,
@@ -711,7 +719,7 @@ export const RegisterWorkoutForm = ({
                                       : "E"
                                     : realSetIndex + 1}
                                 </AppText>
-                                {renderVolumeButton(exerciseId, setIndex)}
+                                {volumeButton}
                               </View>
                             </View>
 
@@ -1071,7 +1079,7 @@ export const RegisterWorkoutForm = ({
             <MaterialIcons
               name={isExpanded ? "keyboard-arrow-up" : "keyboard-arrow-down"}
               size={20}
-              color={themas.Colors.secondary || "#6200EE"}
+              color={themas.Colors.secondary}
             />
           </TouchableOpacity>
 
@@ -1082,7 +1090,11 @@ export const RegisterWorkoutForm = ({
               onPress={handleSkipWorkout}
               disabled={loadingForm}
             >
-              <MaterialIcons name="skip-next" size={20} color="#B00020" />
+              <MaterialIcons
+                name="skip-next"
+                size={20}
+                color={themas.Colors.red}
+              />
               <AppText style={styles.skipButtonText}>PULAR TREINO</AppText>
             </TouchableOpacity>
           )}

@@ -115,7 +115,7 @@ export const styles = StyleSheet.create({
 
   setsWrapp: {
     marginTop: 8,
-    backgroundColor: themas.Colors.blocks,
+    backgroundColor: themas.Colors.isExpandedBlocks,
     width: width,
     position: "relative",
     paddingHorizontal: 14,

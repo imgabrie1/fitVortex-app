@@ -1,22 +1,22 @@
 export const themas = {
   Colors: {
     background: "#000",
-    primary: "#352E84",
-    secondary: "#6C63FF",
+    primary: "#2b1eb0",
+    secondary: "#2c59e2",
     lightGray: "#d7d8d7",
     gray: "gray",
     red: "#FF494C",
-    led: "#842cffff",
-    neon: "#A020F0",
+    led: "#3e2cff",
+    neon: "#204df0",
     blackTransparent: "#00000040",
     text: "#fff",
     icons: "#fff",
     noSelectColor: "#49454f",
-    blocks: "#191A1C",
+    blocks: "#0c58ee18",
+    isExpandedBlocks: "#03062a",
     alternativeBlocks: "#202020ff",
     green: "#015d11ff",
     alternativeGreen: "#04ef6eff",
-    isDoneLine: "rgba(4, 239, 110, 0.11)"
-
+    isDoneLine: "rgba(4, 239, 110, 0.11)",
   },
 };
