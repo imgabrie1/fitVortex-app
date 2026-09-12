@@ -667,6 +667,7 @@ export const RegisterWorkoutForm = ({
                         return index % 2 === 0
                           ? themas.Colors.background
                           : themas.Colors.alternativeBlocks;
+                          //teste
                       };
 
                       const prevSet = getPreviousSet(exerciseId, setIndex);
