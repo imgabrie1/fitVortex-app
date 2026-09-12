@@ -38,9 +38,7 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
             const newWorkouts = data.data.filter(
               (newWorkout) =>
                 !prevWorkouts.some(
-                  (prevWorkout) =>
-                    prevWorkout.id === newWorkout.id &&
-                    prevWorkout.createdAt === newWorkout.createdAt,
+                  (prevWorkout) => prevWorkout.id === newWorkout.id,
                 ),
             );
             return [...prevWorkouts, ...newWorkouts];
@@ -64,7 +62,43 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
   };
 
   useEffect(() => {
-    loadWorkouts();
+    let cancelled = false;
+
+    const fetchInitial = async () => {
+      setWorkouts([]);
+      setLoading(true);
+      setHasMore(true);
+
+      try {
+        if (!user) {
+          setHasMore(false);
+          return;
+        }
+
+        const data = await getAllWorkouts(1, 10);
+        if (cancelled) return;
+
+        if (data?.data?.length > 0) {
+          setWorkouts(data.data);
+          setPage(2);
+          if (data.page >= data.lastPage) setHasMore(false);
+        } else {
+          setHasMore(false);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Erro ao buscar treinos:", error);
+          setHasMore(false);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    fetchInitial();
+    return () => {
+      cancelled = true;
+    };
   }, [user]);
 
   const renderFooter = () => {
@@ -78,10 +112,18 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
     );
   };
 
+  const countExecutedSets = (sets: Set[]): number => {
+    if (!sets || sets.length === 0) return 0;
+    const isUnilateral = sets.some(
+      (s) => s.side && s.side !== "both",
+    );
+    return isUnilateral ? Math.ceil(sets.length / 2) : sets.length;
+  };
+
   const renderItem = ({ item: workout }: { item: WorkoutWithSets }) => {
     const totalExecutedSeries = workout.workoutExercises.reduce(
       (acc: number, exercise: WorkoutExerciseWithSets) =>
-        acc + (exercise.sets?.length || 0),
+        acc + countExecutedSets(exercise.sets ?? []),
       0,
     );
 
@@ -124,6 +166,10 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
 
               const repsArray = exercise.sets.map((s: Set) => s.reps);
 
+              const isUnilateral = exercise.sets.some(
+                (s) => s.side && s.side !== "both",
+              );
+
               let repsText = "— reps";
               if (repsArray.length > 0) {
                 const minReps = Math.min(...repsArray);
@@ -151,7 +197,8 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
                     </AppText>
                     <View style={styles.infoSetsWrap}>
                       <AppText style={styles.infoSets}>
-                        {exercise.sets.length}/{exercise.targetSets} séries
+                        {countExecutedSets(exercise.sets)}/{exercise.targetSets}{" "}
+                        {isUnilateral ? "Séries cada lado" : "Séries"}
                       </AppText>
                       <AppText style={styles.infoSets}>{repsText}</AppText>
                     </View>
@@ -178,7 +225,7 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
           ) > 0 && !workout.isSkipped,
       )}
       renderItem={renderItem}
-      keyExtractor={(item) => `${item.id}-${item.createdAt}`}
+      keyExtractor={(item) => item.id}
       style={styles.container}
       contentContainerStyle={[
         { paddingBottom: 20, paddingTop: 20 },

@@ -45,7 +45,7 @@ const WorkoutItem = memo(
 
     const handleCardPress = () => {
       if (isSkipped) {
-        setOpenModal(true)
+        setOpenModal(true);
         return;
       }
 
@@ -123,7 +123,11 @@ const WorkoutItem = memo(
               <AppText style={styles.name}>{workoutName}</AppText>
 
               <TouchableOpacity onPress={(e) => onMenuPress(e, item.id)}>
-                <MaterialIcons name="menu" size={18} color={themas.Colors.text} />
+                <MaterialIcons
+                  name="menu"
+                  size={18}
+                  color={themas.Colors.text}
+                />
               </TouchableOpacity>
 
               <AnimatedMenu
@@ -190,13 +194,23 @@ const WorkoutItem = memo(
                                 weight % 1 === 0
                                   ? weight.toString()
                                   : weight.toFixed(2).replace(/\.?0+$/, "");
-                                  
+
                               let seriesLabel = `Série ${index + 1}`;
                               if (s.side && s.side !== "both") {
-                                const sortedArr = arr.slice().sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-                                const sideIndex = sortedArr.filter((set: any) => set.side === s.side).findIndex((set: any) => set.id === s.id);
-                                const realIndex = (sideIndex >= 0 ? sideIndex : 0) + 1;
-                                const sideLabel = s.side === "right" ? "(D)" : "(E)";
+                                const sortedArr = arr
+                                  .slice()
+                                  .sort(
+                                    (a, b) =>
+                                      new Date(a.createdAt).getTime() -
+                                      new Date(b.createdAt).getTime(),
+                                  );
+                                const sideIndex = sortedArr
+                                  .filter((set: any) => set.side === s.side)
+                                  .findIndex((set: any) => set.id === s.id);
+                                const realIndex =
+                                  (sideIndex >= 0 ? sideIndex : 0) + 1;
+                                const sideLabel =
+                                  s.side === "right" ? "(D)" : "(E)";
                                 seriesLabel = `Série ${realIndex} ${sideLabel}`;
                               }
 
