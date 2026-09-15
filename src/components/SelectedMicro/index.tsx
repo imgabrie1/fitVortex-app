@@ -239,7 +239,10 @@ const SelectedMicro = ({
               );
 
               if (match && match.sets && match.sets.length > 0) {
-                setPreviousWorkoutData(match);
+                const sortedSets = match.sets
+                  .slice()
+                  .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0));
+                setPreviousWorkoutData({ ...match, sets: sortedSets });
               }
             }
           } catch (err) {
@@ -282,7 +285,11 @@ const SelectedMicro = ({
       if (hasExistingSets && isEditMode) {
         const groupedByExercise: Record<string, any[]> = {};
 
-        registeringWorkout.sets.forEach((set: any) => {
+        const sortedExistingSets = (registeringWorkout.sets || [])
+          .slice()
+          .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0));
+
+        sortedExistingSets.forEach((set: any) => {
           const exerciseId = set.exercise.id;
           if (!groupedByExercise[exerciseId]) {
             groupedByExercise[exerciseId] = [];
@@ -368,11 +375,21 @@ const SelectedMicro = ({
     if (!registeringWorkout) return;
 
     const exercisesPayload = data.exercises.map((exercise: any) => {
+      const we = registeringWorkout.workout?.workoutExercises?.find(
+        (wItem: any) => wItem.exercise?.id === exercise.exerciseId,
+      );
+      const isUnilateral =
+        typeof exercise.is_unilateral === "boolean"
+          ? exercise.is_unilateral
+          : typeof we?.is_unilateral === "boolean"
+            ? we.is_unilateral
+            : (we?.exercise?.default_unilateral ?? false);
+
       return {
         exerciseID: exercise.exerciseId, 
         sets: exercise.sets.map((set: any, index: number) => {
           let side = "both";
-          if (exercise.is_unilateral) {
+          if (isUnilateral) {
             side = index % 2 === 0 ? "right" : "left";
           }
           return {
@@ -382,7 +399,7 @@ const SelectedMicro = ({
           };
         }),
         notes: exercise.notes || "",
-        is_unilateral: exercise.is_unilateral,
+        is_unilateral: isUnilateral,
       };
     });
 

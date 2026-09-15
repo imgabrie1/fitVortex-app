@@ -487,11 +487,15 @@ export const AuthProvider = ({ children }: Props) => {
               workout.workoutExercises || []
             ).map((we: WorkoutExercise) => ({
               ...we,
-              sets: normalizedSets.filter((st: any) => {
-                const setExerciseId =
-                  (st as any).exercise?.id ?? (st as any).exerciseId;
-                return setExerciseId === we.exercise.id;
-              }),
+              sets: normalizedSets
+                .filter((st: any) => {
+                  const setExerciseId =
+                    (st as any).exercise?.id ?? (st as any).exerciseId;
+                  return setExerciseId === we.exercise.id;
+                })
+                .sort(
+                  (a: any, b: any) => (a.position ?? 0) - (b.position ?? 0),
+                ),
             }));
 
             return {

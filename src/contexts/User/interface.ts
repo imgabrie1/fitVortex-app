@@ -105,6 +105,7 @@ export interface Set {
   reps: number;
   weight: string;
   side: "both" | "left" | "right";
+  position?: number;
   exercise: Exercise;
 }
 
