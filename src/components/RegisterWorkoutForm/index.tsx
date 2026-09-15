@@ -452,13 +452,18 @@ export const RegisterWorkoutForm = ({
 
     if (!effectivePreviousValues || !effectivePreviousValues.sets) return null;
 
-    const previousSetsForExercise = effectivePreviousValues.sets.filter(
-      (s: any) => s.exercise.id === exerciseId,
-    );
+    const previousSetsForExercise = (effectivePreviousValues.sets || [])
+      .filter((s: any) => s.exercise?.id === exerciseId)
+      .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0));
 
     if (previousSetsForExercise.length === 0) return null;
 
-    const prevWasUni = originalUnilateralRef.current[exerciseId] ?? false;
+    const prevHadUniSets = previousSetsForExercise.some(
+      (s: any) => s.side && s.side !== "both",
+    );
+    const prevWasUni =
+      prevHadUniSets ||
+      (originalUnilateralRef.current[exerciseId] ?? false);
     const currentIsUni = getUnilateral(exerciseId);
 
     if (prevWasUni === currentIsUni) {

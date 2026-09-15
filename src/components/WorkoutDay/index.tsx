@@ -112,18 +112,28 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
     );
   };
 
-  const countExecutedSets = (sets: Set[]): number => {
+  const checkIsUnilateral = (exercise: WorkoutExerciseWithSets): boolean => {
+    if (typeof exercise.is_unilateral === "boolean") {
+      return exercise.is_unilateral;
+    }
+    if (typeof exercise.exercise?.default_unilateral === "boolean") {
+      return exercise.exercise.default_unilateral;
+    }
+    return (exercise.sets ?? []).some((s) => s.side && s.side !== "both");
+  };
+
+  const countExecutedSets = (
+    sets: Set[],
+    isUnilateral: boolean,
+  ): number => {
     if (!sets || sets.length === 0) return 0;
-    const isUnilateral = sets.some(
-      (s) => s.side && s.side !== "both",
-    );
     return isUnilateral ? Math.ceil(sets.length / 2) : sets.length;
   };
 
   const renderItem = ({ item: workout }: { item: WorkoutWithSets }) => {
     const totalExecutedSeries = workout.workoutExercises.reduce(
       (acc: number, exercise: WorkoutExerciseWithSets) =>
-        acc + countExecutedSets(exercise.sets ?? []),
+        acc + countExecutedSets(exercise.sets ?? [], checkIsUnilateral(exercise)),
       0,
     );
 
@@ -164,11 +174,12 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
                 return null;
               }
 
-              const repsArray = exercise.sets.map((s: Set) => s.reps);
+              const isUnilateral = checkIsUnilateral(exercise);
+              const sortedSets = (exercise.sets ?? [])
+                .slice()
+                .sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
 
-              const isUnilateral = exercise.sets.some(
-                (s) => s.side && s.side !== "both",
-              );
+              const repsArray = sortedSets.map((s: Set) => s.reps);
 
               let repsText = "— reps";
               if (repsArray.length > 0) {
@@ -197,7 +208,7 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
                     </AppText>
                     <View style={styles.infoSetsWrap}>
                       <AppText style={styles.infoSets}>
-                        {countExecutedSets(exercise.sets)}/{exercise.targetSets}{" "}
+                        {countExecutedSets(exercise.sets, isUnilateral)}/{exercise.targetSets}{" "}
                         {isUnilateral ? "Séries cada lado" : "Séries"}
                       </AppText>
                       <AppText style={styles.infoSets}>{repsText}</AppText>
