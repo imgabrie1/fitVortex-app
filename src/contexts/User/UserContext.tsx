@@ -22,10 +22,7 @@ import {
   WorkoutWithSets,
   MacroCycle,
   iCreateMacroCycle,
-  iCreateMicroCycle,
-  Exercise,
   iCreateWorkout,
-  iPatchWorkout,
   ExerciseInCreateAndPatch,
   ExerciseResponse,
   newMacroWithAI,
@@ -81,7 +78,7 @@ export const AuthProvider = ({ children }: Props) => {
     })();
   }, []);
 
-  const getTotalVolume = async (userId: number) => {
+  const getTotalVolume = async (userId: string) => {
     try {
       const { data } = await api.get(`/workout/${userId}`);
       let totalExecutedSeries = 0;
@@ -107,16 +104,70 @@ export const AuthProvider = ({ children }: Props) => {
   };
 
   //        -------------- USER --------------
+
   const registerUser = async (data: iDataRegister): Promise<void> => {
     setLoadingForm(true);
     try {
-      await api.post("/user", data);
+      const { confirmPassword, ...payload } = data;
+      await api.post("/user", payload);
       navigate("BottomRoutes", { screen: "Home" });
     } catch (err) {
       const currentError = err as AxiosError;
       const message =
         (currentError.response?.data as string) || "Algo deu errado!";
       Alert.alert("Erro!", message);
+    } finally {
+      setLoadingForm(false);
+    }
+  };
+
+  const updateUser = async (data: {
+    name?: string;
+    email?: string;
+  }): Promise<iUserResponse> => {
+    const currentUser = requireUser();
+
+    setLoadingForm(true);
+    try {
+      const { data: updated } = await api.patch<iUserResponse>(
+        `/user/${currentUser.id}`,
+        data,
+      );
+
+      const newUser = { ...currentUser, ...updated };
+
+      setUser(newUser);
+      await AsyncStorage.setItem(USER_STORAGE, JSON.stringify(newUser));
+
+      return newUser;
+    } catch (err) {
+      const currentError = err as AxiosError;
+      const msg =
+        currentError?.response?.data ||
+        currentError?.message ||
+        "Erro ao atualizar perfil";
+      throw new Error(String(msg));
+    } finally {
+      setLoadingForm(false);
+    }
+  };
+
+  const updatePassword = async (payload: {
+    currentPassword: string;
+    newPassword: string;
+  }): Promise<void> => {
+    const currentUser = requireUser();
+
+    setLoadingForm(true);
+    try {
+      await api.patch(`/user/${currentUser.id}/password`, payload);
+    } catch (err) {
+      const currentError = err as AxiosError;
+      const msg =
+        currentError?.response?.data ||
+        currentError?.message ||
+        "Erro ao atualizar senha";
+      throw new Error(String(msg));
     } finally {
       setLoadingForm(false);
     }
@@ -624,7 +675,12 @@ export const AuthProvider = ({ children }: Props) => {
 
   const updateExerciseUnilateral = async (
     workoutID: string,
-    exercises: { exerciseId: string; targetSets: number; is_unilateral: boolean; notes?: string }[],
+    exercises: {
+      exerciseId: string;
+      targetSets: number;
+      is_unilateral: boolean;
+      notes?: string;
+    }[],
   ) => {
     assertUser();
     try {
@@ -704,6 +760,8 @@ export const AuthProvider = ({ children }: Props) => {
         skipWorkout,
         activeWorkout,
         setActiveWorkout,
+        updateUser,
+        updatePassword,
       }}
     >
       {children}

@@ -28,7 +28,7 @@ export interface iResponse {
 export interface iUserResponse {
   email: string;
   name: string;
-  id: number;
+  id: string;
 }
 
 export interface iUser extends iUserResponse {
@@ -257,7 +257,12 @@ export type UserContextData = {
   ) => Promise<any>;
   updateExerciseUnilateral: (
     workoutID: string,
-    exercises: { exerciseId: string; targetSets: number; is_unilateral: boolean; notes?: string }[],
+    exercises: {
+      exerciseId: string;
+      targetSets: number;
+      is_unilateral: boolean;
+      notes?: string;
+    }[],
   ) => Promise<any>;
   adjustVolume: (macroID: string, payload: newMacroWithAI) => Promise<any>;
   editCycles: (cycle: string, cycleID: string, payload: any) => Promise<any>;
@@ -268,4 +273,12 @@ export type UserContextData = {
   ) => Promise<any>;
   activeWorkout: ActiveWorkout | null;
   setActiveWorkout: (workout: ActiveWorkout | null) => void;
+  updateUser: (data: {
+    name?: string;
+    email?: string;
+  }) => Promise<iUserResponse>;
+  updatePassword: (payload: {
+    currentPassword: string;
+    newPassword: string;
+  }) => Promise<void>;
 };
