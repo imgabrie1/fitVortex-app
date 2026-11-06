@@ -4,9 +4,14 @@ import { StyleSheet } from "react-native";
 export const style = StyleSheet.create({
   container: {
     backgroundColor: themas.Colors.blocks,
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
     padding: 10,
     borderRadius: 8
+
   },
+
   name: {
     fontFamily: "GeologicaBold"
   },
