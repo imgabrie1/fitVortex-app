@@ -1,5 +1,11 @@
 import React, { useContext, useEffect, useState } from "react";
-import { FlatList, View, ActivityIndicator, Image } from "react-native";
+import {
+  FlatList,
+  View,
+  ActivityIndicator,
+  Image,
+  RefreshControl,
+} from "react-native";
 import { styles } from "./styles";
 import { UserContext } from "@/contexts/User/UserContext";
 import AppText from "../AppText";
@@ -20,19 +26,21 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
   contentContainerStyle,
   ListHeaderComponent = null,
 }) => {
-  const { user, getAllWorkouts } = useContext(UserContext);
+  const { user, getAllWorkouts, workoutsRevision, refreshWorkoutsData } =
+    useContext(UserContext);
   const [workouts, setWorkouts] = useState<WorkoutWithSets[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
   const loadWorkouts = async () => {
-    if (loading || !hasMore) return;
+    if (loading || refreshing || !hasMore) return;
 
     setLoading(true);
     try {
       if (user) {
-        const data = await getAllWorkouts(page, 10);
+        const data = await getAllWorkouts(page, 5);
         if (data && data.data && data.data.length > 0) {
           setWorkouts((prevWorkouts) => {
             const newWorkouts = data.data.filter(
@@ -61,28 +69,53 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
     }
   };
 
+  const handleRefresh = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    try {
+      if (refreshWorkoutsData) {
+        await refreshWorkoutsData();
+      } else if (user) {
+        const data = await getAllWorkouts(1, 5);
+        if (data?.data && data.data.length > 0) {
+          setWorkouts(data.data);
+          setPage(2);
+          setHasMore(data.page < data.lastPage);
+        } else {
+          setWorkouts([]);
+          setHasMore(false);
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao recarregar treinos:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   useEffect(() => {
     let cancelled = false;
 
     const fetchInitial = async () => {
-      setWorkouts([]);
       setLoading(true);
       setHasMore(true);
 
       try {
         if (!user) {
+          setWorkouts([]);
           setHasMore(false);
           return;
         }
 
-        const data = await getAllWorkouts(1, 10);
+        const data = await getAllWorkouts(1, 5);
         if (cancelled) return;
 
-        if (data?.data?.length > 0) {
+        if (data?.data && data.data.length > 0) {
           setWorkouts(data.data);
           setPage(2);
           if (data.page >= data.lastPage) setHasMore(false);
         } else {
+          setWorkouts([]);
           setHasMore(false);
         }
       } catch (error) {
@@ -99,7 +132,7 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [user, workoutsRevision]);
 
   const renderFooter = () => {
     if (!loading) return null;
@@ -168,8 +201,11 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
         </View>
 
         <View style={styles.exercisesContainer}>
-          {workout.workoutExercises.map(
-            (exercise: WorkoutExerciseWithSets, exerciseIndex: number) => {
+          {workout.workoutExercises
+            .slice()
+            .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+            .map(
+              (exercise: WorkoutExerciseWithSets, exerciseIndex: number) => {
               if (!exercise.sets || exercise.sets.length === 0) {
                 return null;
               }
@@ -244,6 +280,14 @@ const WorkoutDay: React.FC<WorkoutDayProps> = ({
       ]}
       onEndReached={loadWorkouts}
       onEndReachedThreshold={0.5}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          colors={[themas.Colors.secondary]}
+          tintColor={themas.Colors.secondary}
+        />
+      }
       ListFooterComponent={renderFooter}
       ListHeaderComponent={ListHeaderComponent}
       ListEmptyComponent={

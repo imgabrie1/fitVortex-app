@@ -59,6 +59,7 @@ export interface CycleItems {
   microCycle?: MicroCycle;
   id: string;
   position: number;
+  completedAt?: string | Date;
   createdAt: string | Date;
   workout: Workout;
   sets: Set[];
@@ -75,6 +76,7 @@ export interface Workout {
 
 export interface WorkoutExercise {
   id: string;
+  position?: number;
   targetSets: number;
   exercise: Exercise;
   is_unilateral?: boolean;
@@ -130,6 +132,7 @@ export type WorkoutWithSets = Omit<
   workoutExercises: WorkoutExerciseWithSets[];
   isSkipped: boolean;
   createdAt: string | Date;
+  workoutId?: string; // ID original do template do treino
 };
 
 export interface MacroCycle {
@@ -219,6 +222,7 @@ export type UserContextData = {
   token: string | null;
   user: iUserResponse | null;
   volumes: number;
+  workoutsRevision: number;
   refreshWorkoutsData?: () => Promise<void>;
   loading: boolean;
   loadingForm: boolean;
