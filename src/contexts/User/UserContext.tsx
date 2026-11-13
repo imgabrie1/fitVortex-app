@@ -43,6 +43,7 @@ export const AuthProvider = ({ children }: Props) => {
   const [loading, setLoading] = useState(true);
   const [loadingForm, setLoadingForm] = useState(false);
   const [volumes, setVolumes] = useState<number>(0);
+  const [workoutsRevision, setWorkoutsRevision] = useState<number>(0);
   const [activeWorkout, setActiveWorkoutState] = useState<any | null>(null);
 
   useEffect(() => {
@@ -82,10 +83,8 @@ export const AuthProvider = ({ children }: Props) => {
     try {
       const { data } = await api.get(`/workout/${userId}`);
       let totalExecutedSeries = 0;
-      (data.data ?? []).forEach((microCycle: MicroCycle) => {
-        (microCycle.cycleItems ?? []).forEach((cycleItem: CycleItems) => {
-          totalExecutedSeries += cycleItem.sets.length;
-        });
+      (data.data ?? []).forEach((cycleItem: CycleItems) => {
+        totalExecutedSeries += (cycleItem.sets ?? []).length;
       });
       setVolumes(totalExecutedSeries);
     } catch (error) {
@@ -334,6 +333,7 @@ export const AuthProvider = ({ children }: Props) => {
     setLoadingForm(true);
     try {
       await api.delete(`/${cycle}/${cycleID}`);
+      await refreshWorkoutsData();
     } catch (err: any) {
       const currentError = err as AxiosError;
       const msg =
@@ -523,20 +523,26 @@ export const AuthProvider = ({ children }: Props) => {
 
       const { data } = await api.get(url);
 
-      const workouts: WorkoutWithSets[] = (data.data ?? []).flatMap(
-        (microCycle: MicroCycle) =>
-          (microCycle.cycleItems ?? []).map((cycleItem: CycleItems) => {
-            const workout = cycleItem.workout;
+      // A API agora retorna MicroCycleItem[] diretamente (um item = um treino do dia)
+      const workouts: WorkoutWithSets[] = (data.data ?? []).map(
+        (cycleItem: CycleItems) => {
+          const workout = cycleItem.workout;
 
-            const normalizedSets = cycleItem.sets.map((set: Set) => ({
-              ...set,
-              exerciseId:
-                (set as any).exercise?.id ?? (set as any).exerciseId ?? null,
-            }));
+          const normalizedSets = (cycleItem.sets ?? []).map((set: Set) => ({
+            ...set,
+            exerciseId:
+              (set as any).exercise?.id ?? (set as any).exerciseId ?? null,
+          }));
 
-            const workoutExercisesWithSets: WorkoutExerciseWithSets[] = (
-              workout.workoutExercises || []
-            ).map((we: WorkoutExercise) => ({
+          const workoutExercisesWithSets: WorkoutExerciseWithSets[] = (
+            workout.workoutExercises || []
+          )
+            .slice()
+            .sort(
+              (a: WorkoutExercise, b: WorkoutExercise) =>
+                (a.position ?? 0) - (b.position ?? 0),
+            )
+            .map((we: WorkoutExercise) => ({
               ...we,
               sets: normalizedSets
                 .filter((st: any) => {
@@ -549,20 +555,22 @@ export const AuthProvider = ({ children }: Props) => {
                 ),
             }));
 
-            return {
-              ...workout,
-              createdAt: cycleItem.createdAt,
-              isSkipped: cycleItem.isSkipped,
-              workoutExercises: workoutExercisesWithSets,
-            };
-          }),
+          return {
+            ...workout,
+            id: cycleItem.id,       // ID único por execução (cycleItem), não do template
+            workoutId: workout.id,  // mantém o id original do treino para referência
+            createdAt: cycleItem.completedAt || cycleItem.createdAt,
+            isSkipped: cycleItem.isSkipped,
+            workoutExercises: workoutExercisesWithSets,
+          };
+        },
       );
 
       return { ...data, data: workouts };
     } catch (err: any) {
       const currentError = err as AxiosError;
       if (currentError.response?.status === 404) {
-        return { data: [], page: 1, lastPage: 1, total: 0, limit: 10 };
+        return { data: [], page: 1, lastPage: 1, total: 0, limit: 5 };
       }
       const msg =
         currentError?.response?.data ||
@@ -579,6 +587,8 @@ export const AuthProvider = ({ children }: Props) => {
       }
     } catch (error) {
       console.warn("Erro ao atualizar dados:", error);
+    } finally {
+      setWorkoutsRevision((prev) => prev + 1);
     }
   };
 
@@ -733,6 +743,7 @@ export const AuthProvider = ({ children }: Props) => {
         token,
         user,
         volumes,
+        workoutsRevision,
         refreshWorkoutsData,
         loading,
         loadingForm,
