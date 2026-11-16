@@ -1,8 +1,7 @@
 import { themas } from "@/global/themes";
-import { MaterialIcons } from "@expo/vector-icons";
 import { memo, useState } from "react";
-import { Alert, Image, Text, TouchableOpacity, View } from "react-native";
-import AnimatedMenu from "../AnimatedMenu";
+import { Image, TouchableOpacity, View } from "react-native";
+import ItemOptionsMenu from "../ItemOptionsMenu";
 import AppText from "../AppText";
 import { styles } from "./styles";
 import CustomAlertOneOption from "../AlertOneOptions";
@@ -11,9 +10,6 @@ interface WorkoutItemProps {
   item: any;
   drag: () => void;
   isActive: boolean;
-  onMenuPress: (e: any, itemId: string) => void;
-  menuVisible: string | null;
-  menuOrigin: { x: number; y: number } | undefined;
   onAddExercise: (workoutName: string) => void;
   onEditWorkout: (item: any) => void;
   onDeleteWorkout: (item: any) => void;
@@ -26,9 +22,6 @@ const WorkoutItem = memo(
     item,
     drag,
     isActive,
-    onMenuPress,
-    menuVisible,
-    menuOrigin,
     onAddExercise,
     onEditWorkout,
     onDeleteWorkout,
@@ -122,18 +115,7 @@ const WorkoutItem = memo(
             <View style={styles.nameAndMenuWrap}>
               <AppText style={styles.name}>{workoutName}</AppText>
 
-              <TouchableOpacity onPress={(e) => onMenuPress(e, item.id)}>
-                <MaterialIcons
-                  name="menu"
-                  size={18}
-                  color={themas.Colors.text}
-                />
-              </TouchableOpacity>
-
-              <AnimatedMenu
-                visible={menuVisible === item.id}
-                origin={menuOrigin}
-                style={styles.editAndDeleteWrap}
+              <ItemOptionsMenu
                 onAddExercise={() => onAddExercise(item.workout.name)}
                 onEdit={() => onEditWorkout(item)}
                 onDelete={() => onDeleteWorkout(item)}

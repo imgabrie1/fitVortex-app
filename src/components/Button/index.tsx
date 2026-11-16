@@ -44,6 +44,9 @@ export const Button = ({
             fontSize ? { fontSize } : {},
             textColor ? { color: textColor } : {},
           ]}
+          numberOfLines={2}
+          adjustsFontSizeToFit
+          minimumFontScale={0.6}
         >
           {text}
         </Text>

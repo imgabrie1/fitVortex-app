@@ -46,7 +46,7 @@ export const styles = StyleSheet.create({
     fontFamily: "GeologicaBold",
     color: themas.Colors.noSelectColor,
   },
-  macrosTitles: {
+  mesosTitles: {
     flex: 1,
     justifyContent: "center",
     alignItems: "flex-start",
@@ -74,5 +74,15 @@ export const styles = StyleSheet.create({
     shadowColor: "#888888ff",
     shadowOpacity: 0.3,
     shadowRadius: 4,
+  },
+
+  buttonWrapper: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    paddingVertical: 10,
+  },
+  buttonStyled: {
+    width: "70%",
   },
 });

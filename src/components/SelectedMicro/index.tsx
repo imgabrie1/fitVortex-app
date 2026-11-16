@@ -10,12 +10,12 @@ import {
   Modal,
   Image,
   ActivityIndicator,
-  TouchableWithoutFeedback,
   Alert,
   ScrollView,
 } from "react-native";
 import AppText from "../AppText";
 import { UserContext } from "@/contexts/User/UserContext";
+import VolumeAnalysisModal from "../VolumeAnalysisModal";
 import { Exercise, MicroCycle } from "@/contexts/User/interface";
 import { styles } from "./styles";
 import { RegisterWorkoutForm } from "../RegisterWorkoutForm";
@@ -36,6 +36,14 @@ import WorkoutItem from "../WorkoutItem";
 import BackAndTitle from "../BackAndTitle";
 import ExerciseSelector from "../ExerciseSelector";
 import { Button } from "../Button";
+
+// ==================== STAGES ====================
+export const STAGE = {
+  MICRO_CYCLE: "microCycle",
+  ADD_EXERCISE: "addExercise",
+} as const;
+
+export type Stage = (typeof STAGE)[keyof typeof STAGE];
 
 interface SelectedMicroProps {
   microId: string;
@@ -66,6 +74,7 @@ const SelectedMicro = ({
   const [micro, setMicro] = useState<MicroCycle | null>(null);
   const [workouts, setWorkouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [showVolumeAnalysis, setShowVolumeAnalysis] = useState(false);
   const [registeringWorkout, setRegisteringWorkout] = useState<any | null>(
     null,
   );
@@ -76,7 +85,7 @@ const SelectedMicro = ({
     string | null
   >(null);
   const formValuesRef = useRef<Record<string, any>>({});
-  const [stage, setStage] = useState<1 | 2>(1);
+  const [stage, setStage] = useState<Stage>(STAGE.MICRO_CYCLE);
   const [isAddExerciseModalVisible, setAddExerciseModalVisible] =
     useState(false);
   const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(
@@ -85,10 +94,6 @@ const SelectedMicro = ({
   const [targetWorkoutName, setTargetWorkoutName] = useState<string | null>(
     null,
   );
-  const [menuOrigin, setMenuOrigin] = useState<
-    { x: number; y: number } | undefined
-  >(undefined);
-  const [menuVisible, setMenuVisible] = useState<string | null>(null);
   const [alertVisible, setAlertVisible] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [skipAlertVisible, setSkipAlertVisible] = useState(false);
@@ -144,8 +149,6 @@ const SelectedMicro = ({
         }
       } catch (err) {
         console.error("Erro ao editar treino:", err);
-      } finally {
-        setMenuVisible(null);
       }
     },
     [handleRegisterWorkout, activeWorkout],
@@ -154,7 +157,11 @@ const SelectedMicro = ({
   const hasAutoOpenedRef = useRef(false);
 
   useEffect(() => {
-    if (initialCycleItemId && workouts.length > 0 && !hasAutoOpenedRef.current) {
+    if (
+      initialCycleItemId &&
+      workouts.length > 0 &&
+      !hasAutoOpenedRef.current
+    ) {
       const targetWorkout = workouts.find((w) => w.id === initialCycleItemId);
       if (targetWorkout) {
         hasAutoOpenedRef.current = true;
@@ -207,6 +214,27 @@ const SelectedMicro = ({
     [targetWorkoutName, workouts],
   );
 
+  const getTargetSetsInWorkout = useCallback(
+    (exerciseId: string): number | null => {
+      if (!targetWorkoutName) return null;
+
+      const targetWorkout = workouts.find(
+        (w) => w.workout.name === targetWorkoutName,
+      );
+
+      if (!targetWorkout?.workout?.workoutExercises) return null;
+
+      const found = targetWorkout.workout.workoutExercises.find(
+        (we: any) => we.exercise.id === exerciseId,
+      );
+
+      if (!found) return null;
+
+      return typeof found.targetSets === "number" ? found.targetSets : null;
+    },
+    [targetWorkoutName, workouts],
+  );
+
   const getFormStorageKey = useCallback(
     (microId: string) => `workoutFormValues_${microId}`,
     [],
@@ -241,7 +269,9 @@ const SelectedMicro = ({
               if (match && match.sets && match.sets.length > 0) {
                 const sortedSets = match.sets
                   .slice()
-                  .sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0));
+                  .sort(
+                    (a: any, b: any) => (a.position ?? 0) - (b.position ?? 0),
+                  );
                 setPreviousWorkoutData({ ...match, sets: sortedSets });
               }
             }
@@ -301,7 +331,9 @@ const SelectedMicro = ({
           });
         });
 
-        const exercisesForm = (registeringWorkout.workout?.workoutExercises || [])
+        const exercisesForm = (
+          registeringWorkout.workout?.workoutExercises || []
+        )
           .slice()
           .sort((a: any, b: any) => a.position - b.position)
           .map((we: any) => {
@@ -310,7 +342,10 @@ const SelectedMicro = ({
             return {
               exerciseId,
               notes: we.notes || "",
-              is_unilateral: typeof we.is_unilateral === 'boolean' ? we.is_unilateral : we.exercise?.default_unilateral || false,
+              is_unilateral:
+                typeof we.is_unilateral === "boolean"
+                  ? we.is_unilateral
+                  : we.exercise?.default_unilateral || false,
               sets: sets.map((set) => ({
                 reps: set.reps,
                 weight: set.weight != null ? Number(set.weight) : undefined,
@@ -342,7 +377,10 @@ const SelectedMicro = ({
               return {
                 exerciseId: we.exercise.id,
                 notes: we.notes || "",
-                is_unilateral: typeof we.is_unilateral === 'boolean' ? we.is_unilateral : we.exercise?.default_unilateral || false,
+                is_unilateral:
+                  typeof we.is_unilateral === "boolean"
+                    ? we.is_unilateral
+                    : we.exercise?.default_unilateral || false,
                 sets,
               };
             }),
@@ -386,7 +424,7 @@ const SelectedMicro = ({
             : (we?.exercise?.default_unilateral ?? false);
 
       return {
-        exerciseID: exercise.exerciseId, 
+        exerciseID: exercise.exerciseId,
         sets: exercise.sets.map((set: any, index: number) => {
           let side = "both";
           if (isUnilateral) {
@@ -420,7 +458,9 @@ const SelectedMicro = ({
         currentError?.response?.data ||
         err?.message ||
         (isEditMode ? "Erro ao atualizar treino" : "Erro ao registrar treino");
-      throw new Error(typeof msg === 'object' ? JSON.stringify(msg) : String(msg));
+      throw new Error(
+        typeof msg === "object" ? JSON.stringify(msg) : String(msg),
+      );
     }
   };
 
@@ -476,7 +516,13 @@ const SelectedMicro = ({
     setSelectedWorkoutImage(null);
     setIsEditMode(false);
     loadMicro();
-  }, [registeringWorkout, microId, getFormStorageKey, loadMicro, setActiveWorkout]);
+  }, [
+    registeringWorkout,
+    microId,
+    getFormStorageKey,
+    loadMicro,
+    setActiveWorkout,
+  ]);
 
   const handleDragEnd = async ({ data }: { data: any[] }) => {
     setWorkouts(data);
@@ -603,21 +649,12 @@ const SelectedMicro = ({
       // criar no backend essa opção
     } catch (err) {
       console.error("Erro ao deletar treino:", err);
-    } finally {
-      setMenuVisible(null);
     }
-  }, []);
-
-  const handleMenuPress = useCallback((e: any, itemId: string) => {
-    const { pageX, pageY } = e.nativeEvent;
-    setMenuOrigin({ x: pageX, y: pageY });
-    setMenuVisible((prev) => (prev === itemId ? null : itemId));
   }, []);
 
   const handleAddExerciseToWorkout = useCallback((workoutName: string) => {
     setTargetWorkoutName(workoutName);
-    setStage(2);
-    setMenuVisible(null);
+    setStage(STAGE.ADD_EXERCISE);
   }, []);
 
   const handleAddExercisePress = useCallback((exercise: Exercise) => {
@@ -636,9 +673,6 @@ const SelectedMicro = ({
         item={item}
         drag={drag}
         isActive={isActive}
-        onMenuPress={handleMenuPress}
-        menuVisible={menuVisible}
-        menuOrigin={menuOrigin}
         onAddExercise={handleAddExerciseToWorkout}
         onEditWorkout={handleEditWorkout}
         onDeleteWorkout={handleDeleteWorkout}
@@ -647,9 +681,6 @@ const SelectedMicro = ({
       />
     ),
     [
-      menuVisible,
-      menuOrigin,
-      handleMenuPress,
       handleAddExerciseToWorkout,
       handleEditWorkout,
       handleDeleteWorkout,
@@ -672,217 +703,113 @@ const SelectedMicro = ({
     );
   }
 
-  // ----------------- STAGE 1: TELA DE MICROCICLO -----------------
-  if (stage === 1) {
+  // ----------------- STAGE: MICRO_CYCLE -----------------
+  if (stage === STAGE.MICRO_CYCLE) {
     if (!micro) return null;
-
-    const teste = () => {
-      if (!micro || !micro.cycleItems) {
-        console.log("Microciclo ou itens do ciclo não encontrados.");
-        return;
-      }
-
-      const MuscleGroupHierarchy: Record<string, string[]> = {
-        "Peito (Total)": ["Peito Superior", "Peito Médio", "Peito Inferior"],
-        "Costas (Total)": ["Costas Superior", "Costas Inferior", "Dorsais (Latíssimo do Dorso)", "Rombóides"],
-        "Pernas (Total)": ["Quadríceps (Total)", "Posterior de Coxa (Total)", "Panturrilhas (Total)", "Glúteos"],
-        "Quadríceps (Total)": ["Reto Femoral", "Vasto Lateral", "Vasto Medial", "Vasto Intermédio"],
-        "Posterior de Coxa (Total)": ["Bíceps Femoral", "Semitendíneo", "Semimembranoso"],
-        "Panturrilhas (Total)": ["Gastrocnêmio", "Sóleo"],
-        "Ombros (Total)": ["Deltóide Anterior", "Deltóide Lateral", "Deltóide Posterior"],
-        "Bíceps (Total)": ["Cabeça Longa do Bíceps", "Cabeça Curta do Bíceps", "Braquial"],
-        "Tríceps (Total)": ["Cabeça Longa do Tríceps", "Cabeça Medial do Tríceps", "Cabeça Lateral do Tríceps"],
-        "Abdominais (Total)": ["Abdominais Superiores", "Abdominais Inferiores", "Oblíquos"]
-      };
-
-      const getMuscleGroupParents = (muscle: string): string[] => {
-        const parents: string[] = [];
-        for (const parent in MuscleGroupHierarchy) {
-          if (MuscleGroupHierarchy[parent].includes(muscle)) {
-            parents.push(parent);
-            parents.push(...getMuscleGroupParents(parent));
-          }
-        }
-        return [...new Set(parents)];
-      };
-
-      const seriesDiretas: Record<string, number> = {};
-      const volumeDeSets: Record<string, number> = {};
-      const cargaVolumePorMusculo: Record<string, number> = {};
-
-      const addVolumeDeSetsToHierarchy = (muscle: string, setsVal: number) => {
-        volumeDeSets[muscle] = (volumeDeSets[muscle] || 0) + setsVal;
-        const parents = getMuscleGroupParents(muscle);
-        for (const parent of parents) {
-          volumeDeSets[parent] = (volumeDeSets[parent] || 0) + setsVal;
-        }
-      };
-
-      const addCargaToHierarchy = (muscle: string, cargaVal: number) => {
-        cargaVolumePorMusculo[muscle] = (cargaVolumePorMusculo[muscle] || 0) + cargaVal;
-        const parents = getMuscleGroupParents(muscle);
-        for (const parent of parents) {
-          cargaVolumePorMusculo[parent] = (cargaVolumePorMusculo[parent] || 0) + cargaVal;
-        }
-      };
-
-      micro.cycleItems.forEach((item) => {
-        if (item.workout && item.workout.workoutExercises) {
-          item.workout.workoutExercises.forEach((workoutExercise: any) => {
-            const primary = workoutExercise.exercise.primaryMuscle;
-            const secondaries = workoutExercise.exercise.secondaryMuscle || [];
-            const sets = workoutExercise.targetSets || 0;
-
-            if (primary) {
-              seriesDiretas[primary] = (seriesDiretas[primary] || 0) + sets;
-
-              addVolumeDeSetsToHierarchy(primary, sets);
-            }
-
-            secondaries.forEach((sec: string) => {
-              addVolumeDeSetsToHierarchy(sec, sets * 0.5);
-            });
-          });
-        }
-
-        if (item.sets && item.sets.length > 0) {
-          item.sets.forEach((set: any) => {
-            const reps = set.reps || 0;
-            const weight = parseFloat(set.weight) || 0;
-            const setVolume = reps * weight;
-            const primary = set.exercise?.primaryMuscle;
-            const secondaries = set.exercise?.secondaryMuscle || [];
-
-            if (primary) {
-              addCargaToHierarchy(primary, setVolume);
-            }
-
-            secondaries.forEach((sec: string) => {
-              addCargaToHierarchy(sec, setVolume * 0.5);
-            });
-          });
-        }
-      });
-
-      console.log("Séries Diretas:", seriesDiretas);
-      console.log("Volume de Séries:", volumeDeSets);
-      console.log("Volume de Carga (Tonnage):", cargaVolumePorMusculo);
-
-      const formatOutput = (obj: Record<string, number>) => {
-        return Object.entries(obj)
-          .map(([key, val]) => `${key}: ${val.toFixed(1)}`)
-          .join("\n");
-      };
-
-      const alertMessage = 
-        `--- SÉRIES DIRETAS ---\n` +
-        `${formatOutput(seriesDiretas)}\n\n` +
-        `--- VOLUME DE SÉRIES (Equiv. + Pais) ---\n` +
-        `${formatOutput(volumeDeSets)}\n\n` +
-        `--- VOLUME DE CARGA (reps * kg) ---\n` +
-        `${Object.keys(cargaVolumePorMusculo).length > 0 ? formatOutput(cargaVolumePorMusculo) : "Nenhum treino gravado neste microciclo."}`;
-
-      Alert.alert(
-        "Resultados do Teste de Volume",
-        alertMessage
-      );
-    };
 
     return (
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <TouchableWithoutFeedback onPress={() => setMenuVisible(null)}>
-          <View style={styles.container}>
-            {/* ciclo de treinos */}
-            <DraggableFlatList
-              data={workouts}
-              renderItem={renderWorkoutItem}
-              keyExtractor={(item) => item.id}
-              onDragEnd={handleDragEnd}
-              containerStyle={{ flex: 1 }}
-              contentContainerStyle={{ paddingBottom: 20 }}
-              maxToRenderPerBatch={5}
-              updateCellsBatchingPeriod={50}
-              windowSize={5}
-              initialNumToRender={3}
-              removeClippedSubviews={true}
-              ListHeaderComponent={
-                <View style={styles.teste}>
-                  <BackAndTitle onBack={onBack} title={micro.microCycleName} />
+        <View style={styles.container}>
+          <DraggableFlatList
+            data={workouts}
+            renderItem={renderWorkoutItem}
+            keyExtractor={(item) => item.id}
+            onDragEnd={handleDragEnd}
+            containerStyle={{ flex: 1 }}
+            contentContainerStyle={{ paddingBottom: 20 }}
+            maxToRenderPerBatch={5}
+            updateCellsBatchingPeriod={50}
+            windowSize={5}
+            initialNumToRender={3}
+            removeClippedSubviews={true}
+            ListHeaderComponent={
+              <View style={styles.teste}>
+                <BackAndTitle onBack={onBack} title={micro.microCycleName} />
 
-                  {/* info treino */}
-                  <View style={styles.blockHeader}>
-                    <AppText style={styles.infoHeader}>
-                      Treinos Realizados:{" "}
-                      {`${workoutsDoneCount}/${micro.trainingDays}`}
-                    </AppText>
-                  </View>
+                <View style={styles.blockHeader}>
+                  <AppText style={styles.infoHeader}>
+                    Treinos Realizados:{" "}
+                    {`${workoutsDoneCount}/${micro.trainingDays}`}
+                  </AppText>
                 </View>
-              }
-            />
+              </View>
+            }
+          />
 
-            {registeringWorkout && (
-              <Modal
-                animationType="slide"
-                transparent={false}
-                visible={!!registeringWorkout}
-                onRequestClose={() => {
-                  hasAutoOpenedRef.current = false;
-                  setRegisteringWorkout(null);
-                  setSelectedWorkoutName(null);
-                  setSelectedWorkoutImage(null);
-                  setIsEditMode(false);
-                }}
-              >
-                <View style={styles.containerModal}>
-                  <ScrollView>
-                    <View style={styles.backAndTitleWrapp}>
-                      <BackAndTitle
-                        title={`${selectedWorkoutName ?? "Treino"} ${
-                          isEditMode ? "(Editando)" : ""
-                        }`}
-                        onBack={onBackModal}
-                      />
-                    </View>
-
-                    {selectedWorkoutImage && (
-                      <Image
-                        source={{ uri: selectedWorkoutImage }}
-                        style={{
-                          width: "100%",
-                          height: 200,
-                          borderRadius: 12,
-                          marginBottom: 16,
-                        }}
-                        resizeMode="cover"
-                        fadeDuration={0}
-                      />
-                    )}
-
-                    <RegisterWorkoutForm
-                      key={registeringWorkout.id}
-                      workout={registeringWorkout.workout}
-                      control={control}
-                      errors={errors}
-                      fields={fields}
-                      handleSubmit={handleSubmit}
-                      onSubmit={onSubmit}
-                      isEditMode={isEditMode}
-                      cycleItemId={registeringWorkout.id}
-                      previousWorkoutValues={previousWorkoutData}
-                      setValue={setValue}
-                      getValues={getValues}
-                      microId={microId}
-                      onSkipSuccess={handleFormSubmit}
-                      workoutId={registeringWorkout.workout.id}
-                      updateExerciseUnilateral={updateExerciseUnilateral}
+          {registeringWorkout && (
+            <Modal
+              animationType="slide"
+              transparent={false}
+              visible={!!registeringWorkout}
+              onRequestClose={() => {
+                hasAutoOpenedRef.current = false;
+                setRegisteringWorkout(null);
+                setSelectedWorkoutName(null);
+                setSelectedWorkoutImage(null);
+                setIsEditMode(false);
+              }}
+            >
+              <View style={styles.containerModal}>
+                <ScrollView>
+                  <View style={styles.backAndTitleWrapp}>
+                    <BackAndTitle
+                      title={`${selectedWorkoutName ?? "Treino"} ${
+                        isEditMode ? "(Editando)" : ""
+                      }`}
+                      onBack={onBackModal}
                     />
-                  </ScrollView>
-                </View>
-              </Modal>
-            )}
-            <Button text="teste" onPress={teste} />
+                  </View>
+
+                  {selectedWorkoutImage && (
+                    <Image
+                      source={{ uri: selectedWorkoutImage }}
+                      style={{
+                        width: "100%",
+                        height: 200,
+                        borderRadius: 12,
+                        marginBottom: 16,
+                      }}
+                      resizeMode="cover"
+                      fadeDuration={0}
+                    />
+                  )}
+
+                  <RegisterWorkoutForm
+                    key={registeringWorkout.id}
+                    workout={registeringWorkout.workout}
+                    control={control}
+                    errors={errors}
+                    fields={fields}
+                    handleSubmit={handleSubmit}
+                    onSubmit={onSubmit}
+                    isEditMode={isEditMode}
+                    cycleItemId={registeringWorkout.id}
+                    previousWorkoutValues={previousWorkoutData}
+                    setValue={setValue}
+                    getValues={getValues}
+                    microId={microId}
+                    onSkipSuccess={handleFormSubmit}
+                    workoutId={registeringWorkout.workout.id}
+                    updateExerciseUnilateral={updateExerciseUnilateral}
+                  />
+                </ScrollView>
+              </View>
+            </Modal>
+          )}
+          <View style={styles.buttonWrapper}>
+            <Button
+              text="Análise de Volume"
+              styleButton={styles.buttonStyled}
+              onPress={() => setShowVolumeAnalysis(true)}
+            />
           </View>
-        </TouchableWithoutFeedback>
+
+          <VolumeAnalysisModal
+            visible={showVolumeAnalysis}
+            onClose={() => setShowVolumeAnalysis(false)}
+            cycleItems={micro.cycleItems ?? []}
+          />
+        </View>
 
         {skipAlertVisible && (
           <CustomAlertTwoOptions
@@ -911,18 +838,19 @@ const SelectedMicro = ({
     );
   }
 
-  // ----------------- STAGE 2: TELA DE ADICIONAR EXERCICIO  -----------------
-  if (stage === 2) {
-    const handleBackFromStage2 = () => {
-      setStage(1);
+  // ----------------- STAGE: ADD_EXERCISE -----------------
+  if (stage === STAGE.ADD_EXERCISE) {
+    const handleBackFromAddExercise = () => {
+      setStage(STAGE.MICRO_CYCLE);
     };
 
     return (
       <View style={{ flex: 1 }}>
         <ExerciseSelector
           onSelect={handleAddExercisePress}
-          onBack={handleBackFromStage2}
+          onBack={handleBackFromAddExercise}
           checkExerciseExists={checkIfExerciseExistsInWorkout}
+          getTargetSetsInWorkout={getTargetSetsInWorkout}
         />
 
         <Modal
@@ -951,7 +879,7 @@ const SelectedMicro = ({
             onClose={() => {
               setTargetWorkoutName(null);
               loadMicro();
-              setStage(1);
+              setStage(STAGE.MICRO_CYCLE);
               setAlertVisible(false);
             }}
           />

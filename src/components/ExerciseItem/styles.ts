@@ -1,32 +1,85 @@
+import { StyleSheet } from "react-native";
 import { themas } from "@/global/themes";
-import { StyleSheet, Dimensions } from "react-native";
-
-const { width } = Dimensions.get("window");
-const itemWidth = (width - 20) / 3;
 
 export const styles = StyleSheet.create({
-  addExerciseUl: {
-    width: itemWidth,
-    alignItems: "center",
-    justifyContent: "center",
+  card: {
+    flex: 1,
+    borderRadius: 10,
+    backgroundColor: themas.Colors.background,
+    borderWidth: 0.5,
+    borderColor: "transparent",
+    overflow: "hidden",
+    paddingBottom: 15,
     marginBottom: 20,
-    paddingTop: 10,
     gap: 8,
-    marginLeft: 5,
+    justifyContent: "space-between",
+  },
+  cardSelected: {
+    borderColor: themas.Colors.green,
+    backgroundColor: "#61ec6520",
+  },
+  checkBadge: {
+    position: "absolute",
+    top: 8,
+    left: 8,
+    zIndex: 1,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: themas.Colors.alternativeGreen,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 1,
   },
   imagemURl: {
-    width: itemWidth - 20,
-    height: itemWidth - 20,
-    borderRadius: 10,
-    backgroundColor: themas.Colors.lightGray,
+    width: "100%",
+    aspectRatio: 0.99,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    backgroundColor: themas.Colors.background,
+  },
+
+  imagemSelected: {
+    backgroundColor: themas.Colors.isDoneLine,
   },
   nameExercise: {
-    marginTop: 6,
+    fontSize: 13,
+    fontWeight: "600",
+    color: themas.Colors.text,
     textAlign: "center",
-    height: 38,
-    width: "100%",
+    paddingHorizontal: 8,
+    minHeight: 34,
+    lineHeight: 17,
   },
+  checkButtonWrapper: {
+    alignItems: "center",
+    justifyContent: "center",
+    height: 32,
+    marginHorizontal: 8,
+    borderRadius: 8,
+    backgroundColor: themas.Colors.alternativeGreen,
+    borderWidth: 1,
+    borderColor: themas.Colors.green,
+  },
+  setsInWorkoutText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: themas.Colors.background,
+    textAlign: "center",
+    textAlignVertical: "center",
+    includeFontPadding: false,
+    lineHeight: 32,
+    paddingHorizontal: 6,
+  },
+
   styledButton: {
-    width: "90%",
+    borderRadius: 8,
+    backgroundColor: themas.Colors.primary,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
   },
 });

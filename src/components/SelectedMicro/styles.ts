@@ -84,7 +84,7 @@ export const styles = StyleSheet.create({
     fontFamily: "GeologicaBold",
     color: themas.Colors.noSelectColor,
   },
-  macrosTitles: {
+  mesosTitles: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
@@ -156,5 +156,15 @@ export const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-end",
     paddingHorizontal: 10,
+  },
+
+    buttonWrapper: {
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    paddingVertical: 10,
+  },
+  buttonStyled: {
+    width: "70%",
   },
 });

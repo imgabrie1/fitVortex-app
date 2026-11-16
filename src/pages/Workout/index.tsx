@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { styles } from './styles';
-import MacrosAndMicros from '@/components/MacrosAndMicros';
+import MesosAndMicros from '@/components/MesosAndMicros';
 import { useRoute } from '@react-navigation/native';
 
 const Workout = () => {
@@ -10,7 +10,7 @@ const Workout = () => {
 
   return (
     <View style={styles.container}>
-      <MacrosAndMicros initialParams={params} />
+      <MesosAndMicros initialParams={params} />
     </View>
   );
 };

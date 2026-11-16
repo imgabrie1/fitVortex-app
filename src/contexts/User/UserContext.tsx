@@ -20,12 +20,12 @@ import {
   WorkoutExercise,
   WorkoutExerciseWithSets,
   WorkoutWithSets,
-  MacroCycle,
-  iCreateMacroCycle,
+  MesoCycle,
+  iCreateMesoCycle,
   iCreateWorkout,
   ExerciseInCreateAndPatch,
   ExerciseResponse,
-  newMacroWithAI,
+  newMesoWithAI,
   WorkoutResponse,
 } from "./interface";
 import { AxiosError } from "axios";
@@ -109,7 +109,7 @@ export const AuthProvider = ({ children }: Props) => {
     try {
       const { confirmPassword, ...payload } = data;
       await api.post("/user", payload);
-      navigate("BottomRoutes", { screen: "Home" });
+      navigate("BottomRoutes", { screen: "Create" });
     } catch (err) {
       const currentError = err as AxiosError;
       const message =
@@ -195,7 +195,7 @@ export const AuthProvider = ({ children }: Props) => {
       setUser(user);
       await getTotalVolume(user.id);
 
-      navigate("BottomRoutes", { screen: "Home" });
+      navigate("BottomRoutes", { screen: "Create" });
     } catch (err: any) {
       const currentError = err as AxiosError;
       const msg =
@@ -243,7 +243,7 @@ export const AuthProvider = ({ children }: Props) => {
   };
 
   //        -------------- MACRO --------------
-  const getAllMacroCycles = async (): Promise<MacroCycle[]> => {
+  const getAllMesoCycles = async (): Promise<MesoCycle[]> => {
     assertUser();
 
     try {
@@ -258,22 +258,22 @@ export const AuthProvider = ({ children }: Props) => {
       const msg =
         currentError?.response?.data ||
         err?.message ||
-        "Erro ao carregar Macros Ciclo";
+        "Erro ao carregar Mesos Ciclo";
       throw new Error(String(msg));
     }
   };
 
-  const getMacroCycleByID = async (macroID: string): Promise<MacroCycle> => {
+  const getMesoCycleByID = async (mesoID: string): Promise<MesoCycle> => {
     assertUser();
 
     try {
-      const { data } = await api.get(`/macrocycle/${macroID}`);
+      const { data } = await api.get(`/macrocycle/${mesoID}`);
       return data;
     } catch (err: any) {
       const currentError = err as AxiosError;
       let errorData = currentError?.response?.data;
       console.error(
-        "Erro completo ao carregar Macro Ciclo:",
+        "Erro completo ao carregar Meso Ciclo:",
         JSON.stringify(currentError, null, 2),
       );
 
@@ -284,12 +284,12 @@ export const AuthProvider = ({ children }: Props) => {
         errorData ||
         currentError?.message ||
         currentError?.name ||
-        "Erro desconhecido ao carregar Macro Ciclo";
+        "Erro desconhecido ao carregar Meso Ciclo";
       throw new Error(String(msg));
     }
   };
 
-  const createMacroCycle = async (payload: any): Promise<iCreateMacroCycle> => {
+  const createMesoCycle = async (payload: any): Promise<iCreateMesoCycle> => {
     assertUser();
     setLoadingForm(true);
     try {
@@ -300,19 +300,19 @@ export const AuthProvider = ({ children }: Props) => {
       const msg =
         currentError?.response?.data ||
         err?.message ||
-        "Erro ao criar Macro Ciclo";
+        "Erro ao criar Meso Ciclo";
       throw new Error(String(msg));
     } finally {
       setLoadingForm(false);
     }
   };
 
-  const adjustVolume = async (macroID: string, payload: newMacroWithAI) => {
+  const adjustVolume = async (mesoID: string, payload: newMesoWithAI) => {
     assertUser();
     setLoadingForm(true);
     try {
       const data = await api.post(
-        `/macrocycle/${macroID}/generate-next`,
+        `/macrocycle/${mesoID}/generate-next`,
         payload,
       );
       return data;
@@ -421,15 +421,15 @@ export const AuthProvider = ({ children }: Props) => {
     }
   };
 
-  const addMicroInMacro = async (
-    macroID: string,
+  const addMicroInMeso = async (
+    mesoID: string,
     microID: string,
   ): Promise<any> => {
     assertUser();
     setLoadingForm(true);
     try {
       const { data } = await api.patch(
-        `/macrocycle/${macroID}/micro/${microID}`,
+        `/macrocycle/${mesoID}/micro/${microID}`,
       );
       return data;
     } catch (err: any) {
@@ -437,7 +437,7 @@ export const AuthProvider = ({ children }: Props) => {
       const msg =
         currentError?.response?.data ||
         err?.message ||
-        "Erro ao adicionar micro no macro";
+        "Erro ao adicionar micro ciclo ao meso ciclo";
       throw new Error(String(msg));
     } finally {
       setLoadingForm(false);
@@ -523,7 +523,6 @@ export const AuthProvider = ({ children }: Props) => {
 
       const { data } = await api.get(url);
 
-      // A API agora retorna MicroCycleItem[] diretamente (um item = um treino do dia)
       const workouts: WorkoutWithSets[] = (data.data ?? []).map(
         (cycleItem: CycleItems) => {
           const workout = cycleItem.workout;
@@ -557,8 +556,8 @@ export const AuthProvider = ({ children }: Props) => {
 
           return {
             ...workout,
-            id: cycleItem.id,       // ID único por execução (cycleItem), não do template
-            workoutId: workout.id,  // mantém o id original do treino para referência
+            id: cycleItem.id,
+            workoutId: workout.id,
             createdAt: cycleItem.completedAt || cycleItem.createdAt,
             isSkipped: cycleItem.isSkipped,
             workoutExercises: workoutExercisesWithSets,
@@ -751,14 +750,14 @@ export const AuthProvider = ({ children }: Props) => {
         registerUser,
         logout,
         getAllWorkouts,
-        getAllMacroCycles,
+        getAllMesoCycles,
         getAllMicroCycles,
-        getMacroCycleByID,
+        getMesoCycleByID,
         getMicroCycleByID,
         saveWorkout,
-        createMacroCycle,
+        createMesoCycle,
         createMicroCycle,
-        addMicroInMacro,
+        addMicroInMeso,
         deleteCycles,
         getAllExercise,
         createWorkout,

@@ -6,7 +6,7 @@ import DateTimePicker, {
 import { useForm, Controller, FieldValues } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
-import { macroSchema, microSchema } from "./schema";
+import { mesoSchema, microSchema } from "./schema";
 import { styles } from "./styles";
 import { Input } from "../Input";
 import { Button } from "../Button";
@@ -16,7 +16,7 @@ import BackAndTitle from "../BackAndTitle";
 import { UserContext } from "@/contexts/User/UserContext";
 
 interface CreateCyclesProps {
-  type: "macro" | "micro";
+  type: "meso" | "micro";
   onClose: () => void;
   onSubmit: (data: any) => void;
   initialData?: any;
@@ -28,8 +28,8 @@ const CreateAndEditCycles = ({
   onSubmit,
   initialData,
 }: CreateCyclesProps) => {
-  const isMacro = type === "macro";
-  const schema = isMacro ? macroSchema : microSchema;
+  const isMeso = type === "meso";
+  const schema = isMeso ? mesoSchema : microSchema;
   const isEditing = !!initialData;
 
   const { loadingForm } = useContext(UserContext);
@@ -38,9 +38,9 @@ const CreateAndEditCycles = ({
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
 
-  const defaultValues = isMacro
+  const defaultValues = isMeso
     ? {
-        macroCycleName: initialData?.macroCycleName || "",
+        mesoCycleName: initialData?.mesoCycleName || "",
         startDate: initialData?.startDate || "",
         endDate: initialData?.endDate || "",
         microQuantity: initialData?.microQuantity || undefined,
@@ -64,7 +64,7 @@ const CreateAndEditCycles = ({
   useEffect(() => {
     if (initialData) {
       const formattedData = { ...initialData };
-      if (isMacro) {
+      if (isMeso) {
         if (formattedData.startDate && typeof formattedData.startDate === 'string') {
           const parts = formattedData.startDate.split('T')[0].split('-');
           if (parts.length === 3) {
@@ -84,14 +84,14 @@ const CreateAndEditCycles = ({
         setValue(key, value);
       });
     }
-  }, [initialData, setValue, isMacro]);
+  }, [initialData, setValue, isMeso]);
 
   const nextStage = async () => {
-    if (!isMacro) return;
+    if (!isMeso) return;
 
     let valid = false;
 
-    if (stage === 1) valid = await trigger("macroCycleName");
+    if (stage === 1) valid = await trigger("mesoCycleName");
     else if (stage === 2) valid = await trigger(["startDate", "endDate"]);
     else if (stage === 3) valid = await trigger("microQuantity");
 
@@ -124,7 +124,7 @@ const CreateAndEditCycles = ({
 
   const handleFormSubmit = (data: FieldValues) => {
     const formattedData = { ...data };
-    if (isMacro) {
+    if (isMeso) {
       if (formattedData.startDate) {
         const [day, month, year] = formattedData.startDate.split("-");
         formattedData.startDate = `${year}-${month}-${day}`;
@@ -142,23 +142,23 @@ const CreateAndEditCycles = ({
       <BackAndTitle
         onBack={onClose}
         title={`${isEditing ? "EDITAR" : "CRIAR"} ${
-          isMacro ? "MACRO" : "MICRO"
+          isMeso ? "MESO" : "MICRO"
         } CICLO`}
       />
 
-      {isMacro ? (
+      {isMeso ? (
         <>
           {stage === 1 && (
             <Controller
               control={control}
-              name="macroCycleName"
+              name="mesoCycleName"
               render={({ field: { onChange, onBlur, value } }) => (
                 <Input
                   title="Nome do Ciclo"
                   onBlur={onBlur}
                   onChangeText={onChange}
                   value={value}
-                  error={errors.macroCycleName?.message as string}
+                  error={errors.mesoCycleName?.message as string}
                 />
               )}
             />
@@ -264,7 +264,7 @@ const CreateAndEditCycles = ({
 
             {stage === 3 && (
               <Button
-                text={isEditing ? "Salvar Alterações" : "Criar Macro"}
+                text={isEditing ? "Salvar Alterações" : "Criar Meso"}
                 onPress={handleSubmit(handleFormSubmit)}
                 styleButton={styles.styledButton}
                 loading={loadingForm}

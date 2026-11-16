@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState, useCallback, useRef } from "react";
+import { useContext, useEffect, useState, useCallback, useRef } from "react";
 import { View, FlatList, ActivityIndicator, Pressable } from "react-native";
 import { FontAwesome6, MaterialIcons } from "@expo/vector-icons";
 import { UserContext } from "@/contexts/User/UserContext";
@@ -15,6 +15,7 @@ interface ExerciseSelectorProps {
   onSelect: (exercise: Exercise) => void;
   onBack: () => void;
   checkExerciseExists?: (exerciseId: string) => boolean;
+  getTargetSetsInWorkout?: (exerciseId: string) => number | null;
   title?: string;
   staticData?: Exercise[];
 }
@@ -23,7 +24,8 @@ const ExerciseSelector = ({
   onSelect,
   onBack,
   checkExerciseExists,
-  title = "ADICIONAR EXERCÍCIO",
+  getTargetSetsInWorkout,
+  title = "adicionar exercício",
   staticData,
 }: ExerciseSelectorProps) => {
   const { getAllExercise } = useContext(UserContext);
@@ -137,6 +139,13 @@ const ExerciseSelector = ({
     setHasMore(true);
   }, []);
 
+  const handleSelect = (exercise: Exercise) => {
+    onSelect(exercise);
+  };
+
+  const isExerciseAdded = (id: string) =>
+    checkExerciseExists ? checkExerciseExists(id) : false;
+
   const renderFooter = () => {
     if (!loadingMore) return null;
     return (
@@ -162,13 +171,18 @@ const ExerciseSelector = ({
         <FlatList
           data={filteredExercises ?? exercises}
           keyExtractor={(item) => item.id}
-          numColumns={3}
+          numColumns={2}
+          columnWrapperStyle={{ gap: 12, paddingHorizontal: 6 }}
+          contentContainerStyle={{ paddingBottom: 16 }}
           renderItem={({ item }) => (
             <ExerciseItem
               item={item}
-              onAddExercise={onSelect}
-              exerciseExists={
-                checkExerciseExists ? checkExerciseExists(item.id) : false
+              onAddExercise={handleSelect}
+              exerciseExists={isExerciseAdded(item.id)}
+              targetSetsInWorkout={
+                isExerciseAdded(item.id) && getTargetSetsInWorkout
+                  ? getTargetSetsInWorkout(item.id)
+                  : null
               }
             />
           )}
