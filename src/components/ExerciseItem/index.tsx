@@ -11,10 +11,16 @@ interface ExerciseItemProps {
   item: Exercise;
   onAddExercise: (exercise: Exercise) => void;
   exerciseExists: boolean;
+  targetSetsInWorkout?: number | null;
 }
 
 const ExerciseItem = memo(
-  ({ item, onAddExercise, exerciseExists }: ExerciseItemProps) => {
+  ({
+    item,
+    onAddExercise,
+    exerciseExists,
+    targetSetsInWorkout,
+  }: ExerciseItemProps) => {
     const handlePress = () => {
       if (exerciseExists) {
         Alert.alert("Aviso", "Este exercício já está no treino.");
@@ -24,33 +30,43 @@ const ExerciseItem = memo(
     };
 
     return (
-      <View style={styles.addExerciseUl}>
+      <View style={[styles.card, exerciseExists && styles.cardSelected]}>
+        {exerciseExists && (
+          <View style={styles.checkBadge}>
+            <MaterialIcons name="check" size={14} color="#000" />
+          </View>
+        )}
+
         <Image
           source={{ uri: item.imageURL }}
-          style={styles.imagemURl}
+          style={[styles.imagemURl, exerciseExists && styles.imagemSelected]}
           resizeMode="cover"
           fadeDuration={0}
         />
-        <AppText style={styles.nameExercise}>{item.name}</AppText>
+
+        <AppText style={styles.nameExercise} numberOfLines={2}>
+          {item.name}
+        </AppText>
+
         {exerciseExists ? (
-          <TouchableOpacity onPress={handlePress}>
-            <MaterialIcons
-              name="check"
-              size={28}
-              color={themas.Colors.secondary}
-            />
-          </TouchableOpacity>
+          <View style={styles.checkButtonWrapper}>
+            <AppText style={styles.setsInWorkoutText}>
+              {targetSetsInWorkout != null
+                ? `${targetSetsInWorkout} série${targetSetsInWorkout === 1 ? "" : "s"}`
+                : "No treino"}
+            </AppText>
+          </View>
         ) : (
           <Button
             text="Adicionar"
             styleButton={styles.styledButton}
-            fontSize={12}
             onPress={handlePress}
+            fontSize={13}
           />
         )}
       </View>
     );
-  }
+  },
 );
 
 export default ExerciseItem;

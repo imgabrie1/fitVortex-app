@@ -132,10 +132,10 @@ export type WorkoutWithSets = Omit<
   workoutExercises: WorkoutExerciseWithSets[];
   isSkipped: boolean;
   createdAt: string | Date;
-  workoutId?: string; // ID original do template do treino
+  workoutId?: string;
 };
 
-export interface MacroCycle {
+export interface MesoCycle {
   id: string;
   macroCycleName: string;
   startDate: string;
@@ -159,7 +159,7 @@ export interface RecordWorkoutInput {
   exercises: ExerciseInput[];
 }
 
-export interface iCreateMacroCycle {
+export interface iCreateMesoCycle {
   macroCycleName: string;
   startDate: Date | string;
   endDate: Date | string;
@@ -197,7 +197,7 @@ export interface ExerciseModification {
   toExercise?: string;
 }
 
-export interface newMacroWithAI {
+export interface newMesoWithAI {
   createNewWorkout: boolean;
   modifications?: ExerciseModification[];
   maxSetsPerMicroCycle?: number;
@@ -230,9 +230,9 @@ export type UserContextData = {
   logout: () => Promise<void>;
   registerUser: (data: iDataRegister) => Promise<void>;
   getAllWorkouts: (page?: number, limit?: number) => Promise<WorkoutResponse>;
-  getAllMacroCycles: () => Promise<MacroCycle[]>;
+  getAllMesoCycles: () => Promise<MesoCycle[]>;
   getAllMicroCycles: () => Promise<MicroCycle[]>;
-  getMacroCycleByID: (macroID: string) => Promise<MacroCycle>;
+  getMesoCycleByID: (mesoID: string) => Promise<MesoCycle>;
   getMicroCycleByID: (microID: string) => Promise<any>;
   saveWorkout: (
     microID: string,
@@ -240,9 +240,9 @@ export type UserContextData = {
     workoutData: any,
     isEdit: boolean,
   ) => Promise<any>;
-  createMacroCycle: (payload: any) => Promise<iCreateMacroCycle>;
+  createMesoCycle: (payload: any) => Promise<iCreateMesoCycle>;
   createMicroCycle: (payload: any) => Promise<MicroCycle>;
-  addMicroInMacro: (macroID: string, microID: string) => Promise<any>;
+  addMicroInMeso: (mesoID: string, microID: string) => Promise<any>;
   deleteCycles: (cycle: string, cycleID: string) => Promise<void>;
   getAllExercise: (
     page?: number,
@@ -268,7 +268,7 @@ export type UserContextData = {
       notes?: string;
     }[],
   ) => Promise<any>;
-  adjustVolume: (macroID: string, payload: newMacroWithAI) => Promise<any>;
+  adjustVolume: (mesoID: string, payload: newMesoWithAI) => Promise<any>;
   editCycles: (cycle: string, cycleID: string, payload: any) => Promise<any>;
   skipWorkout: (
     microID: string,
