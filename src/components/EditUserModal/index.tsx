@@ -74,7 +74,6 @@ const EditUserModal = ({ visible, onClose }: EditUserModalProps) => {
   const [showNew, setShowNew] = useState(true);
   const [showConfirm, setShowConfirm] = useState(true);
 
-  // estado único para o alerta de 1 opção
   const [alert, setAlert] = useState<AlertState>({
     visible: false,
     title: "",
@@ -162,7 +161,6 @@ const EditUserModal = ({ visible, onClose }: EditUserModalProps) => {
       }
 
       if (profileChanged || wantsChangePassword) {
-        // só fecha o modal depois que o usuário confirmar o sucesso
         showAlert("Sucesso", "Dados atualizados!", onClose);
       } else {
         onClose();

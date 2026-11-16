@@ -16,7 +16,7 @@ export const styles = StyleSheet.create({
   },
 
   styledButton: {
-    width: "49%",
+    width: 160,
     marginTop: 22,
   },
 
