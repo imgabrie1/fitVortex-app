@@ -285,4 +285,50 @@ export type UserContextData = {
     currentPassword: string;
     newPassword: string;
   }) => Promise<void>;
+  removeExerciseFromWorkout: (
+    microCycleId: string,
+    workoutId: string,
+    workoutExerciseId: string,
+  ) => Promise<void>;
+  replaceExerciseInWorkout: (
+    microCycleId: string,
+    workoutId: string,
+    workoutExerciseId: string,
+    payload: {
+      newExerciseId: string;
+      targetSets: number;
+      is_unilateral?: boolean;
+      notes?: string | null;
+    },
+  ) => Promise<any>;
+  reorderExercisesInWorkout: (
+    microCycleId: string,
+    workoutId: string,
+    orderedWorkoutExerciseIds: string[],
+  ) => Promise<void>;
+  modifyWorkoutInMicro: (
+    microCycleId: string,
+    workoutId: string,
+    payload: {
+      cycleItemId?: string;
+      operation:
+        | { type: "REMOVE"; exerciseId: string }
+        | {
+            type: "REPLACE";
+            oldExerciseId: string;
+            newExerciseId: string;
+            targetSets: number;
+            is_unilateral?: boolean;
+            notes?: string | null;
+          }
+        | { type: "REORDER"; orderedExerciseIds: string[] }
+        | {
+            type: "ADD";
+            exerciseId: string;
+            targetSets: number;
+            is_unilateral?: boolean;
+            notes?: string | null;
+          };
+    },
+  ) => Promise<any>;
 };
