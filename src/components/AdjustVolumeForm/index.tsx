@@ -453,7 +453,6 @@ const AdjustVolumeForm = ({
         />
       </Modal>
 
-      {/* modal para seleção de treino */}
       <Modal
         visible={selectingWorkoutNameIndex !== null}
         animationType="slide"

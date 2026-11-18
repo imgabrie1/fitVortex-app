@@ -486,5 +486,10 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
   },
+
+  backAndTitleWrapp: {
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
   
 });

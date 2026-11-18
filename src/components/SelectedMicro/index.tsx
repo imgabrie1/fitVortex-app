@@ -69,6 +69,10 @@ const SelectedMicro = ({
     activeWorkout,
     setActiveWorkout,
     updateExerciseUnilateral,
+    removeExerciseFromWorkout,
+    replaceExerciseInWorkout,
+    reorderExercisesInWorkout,
+    modifyWorkoutInMicro,
   } = useContext(UserContext);
 
   const [micro, setMicro] = useState<MicroCycle | null>(null);
@@ -192,7 +196,7 @@ const SelectedMicro = ({
     resolver: yupResolver(schema),
   });
 
-  const { fields } = useFieldArray({
+  const { fields, move } = useFieldArray({
     control,
     name: "exercises",
   });
@@ -480,8 +484,10 @@ const SelectedMicro = ({
       normalized.sort((a: any, b: any) => a.position - b.position);
 
       setWorkouts(normalized);
+      return normalized;
     } catch (err) {
       console.error("Erro ao buscar ou reordenar Micro Ciclo:", err);
+      return null;
     } finally {
       setLoading(false);
     }
@@ -652,6 +658,155 @@ const SelectedMicro = ({
     }
   }, []);
 
+  const handleRemoveExercise = useCallback(
+    async (exerciseId: string) => {
+      if (!registeringWorkout) return;
+
+      const we = registeringWorkout.workout.workoutExercises.find(
+        (w: any) => w.exercise.id === exerciseId,
+      );
+      if (!we) {
+        Alert.alert("Erro", "Exercício não encontrado no treino.");
+        return;
+      }
+
+      const workoutId = registeringWorkout.workout.id;
+
+      setLoading(true);
+      try {
+        await removeExerciseFromWorkout!(microId, workoutId, we.id);
+
+        const updated = await loadMicro();
+        if (updated) {
+          const currentUpdated = updated.find(
+            (w: any) => w.id === registeringWorkout.id,
+          );
+          if (currentUpdated) setRegisteringWorkout(currentUpdated);
+        }
+
+        const storageKey = `workoutFormValues_${microId}`;
+        try {
+          const saved = await AsyncStorage.getItem(storageKey);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed[registeringWorkout.id]?.exercises) {
+              parsed[registeringWorkout.id].exercises = parsed[
+                registeringWorkout.id
+              ].exercises.filter((ex: any) => ex.exerciseId !== exerciseId);
+              formValuesRef.current = parsed;
+              await AsyncStorage.setItem(storageKey, JSON.stringify(parsed));
+            }
+          }
+        } catch (e) {
+          console.error("Falha ao limpar form values após remoção:", e);
+        }
+      } catch (err: any) {
+        throw new Error(err.message || "Erro ao remover exercício.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [registeringWorkout, removeExerciseFromWorkout, loadMicro, microId],
+  );
+
+  const handleReplaceExercise = useCallback(
+    async (
+      oldExerciseId: string,
+      newExercise: {
+        exerciseId: string;
+        targetSets: number;
+        is_unilateral: boolean;
+      },
+    ) => {
+      if (!registeringWorkout) return;
+
+      const we = registeringWorkout.workout.workoutExercises.find(
+        (w: any) => w.exercise.id === oldExerciseId,
+      );
+      if (!we) {
+        Alert.alert("Erro", "Exercício não encontrado no treino.");
+        return;
+      }
+
+      const workoutId = registeringWorkout.workout.id;
+
+      setLoading(true);
+      try {
+        await replaceExerciseInWorkout!(microId, workoutId, we.id, {
+          newExerciseId: newExercise.exerciseId,
+          targetSets: newExercise.targetSets,
+          is_unilateral: newExercise.is_unilateral,
+        });
+
+        const updated = await loadMicro();
+        if (updated) {
+          const currentUpdated = updated.find(
+            (w: any) => w.id === registeringWorkout.id,
+          );
+          if (currentUpdated) setRegisteringWorkout(currentUpdated);
+        }
+
+        const storageKey = `workoutFormValues_${microId}`;
+        try {
+          const saved = await AsyncStorage.getItem(storageKey);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed[registeringWorkout.id]?.exercises) {
+              parsed[registeringWorkout.id].exercises = parsed[
+                registeringWorkout.id
+              ].exercises.filter((ex: any) => ex.exerciseId !== oldExerciseId);
+              formValuesRef.current = parsed;
+              await AsyncStorage.setItem(storageKey, JSON.stringify(parsed));
+            }
+          }
+        } catch (e) {
+          console.error("Falha ao limpar form values após substituição:", e);
+        }
+      } catch (err: any) {
+        throw new Error(err.message || "Erro ao substituir exercício.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [registeringWorkout, replaceExerciseInWorkout, loadMicro, microId],
+  );
+
+  const handleReorderExercises = useCallback(
+    async (orderedExerciseIds: string[]) => {
+      if (!registeringWorkout) return;
+
+      const workoutId = registeringWorkout.workout.id;
+
+      const orderedWorkoutExerciseIds = orderedExerciseIds
+        .map((exId) => {
+          const we = registeringWorkout.workout.workoutExercises.find(
+            (w: any) => w.exercise.id === exId,
+          );
+          return we?.id ?? null;
+        })
+        .filter((id): id is string => id !== null);
+
+      try {
+        await reorderExercisesInWorkout!(
+          microId,
+          workoutId,
+          orderedWorkoutExerciseIds,
+        );
+        const updated = await loadMicro();
+        if (updated) {
+          const currentUpdated = updated.find(
+            (w: any) => w.id === registeringWorkout.id,
+          );
+          if (currentUpdated) setRegisteringWorkout(currentUpdated);
+        }
+      } catch (err: any) {
+        console.error("Erro ao reordenar exercícios:", err);
+        throw new Error(err.message || "Erro ao reordenar exercícios.");
+      }
+    },
+    [registeringWorkout, reorderExercisesInWorkout, loadMicro, microId],
+  );
+
   const handleAddExerciseToWorkout = useCallback((workoutName: string) => {
     setTargetWorkoutName(workoutName);
     setStage(STAGE.ADD_EXERCISE);
@@ -749,50 +904,32 @@ const SelectedMicro = ({
                 setIsEditMode(false);
               }}
             >
-              <View style={styles.containerModal}>
-                <ScrollView>
-                  <View style={styles.backAndTitleWrapp}>
-                    <BackAndTitle
-                      title={`${selectedWorkoutName ?? "Treino"} ${
-                        isEditMode ? "(Editando)" : ""
-                      }`}
-                      onBack={onBackModal}
-                    />
-                  </View>
-
-                  {selectedWorkoutImage && (
-                    <Image
-                      source={{ uri: selectedWorkoutImage }}
-                      style={{
-                        width: "100%",
-                        height: 200,
-                        borderRadius: 12,
-                        marginBottom: 16,
-                      }}
-                      resizeMode="cover"
-                      fadeDuration={0}
-                    />
-                  )}
-
-                  <RegisterWorkoutForm
-                    key={registeringWorkout.id}
-                    workout={registeringWorkout.workout}
-                    control={control}
-                    errors={errors}
-                    fields={fields}
-                    handleSubmit={handleSubmit}
-                    onSubmit={onSubmit}
-                    isEditMode={isEditMode}
-                    cycleItemId={registeringWorkout.id}
-                    previousWorkoutValues={previousWorkoutData}
-                    setValue={setValue}
-                    getValues={getValues}
-                    microId={microId}
-                    onSkipSuccess={handleFormSubmit}
-                    workoutId={registeringWorkout.workout.id}
-                    updateExerciseUnilateral={updateExerciseUnilateral}
-                  />
-                </ScrollView>
+              <View style={[styles.containerModal, { flex: 1 }]}>
+                <RegisterWorkoutForm
+                  key={registeringWorkout.id}
+                  workout={registeringWorkout.workout}
+                  control={control}
+                  errors={errors}
+                  fields={fields}
+                  move={move}
+                  handleSubmit={handleSubmit}
+                  onSubmit={onSubmit}
+                  isEditMode={isEditMode}
+                  cycleItemId={registeringWorkout.id}
+                  previousWorkoutValues={previousWorkoutData}
+                  setValue={setValue}
+                  getValues={getValues}
+                  microId={microId}
+                  onSkipSuccess={handleFormSubmit}
+                  workoutId={registeringWorkout.workout.id}
+                  updateExerciseUnilateral={updateExerciseUnilateral}
+                  onRemoveExercise={handleRemoveExercise}
+                  onReplaceExercise={handleReplaceExercise}
+                  onReorderExercises={handleReorderExercises}
+                  workoutName={selectedWorkoutName}
+                  workoutImageUrl={selectedWorkoutImage}
+                  onBack={onBackModal}
+                />
               </View>
             </Modal>
           )}

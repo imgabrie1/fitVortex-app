@@ -682,6 +682,121 @@ export const AuthProvider = ({ children }: Props) => {
     }
   };
 
+  const removeExerciseFromWorkout = async (
+    microCycleId: string,
+    workoutId: string,
+    workoutExerciseId: string,
+  ): Promise<void> => {
+    assertUser();
+    try {
+      await api.delete(
+        `workout/micro-cycle/${microCycleId}/workout/${workoutId}/exercise/${workoutExerciseId}`,
+      );
+      await refreshWorkoutsData();
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      const msg =
+        currentError?.response?.data ||
+        err?.message ||
+        "Erro ao remover exercício do treino";
+      throw new Error(String(msg));
+    }
+  };
+
+  const replaceExerciseInWorkout = async (
+    microCycleId: string,
+    workoutId: string,
+    workoutExerciseId: string,
+    payload: {
+      newExerciseId: string;
+      targetSets: number;
+      is_unilateral?: boolean;
+      notes?: string | null;
+    },
+  ): Promise<any> => {
+    assertUser();
+    try {
+      const { data } = await api.patch(
+        `workout/micro-cycle/${microCycleId}/workout/${workoutId}/exercise/${workoutExerciseId}`,
+        payload,
+      );
+      await refreshWorkoutsData();
+      return data;
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      const msg =
+        currentError?.response?.data ||
+        err?.message ||
+        "Erro ao substituir exercício do treino";
+      throw new Error(String(msg));
+    }
+  };
+
+  const reorderExercisesInWorkout = async (
+    microCycleId: string,
+    workoutId: string,
+    orderedWorkoutExerciseIds: string[],
+  ): Promise<void> => {
+    assertUser();
+    try {
+      await api.patch(
+        `workout/micro-cycle/${microCycleId}/workout/${workoutId}/reorder-exercises`,
+        { orderedWorkoutExerciseIds },
+      );
+      await refreshWorkoutsData();
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      const msg =
+        currentError?.response?.data ||
+        err?.message ||
+        "Erro ao reordenar exercícios do treino";
+      throw new Error(String(msg));
+    }
+  };
+
+  const modifyWorkoutInMicro = async (
+    microCycleId: string,
+    workoutId: string,
+    payload: {
+      cycleItemId?: string;
+      operation:
+        | { type: "REMOVE"; exerciseId: string }
+        | {
+            type: "REPLACE";
+            oldExerciseId: string;
+            newExerciseId: string;
+            targetSets: number;
+            is_unilateral?: boolean;
+            notes?: string | null;
+          }
+        | { type: "REORDER"; orderedExerciseIds: string[] }
+        | {
+            type: "ADD";
+            exerciseId: string;
+            targetSets: number;
+            is_unilateral?: boolean;
+            notes?: string | null;
+          };
+    },
+  ): Promise<any> => {
+    assertUser();
+    try {
+      const { data } = await api.patch(
+        `microcycle/${microCycleId}/workouts/${workoutId}/modify`,
+        payload,
+      );
+      await refreshWorkoutsData();
+      return data;
+    } catch (err: any) {
+      const currentError = err as AxiosError;
+      const msg =
+        currentError?.response?.data ||
+        err?.message ||
+        "Erro ao modificar treino no microciclo";
+      throw new Error(String(msg));
+    }
+  };
+
   const updateExerciseUnilateral = async (
     workoutID: string,
     exercises: {
@@ -772,6 +887,10 @@ export const AuthProvider = ({ children }: Props) => {
         setActiveWorkout,
         updateUser,
         updatePassword,
+        removeExerciseFromWorkout,
+        replaceExerciseInWorkout,
+        reorderExercisesInWorkout,
+        modifyWorkoutInMicro,
       }}
     >
       {children}

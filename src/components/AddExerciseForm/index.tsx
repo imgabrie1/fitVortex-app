@@ -17,12 +17,14 @@ interface AddExercisesProps {
   onClose: () => void;
   onSubmit: (data: any) => void;
   selectedExercise?: any;
+  defaultTargetSets?: number;
 }
 
 const AddExerciseForm = ({
   onClose,
   onSubmit,
   selectedExercise,
+  defaultTargetSets = 2,
 }: AddExercisesProps) => {
   const {
     control,
@@ -33,7 +35,7 @@ const AddExerciseForm = ({
   } = useForm<FieldValues>({
     resolver: yupResolver(schema as yup.AnyObjectSchema),
     defaultValues: {
-      targetSets: 2,
+      targetSets: defaultTargetSets,
       is_unilateral: selectedExercise?.default_unilateral || false,
     },
   });
@@ -121,7 +123,6 @@ const AddExerciseForm = ({
           )}
         />
 
-        {/* Card de resumo — mesma linguagem do modalVolumeResult da calculadora */}
         <View style={styles.summaryCard}>
           <View style={styles.summaryHeader}>
             <AppText style={styles.summaryLabel}>Resumo</AppText>
