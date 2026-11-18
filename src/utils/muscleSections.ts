@@ -6,7 +6,6 @@ import {
 
 export type MuscleSection = "Tronco" | "Inferior" | "Membros" | "Outros";
 
-/** Mapa minúsculo: só as raízes da hierarquia → seção. 7 entradas. */
 const ROOT_TO_SECTION: Record<string, MuscleSection> = {
   "Peito (Total)": "Tronco",
   "Costas (Total)": "Tronco",

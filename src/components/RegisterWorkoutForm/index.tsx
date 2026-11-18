@@ -8,6 +8,11 @@ import {
   Modal,
 } from "react-native";
 import { Controller } from "react-hook-form";
+import DraggableFlatList, {
+  RenderItemParams,
+  ScaleDecorator,
+} from "react-native-draggable-flatlist";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Button } from "@/components/Button";
 import AppText from "@/components/AppText";
 import { styles } from "./styles";
@@ -15,12 +20,19 @@ import { themas } from "@/global/themes";
 import { UserContext } from "@/contexts/User/UserContext";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import ExerciseOptionsMenu from "@/components/ExerciseOptionsMenu";
+import CustomAlertTwoOptions from "@/components/AlertTwoOptions";
+import ExerciseSelector from "@/components/ExerciseSelector";
+import AddExerciseForm from "@/components/AddExerciseForm";
+import { Exercise } from "@/contexts/User/interface";
+import BackAndTitle from "@/components/BackAndTitle";
 
 interface RegisterWorkoutFormProps {
   workout: any;
   control: any;
   errors: any;
   fields: any[];
+  move?: (from: number, to: number) => void;
   handleSubmit: any;
   onSubmit: any;
   isEditMode?: boolean;
@@ -40,6 +52,15 @@ interface RegisterWorkoutFormProps {
       notes?: string;
     }[],
   ) => Promise<any>;
+  onRemoveExercise: (exerciseId: string) => Promise<void>;
+  onReplaceExercise: (
+    oldExerciseId: string,
+    newExercise: { exerciseId: string; targetSets: number; is_unilateral: boolean },
+  ) => Promise<void>;
+  onReorderExercises: (orderedExerciseIds: string[]) => Promise<void>;
+  workoutName?: string | null;
+  workoutImageUrl?: string | null;
+  onBack?: () => void;
 }
 
 export const RegisterWorkoutForm = ({
@@ -47,6 +68,7 @@ export const RegisterWorkoutForm = ({
   control,
   errors,
   fields,
+  move,
   handleSubmit,
   onSubmit,
   isEditMode = false,
@@ -58,6 +80,12 @@ export const RegisterWorkoutForm = ({
   onSkipSuccess,
   workoutId,
   updateExerciseUnilateral,
+  onRemoveExercise,
+  onReplaceExercise,
+  onReorderExercises,
+  workoutName,
+  workoutImageUrl,
+  onBack,
 }: RegisterWorkoutFormProps) => {
   const { loadingForm, setActiveWorkout, activeWorkout, skipWorkout } =
     useContext(UserContext);
@@ -82,6 +110,14 @@ export const RegisterWorkoutForm = ({
   } | null>(null);
   const [simulatedWeight, setSimulatedWeight] = useState<number>(0);
   const [simulatedReps, setSimulatedReps] = useState<number>(0);
+
+  const [removeAlertVisible, setRemoveAlertVisible] = useState(false);
+  const [exerciseToRemove, setExerciseToRemove] = useState<string | null>(null);
+  const [showReplaceSelector, setShowReplaceSelector] = useState(false);
+  const [showReplaceForm, setShowReplaceForm] = useState(false);
+  const [exerciseToReplace, setExerciseToReplace] = useState<string | null>(null);
+  const [selectedReplacement, setSelectedReplacement] = useState<Exercise | null>(null);
+  const [replacementTargetSets, setReplacementTargetSets] = useState<number>(3);
 
   const [unilateralOverrides, setUnilateralOverrides] = useState<
     Record<string, boolean>
@@ -534,42 +570,135 @@ export const RegisterWorkoutForm = ({
     }
   }, [fields]);
 
-  return (
-    <View style={styles.container}>
-      {fields.map((item, index) => {
-        const exerciseId = item.exerciseId;
-        const isExpanded = isExerciseExpanded(exerciseId);
-        const isUnilateral = getUnilateral(exerciseId);
-        const targetSets = getTargetSets(exerciseId);
-        const numberOfSets =
-          typeof targetSets === "number"
-            ? targetSets
-            : parseInt(targetSets, 10) || 0;
+  const handleRemovePress = (exerciseId: string) => {
+    setExerciseToRemove(exerciseId);
+    setRemoveAlertVisible(true);
+  };
 
-        const actualNumberOfSets = isUnilateral
-          ? numberOfSets * 2
-          : numberOfSets;
+  const handleConfirmRemove = async () => {
+    if (!exerciseToRemove) return;
+    setRemoveAlertVisible(false);
+    try {
+      await onRemoveExercise(exerciseToRemove);
+    } catch (err: any) {
+      Alert.alert("Erro", err.message || "Não foi possível remover o exercício.");
+    }
+    setExerciseToRemove(null);
+  };
 
-        const completedSetsCount = Array.from({
-          length: actualNumberOfSets,
-        }).filter((_, setIndex) => isSetDone(exerciseId, setIndex)).length;
+  const handleReplacePress = (exerciseId: string) => {
+    const targetSets = getTargetSets(exerciseId);
+    setReplacementTargetSets(
+      typeof targetSets === "number"
+        ? targetSets
+        : parseInt(String(targetSets), 10) || 3,
+    );
+    setExerciseToReplace(exerciseId);
+    setShowReplaceSelector(true);
+  };
 
-        const allSetsCompleted = completedSetsCount === actualNumberOfSets;
+  const handleSelectReplacement = (exercise: Exercise) => {
+    setSelectedReplacement(exercise);
+    setShowReplaceSelector(false);
+    setShowReplaceForm(true);
+  };
 
-        return (
-          <View key={item.id}>
-            <TouchableOpacity onPress={() => toggleExercise(exerciseId)}>
-              <View style={[styles.infoHeaderExercise]}>
-                <Image
-                  source={{ uri: getExerciseImg(exerciseId) }}
-                  style={[
-                    styles.img,
-                    allSetsCompleted && styles.imgExerciseDone,
-                  ]}
-                  resizeMode="cover"
-                />
-                <View style={styles.nameAndSetsWrapp}>
-                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+  const handleConfirmReplace = async (formData: {
+    exerciseId: string;
+    targetSets: number;
+    is_unilateral: boolean;
+  }) => {
+    if (!exerciseToReplace) return;
+    setShowReplaceForm(false);
+    try {
+      await onReplaceExercise(exerciseToReplace, formData);
+    } catch (err: any) {
+      Alert.alert("Erro", err.message || "Não foi possível substituir o exercício.");
+    }
+    setExerciseToReplace(null);
+    setSelectedReplacement(null);
+  };
+
+  const handleDragEnd = async ({
+    data,
+    from,
+    to,
+  }: {
+    data: any[];
+    from: number;
+    to: number;
+  }) => {
+    if (from === to) return;
+    if (move) {
+      move(from, to);
+    }
+    const orderedIds = data.map((item) => item.exerciseId);
+    try {
+      await onReorderExercises(orderedIds);
+    } catch (err: any) {
+      Alert.alert(
+        "Erro",
+        err.message || "Não foi possível reordenar os exercícios.",
+      );
+    }
+  };
+
+  const renderExerciseItem = ({
+    item,
+    drag,
+    isActive,
+    getIndex,
+  }: RenderItemParams<any>) => {
+    const index = getIndex() ?? 0;
+    const exerciseId = item.exerciseId;
+    const isExpanded = isExerciseExpanded(exerciseId);
+    const isUnilateral = getUnilateral(exerciseId);
+    const targetSets = getTargetSets(exerciseId);
+    const numberOfSets =
+      typeof targetSets === "number"
+        ? targetSets
+        : parseInt(targetSets, 10) || 0;
+
+    const actualNumberOfSets = isUnilateral
+      ? numberOfSets * 2
+      : numberOfSets;
+
+    const completedSetsCount = Array.from({
+      length: actualNumberOfSets,
+    }).filter((_, setIndex) => isSetDone(exerciseId, setIndex)).length;
+
+    const allSetsCompleted = completedSetsCount === actualNumberOfSets;
+
+    return (
+      <ScaleDecorator activeScale={1.02}>
+        <View
+          style={[
+            isActive && {
+              opacity: 0.9,
+              backgroundColor: themas.Colors.alternativeBlocks,
+              borderRadius: 8,
+            },
+          ]}
+        >
+          <TouchableOpacity
+            onPress={() => toggleExercise(exerciseId)}
+            onLongPress={drag}
+            disabled={isActive}
+            delayLongPress={150}
+            activeOpacity={0.7}
+          >
+            <View style={styles.infoHeaderExercise}>
+              <Image
+                source={{ uri: getExerciseImg(exerciseId) }}
+                style={[
+                  styles.img,
+                  allSetsCompleted && styles.imgExerciseDone,
+                ]}
+                resizeMode="cover"
+              />
+              <View style={[styles.nameAndSetsWrapp, { flex: 1 }]}>
+                <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", flex: 1, flexWrap: "wrap" }}>
                     <AppText
                       style={[
                         styles.exerciseName,
@@ -586,524 +715,627 @@ export const RegisterWorkoutForm = ({
                     )}
                   </View>
 
+                  <ExerciseOptionsMenu
+                    onRemove={() => handleRemovePress(exerciseId)}
+                    onReplace={() => handleReplacePress(exerciseId)}
+                    triggerStyle={{ padding: 6 }}
+                  />
+                </View>
+
+                <AppText
+                  style={[
+                    styles.targetSets,
+                    allSetsCompleted && styles.textCompleted,
+                  ]}
+                >
+                  {`${completedSetsCount}/${actualNumberOfSets} concluídos`}
+                  {isUnilateral && ` (${actualNumberOfSets} lados)`}
+                </AppText>
+
+                <TouchableOpacity
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    toggleUnilateral(exerciseId, index, numberOfSets);
+                  }}
+                  style={[
+                    styles.unilateralToggle,
+                    isUnilateral && styles.unilateralToggleActive,
+                  ]}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <MaterialIcons
+                    name="swap-horiz"
+                    size={14}
+                    color={isUnilateral ? "#fff" : themas.Colors.gray}
+                  />
                   <AppText
                     style={[
-                      styles.targetSets,
-                      allSetsCompleted && styles.textCompleted,
+                      styles.unilateralToggleText,
+                      isUnilateral && styles.unilateralToggleTextActive,
                     ]}
                   >
-                    {`${completedSetsCount}/${actualNumberOfSets} concluídos`}
-                    {isUnilateral && ` (${actualNumberOfSets} lados)`}
+                    {isUnilateral ? "Unilateral" : "Bilateral"}
                   </AppText>
-
-                  <TouchableOpacity
-                    onPress={(e) => {
-                      e.stopPropagation();
-                      toggleUnilateral(exerciseId, index, numberOfSets);
-                    }}
-                    style={[
-                      styles.unilateralToggle,
-                      isUnilateral && styles.unilateralToggleActive,
-                    ]}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  >
-                    <MaterialIcons
-                      name="swap-horiz"
-                      size={14}
-                      color={isUnilateral ? "#fff" : themas.Colors.gray}
-                    />
-                    <AppText
-                      style={[
-                        styles.unilateralToggleText,
-                        isUnilateral && styles.unilateralToggleTextActive,
-                      ]}
-                    >
-                      {isUnilateral ? "Unilateral" : "Bilateral"}
-                    </AppText>
-                  </TouchableOpacity>
-                </View>
+                </TouchableOpacity>
               </View>
-            </TouchableOpacity>
-            <View style={styles.infoHeaderExerciseNotes}>
-              {isExpanded && (
-                <View style={styles.teste}>
-                  <Controller
-                    control={control}
-                    name={`exercises.${index}.notes`}
-                    render={({ field: { onChange, onBlur, value } }) => (
-                      <TextInput
-                        placeholder="Notas..."
-                        placeholderTextColor={themas.Colors.lightGray}
-                        cursorColor={themas.Colors.secondary}
-                        onBlur={onBlur}
-                        onChangeText={onChange}
-                        value={value}
-                        keyboardType="default"
-                        style={styles.notes}
-                      />
-                    )}
-                  />
-                  <View style={styles.headerSets}>
-                    <View style={styles.columnSeries}>
-                      <AppText style={styles.setRepsWeight}>Séries</AppText>
-                    </View>
-                    <View style={styles.columnKg}>
-                      <AppText style={styles.setRepsWeight}>Kg</AppText>
-                    </View>
-                    <View style={styles.columnReps}>
-                      <AppText style={styles.setRepsWeight}>Reps</AppText>
-                    </View>
-                    <View style={styles.columnAction} />
-                  </View>
-                  {Array.from({ length: actualNumberOfSets }).map(
-                    (_, setIndex) => {
-                      const isUnilateralSet = isUnilateral;
-                      const isRightSide = isUnilateralSet && setIndex % 2 === 0;
-                      const isLeftSide = isUnilateralSet && setIndex % 2 === 1;
-
-                      const realSetIndex = isUnilateralSet
-                        ? Math.floor(setIndex / 2)
-                        : setIndex;
-
-                      const isDone = isSetDone(exerciseId, setIndex);
-
-                      const setsColor = (index: number) => {
-                        return index % 2 === 0
-                          ? themas.Colors.background
-                          : themas.Colors.alternativeBlocks;
-                      };
-
-                      const prevSet = getPreviousSet(exerciseId, setIndex);
-                      const formatValue = (val: any) => {
-                        if (val === undefined || val === null || val === "")
-                          return "—";
-                        const num = Number(val);
-                        return isNaN(num) ? String(val) : String(num);
-                      };
-
-                      const placeholderWeight = formatValue(prevSet?.weight);
-                      const placeholderReps = formatValue(prevSet?.reps);
-
-                      const volumeButton = renderVolumeButton(
-                        exerciseId,
-                        setIndex,
-                      );
-                      const hasVolumeButton = volumeButton !== null;
-
-                      return (
-                        <View
-                          key={`${setIndex}-${placeholderWeight}-${placeholderReps}`}
-                        >
-                          <View
-                            style={[
-                              styles.setRow,
-                              isDone
-                                ? styles.isDoneLine
-                                : { backgroundColor: setsColor(setIndex) },
-                            ]}
-                          >
-                            <View style={styles.columnSeries}>
-                              <View style={styles.setNumberContainer}>
-                                {hasVolumeButton && (
-                                  <View style={styles.invisibleVolumeButton} />
-                                )}
-                                <AppText
-                                  style={[
-                                    styles.setLabel,
-                                    isUnilateralSet
-                                      ? isRightSide
-                                        ? styles.setUniRight
-                                        : styles.setUniLeft
-                                      : null,
-                                  ]}
-                                >
-                                  {isUnilateralSet
-                                    ? isRightSide
-                                      ? "D"
-                                      : "E"
-                                    : realSetIndex + 1}
-                                </AppText>
-                                {volumeButton}
-                              </View>
-                            </View>
-
-                            <View style={styles.columnKg}>
-                              <Controller
-                                control={control}
-                                name={`exercises.${index}.sets.${setIndex}.weight`}
-                                render={({
-                                  field: { onChange, onBlur, value },
-                                }) => (
-                                  <TextInput
-                                    placeholder={placeholderWeight}
-                                    placeholderTextColor={themas.Colors.gray}
-                                    cursorColor={themas.Colors.secondary}
-                                    onBlur={onBlur}
-                                    onChangeText={onChange}
-                                    value={String(value ?? "")}
-                                    keyboardType="numeric"
-                                    style={styles.inputRepsWeight}
-                                    selectTextOnFocus={true}
-                                  />
-                                )}
-                              />
-                            </View>
-
-                            <View style={styles.columnReps}>
-                              <Controller
-                                control={control}
-                                name={`exercises.${index}.sets.${setIndex}.reps`}
-                                render={({
-                                  field: { onChange, onBlur, value },
-                                }) => (
-                                  <TextInput
-                                    placeholder={placeholderReps}
-                                    placeholderTextColor={themas.Colors.gray}
-                                    cursorColor={themas.Colors.secondary}
-                                    onBlur={onBlur}
-                                    onChangeText={onChange}
-                                    value={String(value ?? "")}
-                                    keyboardType="numeric"
-                                    style={styles.inputRepsWeight}
-                                    selectTextOnFocus={true}
-                                  />
-                                )}
-                              />
-                            </View>
-
-                            <View style={styles.columnAction}>
-                              <TouchableOpacity
-                                style={[
-                                  styles.doneButton,
-                                  isDone && styles.alternativeDoneButton,
-                                ]}
-                                onPress={() => {
-                                  const weightPath = `exercises.${index}.sets.${setIndex}.weight`;
-                                  const repsPath = `exercises.${index}.sets.${setIndex}.reps`;
-
-                                  const currentWeight = getValues(weightPath);
-                                  const currentReps = getValues(repsPath);
-
-                                  if (
-                                    (!currentWeight || currentWeight === "") &&
-                                    prevSet?.weight !== undefined
-                                  ) {
-                                    setValue(
-                                      weightPath,
-                                      String(Number(prevSet.weight)),
-                                    );
-                                  }
-
-                                  if (
-                                    (!currentReps || currentReps === "") &&
-                                    prevSet?.reps !== undefined
-                                  ) {
-                                    setValue(
-                                      repsPath,
-                                      String(Number(prevSet.reps)),
-                                    );
-                                  }
-
-                                  toggleSetDone(exerciseId, setIndex);
-                                }}
-                              >
-                                <MaterialIcons
-                                  name="done"
-                                  size={24}
-                                  color={themas.Colors.text}
-                                />
-                              </TouchableOpacity>
-                            </View>
-                          </View>
-                          {errors.exercises?.[index]?.sets?.[setIndex]
-                            ?.reps && (
-                            <AppText style={{}}>
-                              {
-                                errors.exercises[index].sets[setIndex].reps
-                                  .message
-                              }
-                            </AppText>
-                          )}
-                          {errors.exercises?.[index]?.sets?.[setIndex]
-                            ?.weight && (
-                            <AppText style={{}}>
-                              {
-                                errors.exercises[index].sets[setIndex].weight
-                                  .message
-                              }
-                            </AppText>
-                          )}
-                        </View>
-                      );
-                    },
+            </View>
+          </TouchableOpacity>
+          <View style={styles.infoHeaderExerciseNotes}>
+            {isExpanded && (
+              <View style={styles.teste}>
+                <Controller
+                  control={control}
+                  name={`exercises.${index}.notes`}
+                  render={({ field: { onChange, onBlur, value } }) => (
+                    <TextInput
+                      placeholder="Notas..."
+                      placeholderTextColor={themas.Colors.lightGray}
+                      cursorColor={themas.Colors.secondary}
+                      onBlur={onBlur}
+                      onChangeText={onChange}
+                      value={value}
+                      keyboardType="default"
+                      style={styles.notes}
+                    />
                   )}
-                </View>
-              )}
-            </View>
-          </View>
-        );
-      })}
-
-      <Modal
-        visible={showVolumeModal}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowVolumeModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHeader}>
-              <AppText style={styles.modalTitle}>Calculadora de Volume</AppText>
-              <TouchableOpacity
-                style={styles.modalCloseButton}
-                onPress={() => setShowVolumeModal(false)}
-              >
-                <MaterialIcons
-                  name="close"
-                  size={24}
-                  color={themas.Colors.text}
                 />
-              </TouchableOpacity>
-            </View>
-
-            {selectedSetData && (
-              <>
-                <View style={styles.modalExerciseInfo}>
-                  <AppText style={styles.modalExerciseName}>
-                    Série {selectedSetData.setIndex + 1} -{" "}
-                    {getExerciseName(selectedSetData.exerciseId)}
-                  </AppText>
-                </View>
-
-                <View style={styles.modalSimulationContainer}>
-                  <View style={styles.modalInputRow}>
-                    <View style={styles.modalInputGroup}>
-                      <AppText style={styles.modalInputLabel}>
-                        Peso (kg)
-                      </AppText>
-                      <TextInput
-                        style={styles.modalInput}
-                        value={String(simulatedWeight)}
-                        onChangeText={(text) => {
-                          const num = parseFloat(text);
-                          if (!isNaN(num) && num > 0) {
-                            setSimulatedWeight(num);
-                          } else if (text === "") {
-                            setSimulatedWeight(0);
-                          }
-                        }}
-                        keyboardType="numeric"
-                        placeholder="Peso"
-                        placeholderTextColor={themas.Colors.gray}
-                      />
-                    </View>
-
-                    <View style={styles.modalInputGroup}>
-                      <AppText style={styles.modalInputLabel}>
-                        Repetições
-                      </AppText>
-                      <TextInput
-                        style={styles.modalInput}
-                        value={String(simulatedReps)}
-                        onChangeText={(text) => {
-                          const num = parseInt(text);
-                          if (!isNaN(num) && num > 0) {
-                            setSimulatedReps(num);
-                          } else if (text === "") {
-                            setSimulatedReps(0);
-                          }
-                        }}
-                        keyboardType="numeric"
-                        placeholder="Reps"
-                        placeholderTextColor={themas.Colors.gray}
-                      />
-                    </View>
+                <View style={styles.headerSets}>
+                  <View style={styles.columnSeries}>
+                    <AppText style={styles.setRepsWeight}>Séries</AppText>
                   </View>
+                  <View style={styles.columnKg}>
+                    <AppText style={styles.setRepsWeight}>Kg</AppText>
+                  </View>
+                  <View style={styles.columnReps}>
+                    <AppText style={styles.setRepsWeight}>Reps</AppText>
+                  </View>
+                  <View style={styles.columnAction} />
+                </View>
+                {Array.from({ length: actualNumberOfSets }).map(
+                  (_, setIndex) => {
+                    const isUnilateralSet = isUnilateral;
+                    const isRightSide = isUnilateralSet && setIndex % 2 === 0;
+                    const isLeftSide = isUnilateralSet && setIndex % 2 === 1;
 
-                  {(() => {
-                    const originalVolume = calculateVolume(
-                      selectedSetData.weight,
-                      selectedSetData.reps,
-                    );
-                    const newVolume = calculateVolume(
-                      simulatedWeight,
-                      simulatedReps,
-                    );
-                    const status = getVolumeStatus(originalVolume, newVolume);
-                    const difference = newVolume - originalVolume;
-                    const percentageChange = getPercentageChange(
-                      originalVolume,
-                      newVolume,
-                    );
+                    const realSetIndex = isUnilateralSet
+                      ? Math.floor(setIndex / 2)
+                      : setIndex;
 
-                    let statusColor = themas.Colors.gray;
-                    let percentageText = "0%";
+                    const isDone = isSetDone(exerciseId, setIndex);
 
-                    if (status === "increase") {
-                      statusColor = "#4CAF50";
-                      percentageText = `+${percentageChange.toFixed(1)}%`;
-                    } else if (status === "decrease") {
-                      statusColor = "#F44336";
-                      percentageText = `${percentageChange.toFixed(1)}%`;
-                    }
+                    const setsColor = (index: number) => {
+                      return index % 2 === 0
+                        ? themas.Colors.background
+                        : themas.Colors.alternativeBlocks;
+                    };
+
+                    const prevSet = getPreviousSet(exerciseId, setIndex);
+                    const formatValue = (val: any) => {
+                      if (val === undefined || val === null || val === "")
+                        return "—";
+                      const num = Number(val);
+                      return isNaN(num) ? String(val) : String(num);
+                    };
+
+                    const placeholderWeight = formatValue(prevSet?.weight);
+                    const placeholderReps = formatValue(prevSet?.reps);
+
+                    const volumeButton = renderVolumeButton(
+                      exerciseId,
+                      setIndex,
+                    );
+                    const hasVolumeButton = volumeButton !== null;
 
                     return (
                       <View
-                        style={[
-                          styles.modalVolumeResult,
-                          { borderColor: statusColor },
-                        ]}
+                        key={`${setIndex}-${placeholderWeight}-${placeholderReps}`}
                       >
-                        <View style={styles.modalVolumeHeader}>
-                          <AppText style={styles.modalVolumeLabel}>
-                            Volume
-                          </AppText>
-                          <AppText
-                            style={[
-                              styles.modalPercentageBadge,
-                              { backgroundColor: statusColor },
-                            ]}
-                          >
-                            {percentageText}
-                          </AppText>
-                        </View>
-                        <AppText
+                        <View
                           style={[
-                            styles.modalVolumeValue,
-                            { color: statusColor },
+                            styles.setRow,
+                            isDone
+                              ? styles.isDoneLine
+                              : { backgroundColor: setsColor(setIndex) },
                           ]}
                         >
-                          {simulatedWeight}kg × {simulatedReps} = {newVolume}
-                        </AppText>
-                        {difference !== 0 && (
-                          <AppText
-                            style={[
-                              styles.modalVolumeDifference,
-                              { color: statusColor },
-                            ]}
-                          >
-                            {difference > 0 ? "+" : ""}
-                            {difference}
+                          <View style={styles.columnSeries}>
+                            <View style={styles.setNumberContainer}>
+                              {hasVolumeButton && (
+                                <View style={styles.invisibleVolumeButton} />
+                              )}
+                              <AppText
+                                style={[
+                                  styles.setLabel,
+                                  isUnilateralSet
+                                    ? isRightSide
+                                      ? styles.setUniRight
+                                      : styles.setUniLeft
+                                    : null,
+                                ]}
+                              >
+                                {isUnilateralSet
+                                  ? isRightSide
+                                    ? "D"
+                                    : "E"
+                                  : realSetIndex + 1}
+                              </AppText>
+                              {volumeButton}
+                            </View>
+                          </View>
+
+                          <View style={styles.columnKg}>
+                            <Controller
+                              control={control}
+                              name={`exercises.${index}.sets.${setIndex}.weight`}
+                              render={({
+                                field: { onChange, onBlur, value },
+                              }) => (
+                                <TextInput
+                                  placeholder={placeholderWeight}
+                                  placeholderTextColor={themas.Colors.gray}
+                                  cursorColor={themas.Colors.secondary}
+                                  onBlur={onBlur}
+                                  onChangeText={onChange}
+                                  value={String(value ?? "")}
+                                  keyboardType="numeric"
+                                  style={styles.inputRepsWeight}
+                                  selectTextOnFocus={true}
+                                />
+                              )}
+                            />
+                          </View>
+
+                          <View style={styles.columnReps}>
+                            <Controller
+                              control={control}
+                              name={`exercises.${index}.sets.${setIndex}.reps`}
+                              render={({
+                                field: { onChange, onBlur, value },
+                              }) => (
+                                <TextInput
+                                  placeholder={placeholderReps}
+                                  placeholderTextColor={themas.Colors.gray}
+                                  cursorColor={themas.Colors.secondary}
+                                  onBlur={onBlur}
+                                  onChangeText={onChange}
+                                  value={String(value ?? "")}
+                                  keyboardType="numeric"
+                                  style={styles.inputRepsWeight}
+                                  selectTextOnFocus={true}
+                                />
+                              )}
+                            />
+                          </View>
+
+                          <View style={styles.columnAction}>
+                            <TouchableOpacity
+                              style={[
+                                styles.doneButton,
+                                isDone && styles.alternativeDoneButton,
+                              ]}
+                              onPress={() => {
+                                const weightPath = `exercises.${index}.sets.${setIndex}.weight`;
+                                const repsPath = `exercises.${index}.sets.${setIndex}.reps`;
+
+                                const currentWeight = getValues(weightPath);
+                                const currentReps = getValues(repsPath);
+
+                                if (
+                                  (!currentWeight || currentWeight === "") &&
+                                  prevSet?.weight !== undefined
+                                ) {
+                                  setValue(
+                                    weightPath,
+                                    String(Number(prevSet.weight)),
+                                  );
+                                }
+
+                                if (
+                                  (!currentReps || currentReps === "") &&
+                                  prevSet?.reps !== undefined
+                                ) {
+                                  setValue(
+                                    repsPath,
+                                    String(Number(prevSet.reps)),
+                                  );
+                                }
+
+                                toggleSetDone(exerciseId, setIndex);
+                              }}
+                            >
+                              <MaterialIcons
+                                name="done"
+                                size={24}
+                                color={themas.Colors.text}
+                              />
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                        {errors.exercises?.[index]?.sets?.[setIndex]
+                          ?.reps && (
+                          <AppText style={{}}>
+                            {
+                              errors.exercises[index].sets[setIndex].reps
+                                .message
+                            }
+                          </AppText>
+                        )}
+                        {errors.exercises?.[index]?.sets?.[setIndex]
+                          ?.weight && (
+                          <AppText style={{}}>
+                            {
+                              errors.exercises[index].sets[setIndex].weight
+                                .message
+                            }
                           </AppText>
                         )}
                       </View>
                     );
-                  })()}
+                  },
+                )}
+              </View>
+            )}
+          </View>
+        </View>
+      </ScaleDecorator>
+    );
+  };
 
-                  <View style={styles.modalButtonRow}>
-                    <TouchableOpacity
-                      style={[styles.modalButton, styles.modalCancelButton]}
-                      onPress={() => setShowVolumeModal(false)}
-                    >
-                      <AppText style={styles.modalCancelButtonText}>OK</AppText>
-                    </TouchableOpacity>
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+    <View style={[styles.container, { flex: 1 }]}>
+        <DraggableFlatList
+          data={fields}
+          keyExtractor={(item) => item.id}
+          renderItem={renderExerciseItem}
+          onDragEnd={handleDragEnd}
+          scrollEnabled={true}
+          activationDistance={10}
+          contentContainerStyle={{ paddingBottom: 32 }}
+          ListHeaderComponent={
+            <View style={{ marginBottom: 16 }}>
+              {onBack && (
+                <View style={styles.backAndTitleWrapp}>
+                  <BackAndTitle
+                    title={`${workoutName ?? "Treino"}${isEditMode ? " (Editando)" : ""}`}
+                    onBack={onBack}
+                  />
+                </View>
+              )}
+              {workoutImageUrl && (
+                <Image
+                  source={{ uri: workoutImageUrl }}
+                  style={{
+                    width: "100%",
+                    height: 200,
+                    borderRadius: 12,
+                    marginBottom: 16,
+                  }}
+                  resizeMode="cover"
+                  fadeDuration={0}
+                />
+              )}
+            </View>
+          }
+          ListFooterComponent={
+            <View style={styles.actionContainer}>
+              <Button
+                text={isEditMode ? "ATUALIZAR TREINO" : "FINALIZAR TREINO"}
+                onPress={handleSubmit(async (data: any) => {
+                  const changed = Object.entries(unilateralOverrides).filter(
+                    ([id, val]) => originalUnilateralRef.current[id] !== val,
+                  );
+                  if (changed.length > 0) {
+                    const exercises = (workoutData.workoutExercises || []).map(
+                      (we: any) => ({
+                        exerciseId: we.exercise.id,
+                        targetSets: we.targetSets,
+                        is_unilateral:
+                          unilateralOverrides[we.exercise.id] ??
+                          we.is_unilateral ??
+                          we.exercise?.default_unilateral ??
+                          false,
+                        notes: we.notes ?? undefined,
+                      }),
+                    );
+                    try {
+                      await updateExerciseUnilateral(workoutId, exercises);
+                    } catch (err) {
+                      console.error("Erro ao atualizar unilateral:", err);
+                    }
+                  }
+                  return onSubmit(data);
+                })}
+                styleButton={styles.buttonMain}
+                loading={loadingForm}
+              />
+
+              <View style={styles.moreOptionsContainer}>
+                <TouchableOpacity
+                  onPress={toggleMoreOptions}
+                  style={styles.moreOptionsButton}
+                  activeOpacity={0.7}
+                >
+                  <AppText style={styles.moreOptionsText}>
+                    {isExpanded ? "MENOS OPÇÕES" : "MAIS OPÇÕES"}
+                  </AppText>
+                  <MaterialIcons
+                    name={isExpanded ? "keyboard-arrow-up" : "keyboard-arrow-down"}
+                    size={20}
+                    color={themas.Colors.secondary}
+                  />
+                </TouchableOpacity>
+
+                {isExpanded && (
+                  <TouchableOpacity
+                    style={styles.skipButton}
+                    activeOpacity={0.7}
+                    onPress={handleSkipWorkout}
+                    disabled={loadingForm}
+                  >
+                    <MaterialIcons
+                      name="skip-next"
+                      size={20}
+                      color={themas.Colors.red}
+                    />
+                    <AppText style={styles.skipButtonText}>PULAR TREINO</AppText>
+                  </TouchableOpacity>
+                )}
+              </View>
+            </View>
+          }
+        />
+
+        <Modal
+          visible={showVolumeModal}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowVolumeModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <View style={styles.modalHeader}>
+                <AppText style={styles.modalTitle}>Calculadora de Volume</AppText>
+                <TouchableOpacity
+                  style={styles.modalCloseButton}
+                  onPress={() => setShowVolumeModal(false)}
+                >
+                  <MaterialIcons
+                    name="close"
+                    size={24}
+                    color={themas.Colors.text}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              {selectedSetData && (
+                <>
+                  <View style={styles.modalExerciseInfo}>
+                    <AppText style={styles.modalExerciseName}>
+                      Série {selectedSetData.setIndex + 1} -{" "}
+                      {getExerciseName(selectedSetData.exerciseId)}
+                    </AppText>
+                  </View>
+
+                  <View style={styles.modalSimulationContainer}>
+                    <View style={styles.modalInputRow}>
+                      <View style={styles.modalInputGroup}>
+                        <AppText style={styles.modalInputLabel}>
+                          Peso (kg)
+                        </AppText>
+                        <TextInput
+                          style={styles.modalInput}
+                          value={String(simulatedWeight)}
+                          onChangeText={(text) => {
+                            const num = parseFloat(text);
+                            if (!isNaN(num) && num > 0) {
+                              setSimulatedWeight(num);
+                            } else if (text === "") {
+                              setSimulatedWeight(0);
+                            }
+                          }}
+                          keyboardType="numeric"
+                          placeholder="Peso"
+                          placeholderTextColor={themas.Colors.gray}
+                        />
+                      </View>
+
+                      <View style={styles.modalInputGroup}>
+                        <AppText style={styles.modalInputLabel}>
+                          Repetições
+                        </AppText>
+                        <TextInput
+                          style={styles.modalInput}
+                          value={String(simulatedReps)}
+                          onChangeText={(text) => {
+                            const num = parseInt(text);
+                            if (!isNaN(num) && num > 0) {
+                              setSimulatedReps(num);
+                            } else if (text === "") {
+                              setSimulatedReps(0);
+                            }
+                          }}
+                          keyboardType="numeric"
+                          placeholder="Reps"
+                          placeholderTextColor={themas.Colors.gray}
+                        />
+                      </View>
+                    </View>
 
                     {(() => {
                       const originalVolume = calculateVolume(
-                        selectedSetData?.weight || 0,
-                        selectedSetData?.reps || 0,
+                        selectedSetData.weight,
+                        selectedSetData.reps,
                       );
                       const newVolume = calculateVolume(
                         simulatedWeight,
                         simulatedReps,
                       );
                       const status = getVolumeStatus(originalVolume, newVolume);
+                      const difference = newVolume - originalVolume;
+                      const percentageChange = getPercentageChange(
+                        originalVolume,
+                        newVolume,
+                      );
 
-                      let applyColor = themas.Colors.secondary;
+                      let statusColor = themas.Colors.gray;
+                      let percentageText = "0%";
+
                       if (status === "increase") {
-                        applyColor = "#4CAF50";
+                        statusColor = "#4CAF50";
+                        percentageText = `+${percentageChange.toFixed(1)}%`;
                       } else if (status === "decrease") {
-                        applyColor = "#F44336";
+                        statusColor = "#F44336";
+                        percentageText = `${percentageChange.toFixed(1)}%`;
                       }
 
                       return (
-                        <TouchableOpacity
+                        <View
                           style={[
-                            styles.modalButton,
-                            styles.modalApplyButton,
-                            { backgroundColor: applyColor },
+                            styles.modalVolumeResult,
+                            { borderColor: statusColor },
                           ]}
-                          onPress={handleApplyVolume}
                         >
-                          <AppText style={styles.modalApplyButtonText}>
-                            APLICAR
+                          <View style={styles.modalVolumeHeader}>
+                            <AppText style={styles.modalVolumeLabel}>
+                              Volume
+                            </AppText>
+                            <AppText
+                              style={[
+                                styles.modalPercentageBadge,
+                                { backgroundColor: statusColor },
+                              ]}
+                            >
+                              {percentageText}
+                            </AppText>
+                          </View>
+                          <AppText
+                            style={[
+                              styles.modalVolumeValue,
+                              { color: statusColor },
+                            ]}
+                          >
+                            {simulatedWeight}kg × {simulatedReps} = {newVolume}
                           </AppText>
-                        </TouchableOpacity>
+                          {difference !== 0 && (
+                            <AppText
+                              style={[
+                                styles.modalVolumeDifference,
+                                { color: statusColor },
+                              ]}
+                            >
+                              {difference > 0 ? "+" : ""}
+                              {difference}
+                            </AppText>
+                          )}
+                        </View>
                       );
                     })()}
+
+                    <View style={styles.modalButtonRow}>
+                      <TouchableOpacity
+                        style={[styles.modalButton, styles.modalCancelButton]}
+                        onPress={() => setShowVolumeModal(false)}
+                      >
+                        <AppText style={styles.modalCancelButtonText}>OK</AppText>
+                      </TouchableOpacity>
+
+                      {(() => {
+                        const originalVolume = calculateVolume(
+                          selectedSetData?.weight || 0,
+                          selectedSetData?.reps || 0,
+                        );
+                        const newVolume = calculateVolume(
+                          simulatedWeight,
+                          simulatedReps,
+                        );
+                        const status = getVolumeStatus(originalVolume, newVolume);
+
+                        let applyColor = themas.Colors.secondary;
+                        if (status === "increase") {
+                          applyColor = "#4CAF50";
+                        } else if (status === "decrease") {
+                          applyColor = "#F44336";
+                        }
+
+                        return (
+                          <TouchableOpacity
+                            style={[
+                              styles.modalButton,
+                              styles.modalApplyButton,
+                              { backgroundColor: applyColor },
+                            ]}
+                            onPress={handleApplyVolume}
+                          >
+                            <AppText style={styles.modalApplyButtonText}>
+                              APLICAR
+                            </AppText>
+                          </TouchableOpacity>
+                        );
+                      })()}
+                    </View>
                   </View>
-                </View>
-              </>
-            )}
+                </>
+              )}
+            </View>
           </View>
-        </View>
-      </Modal>
+        </Modal>
 
-      <View style={styles.actionContainer}>
-        <Button
-          text={isEditMode ? "ATUALIZAR TREINO" : "FINALIZAR TREINO"}
-          onPress={handleSubmit(async (data: any) => {
-            const changed = Object.entries(unilateralOverrides).filter(
-              ([id, val]) => originalUnilateralRef.current[id] !== val,
-            );
-            if (changed.length > 0) {
-              const exercises = (workoutData.workoutExercises || []).map(
-                (we: any) => ({
-                  exerciseId: we.exercise.id,
-                  targetSets: we.targetSets,
-                  is_unilateral:
-                    unilateralOverrides[we.exercise.id] ??
-                    we.is_unilateral ??
-                    we.exercise?.default_unilateral ??
-                    false,
-                  notes: we.notes ?? undefined,
-                }),
-              );
-              try {
-                await updateExerciseUnilateral(workoutId, exercises);
-              } catch (err) {
-                console.error("Erro ao atualizar unilateral:", err);
-              }
-            }
-            return onSubmit(data);
-          })}
-          styleButton={styles.buttonMain}
-          loading={loadingForm}
-        />
+        {removeAlertVisible && (
+          <CustomAlertTwoOptions
+            visible={removeAlertVisible}
+            title="Remover exercício?"
+            message={`Deseja remover "${getExerciseName(exerciseToRemove ?? "")}" do treino? Isso reflete em todos os microciclos.`}
+            buttonTextOne="Remover"
+            buttonTextTwo="Cancelar"
+            onPress={handleConfirmRemove}
+            onClose={() => {
+              setRemoveAlertVisible(false);
+              setExerciseToRemove(null);
+            }}
+          />
+        )}
 
-        <View style={styles.moreOptionsContainer}>
-          <TouchableOpacity
-            onPress={toggleMoreOptions}
-            style={styles.moreOptionsButton}
-            activeOpacity={0.7}
-          >
-            <AppText style={styles.moreOptionsText}>
-              {isExpanded ? "MENOS OPÇÕES" : "MAIS OPÇÕES"}
-            </AppText>
-            <MaterialIcons
-              name={isExpanded ? "keyboard-arrow-up" : "keyboard-arrow-down"}
-              size={20}
-              color={themas.Colors.secondary}
-            />
-          </TouchableOpacity>
+        <Modal
+          visible={showReplaceSelector}
+          animationType="slide"
+          transparent={false}
+          onRequestClose={() => {
+            setShowReplaceSelector(false);
+            setExerciseToReplace(null);
+          }}
+        >
+          <ExerciseSelector
+            onSelect={handleSelectReplacement}
+            onBack={() => {
+              setShowReplaceSelector(false);
+              setExerciseToReplace(null);
+            }}
+            title="Substituir por..."
+          />
+        </Modal>
 
-          {isExpanded && (
-            <TouchableOpacity
-              style={styles.skipButton}
-              activeOpacity={0.7}
-              onPress={handleSkipWorkout}
-              disabled={loadingForm}
-            >
-              <MaterialIcons
-                name="skip-next"
-                size={20}
-                color={themas.Colors.red}
-              />
-              <AppText style={styles.skipButtonText}>PULAR TREINO</AppText>
-            </TouchableOpacity>
-          )}
-        </View>
+        <Modal
+          visible={showReplaceForm}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => {
+            setShowReplaceForm(false);
+            setSelectedReplacement(null);
+          }}
+        >
+          <AddExerciseForm
+            selectedExercise={selectedReplacement}
+            defaultTargetSets={replacementTargetSets}
+            onClose={() => {
+              setShowReplaceForm(false);
+              setSelectedReplacement(null);
+            }}
+            onSubmit={handleConfirmReplace}
+          />
+        </Modal>
+
       </View>
-    </View>
+    </GestureHandlerRootView>
   );
 };

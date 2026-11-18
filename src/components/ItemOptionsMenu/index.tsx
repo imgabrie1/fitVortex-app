@@ -112,7 +112,7 @@ const ItemOptionsMenu: React.FC<Props> = ({
                         color={themas.Colors.led}
                       />
                       <AppText style={style.optionText}>
-                        Adicionar Exercício
+                        Adicionar Exercícios
                       </AppText>
                     </Pressable>
                     <View style={style.divider} />

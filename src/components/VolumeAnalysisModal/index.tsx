@@ -136,7 +136,6 @@ const VolumeAnalysisModal = ({
             </TouchableOpacity>
           </View>
 
-          {/* Tabs de seção */}
           <View style={styles.tabsContainer}>
             {sectionsWithData.map((section) => {
               const isActive = activeSection === section;
